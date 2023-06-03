@@ -1,4 +1,4 @@
-// tests/auth.test.js
+// auth.test.js
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -10,7 +10,6 @@ describe('Auth routes', () => {
     let mongoServer;
 
     beforeAll(async () => {
-        // Disconnect from any active connections
         await mongoose.disconnect();
 
         mongoServer = await MongoMemoryServer.create();
@@ -23,17 +22,15 @@ describe('Auth routes', () => {
     });
 
     afterAll(async () => {
-        // Disconnect from the test database
         await mongoose.disconnect();
         await mongoServer.stop();
     });
-
 
     afterEach(async () => {
         await User.deleteMany({});
     });
 
-    test('POST /signup', async () => {
+    test('POST /signup - Successful signup', async () => {
         const response = await request(app)
             .post('/api/auth/signup')
             .send({
@@ -48,11 +45,94 @@ describe('Auth routes', () => {
         expect(user).not.toBeNull();
     });
 
-    test('POST /login', async () => {
+    test('POST /signup - Missing fields', async () => {
+        const response = await request(app)
+            .post('/api/auth/signup')
+            .send({
+                username: 'testuser',
+                password: 'StrongTestPassword123!',
+            });
+
+        expect(response.statusCode).toBe(422);
+        expect(response.body.errors).toContainEqual({
+          msg: 'Must be a valid email address',
+          location: 'body',
+          path: 'email',
+          type: 'field',
+        });      
+    });
+
+    test('POST /signup - Invalid email', async () => {
+        const response = await request(app)
+            .post('/api/auth/signup')
+            .send({
+                username: 'testuser',
+                email: 'notavalidemail',
+                password: 'StrongTestPassword123!',
+            });
+
+        expect(response.statusCode).toBe(422);
+        expect(response.body.errors).toContainEqual({
+          msg: 'Must be a valid email address',
+          location: 'body',
+          path: 'email',
+          type: 'field',
+          value: 'notavalidemail',
+        });
+    });
+
+    test('POST /signup - Weak password', async () => {
+        const response = await request(app)
+            .post('/api/auth/signup')
+            .send({
+                username: 'testuser',
+                email: 'testuser@test.com',
+                password: 'weak',
+            });
+
+        expect(response.statusCode).toBe(422);
+        expect(response.body.errors).toContainEqual({
+          msg: 'Password is too weak',
+          location: 'body',
+          path: 'password',
+          type: 'field',
+          value: 'weak',
+        });
+        expect(response.body.errors).toContainEqual({
+          msg: 'Password must be at least 8 characters long',
+          location: 'body',
+          path: 'password',
+          type: 'field',
+          value: 'weak',
+        });      
+    });
+
+    test('POST /signup - Duplicate email', async () => {
+        await request(app)
+            .post('/api/auth/signup')
+            .send({
+                username: 'testuser1',
+                email: 'duplicate@test.com',
+                password: 'StrongTestPassword123!',
+            });
+
+        const response = await request(app)
+            .post('/api/auth/signup')
+            .send({
+                username: 'testuser2',
+                email: 'duplicate@test.com',
+                password: 'StrongTestPassword123!',
+            });
+
+        expect(response.statusCode).toBe(409);
+        expect(response.body).toHaveProperty('msg', 'Email already in use');
+    });
+
+    test('POST /login - Successful login', async () => {
         const user = new User({
             username: 'testuser',
             email: 'testuser@test.com',
-            password: await bcrypt.hash('Testpassword1', 10),
+            password: await bcrypt.hash('StrongTestPassword123!', 10),
         });
         await user.save();
 
@@ -60,10 +140,52 @@ describe('Auth routes', () => {
             .post('/api/auth/login')
             .send({
                 email: 'testuser@test.com',
-                password: 'Testpassword1',
+                password: 'StrongTestPassword123!',
             });
 
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveProperty('token');
+    });
+
+    test('POST /login - Missing email or password', async () => {
+        const response = await request(app)
+            .post('/api/auth/login')
+            .send({
+                password: 'StrongTestPassword123!',
+            });
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toHaveProperty('msg', 'Email not registered');
+    });
+
+    test('POST /login - Non-existent user', async () => {
+        const response = await request(app)
+            .post('/api/auth/login')
+            .send({
+                email: 'nonexistent@test.com',
+                password: 'StrongTestPassword123!',
+            });
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toHaveProperty('msg', 'Email not registered');
+    });
+
+    test('POST /login - Incorrect password', async () => {
+        const user = new User({
+            username: 'testuser',
+            email: 'testuser@test.com',
+            password: await bcrypt.hash('StrongTestPassword123!', 10),
+        });
+        await user.save();
+
+        const response = await request(app)
+            .post('/api/auth/login')
+            .send({
+                email: 'testuser@test.com',
+                password: 'IncorrectPassword123!',
+            });
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toHaveProperty('msg', 'Incorrect password');
     });
 });

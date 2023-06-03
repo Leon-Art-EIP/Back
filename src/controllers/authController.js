@@ -9,7 +9,7 @@ exports.signup = async (req, res) => {
         // Check if user already exists
         let user = await User.findOne({ email });
         if (user) {
-            return res.status(400).json({ msg: 'User already exists' });
+            return res.status(409).json({ msg: 'Email already in use' });
         }
 
         // Create new user
@@ -25,12 +25,15 @@ exports.signup = async (req, res) => {
             user: { id: user.id },
         };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
-            if (err) throw err;
+            if (err) {
+                console.error(err.message);
+                return res.status(500).json({ msg: 'Error generating token' });
+            }
             res.json({ token });
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server Error' });
     }
 };
 
@@ -41,13 +44,13 @@ exports.login = async (req, res) => {
         // Check if user exists
         let user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ msg: 'Invalid credentials' });
+            return res.status(401).json({ msg: 'Email not registered' });
         }
 
         // Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ msg: 'Invalid credentials' });
+            return res.status(401).json({ msg: 'Incorrect password' });
         }
 
         // Generate and return jwt token
@@ -55,11 +58,14 @@ exports.login = async (req, res) => {
             user: { id: user.id },
         };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
-            if (err) throw err;
+            if (err) {
+                console.error(err.message);
+                return res.status(500).json({ msg: 'Error generating token' });
+            }
             res.json({ token });
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server Error' });
     }
 };

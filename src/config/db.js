@@ -8,7 +8,8 @@ const connectDB = async () => {
             dbName: 'leonart'
         });
         console.log('MongoDB connected...');
-    } catch (err) {
+    } 
+    catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         process.exit(1);
     }

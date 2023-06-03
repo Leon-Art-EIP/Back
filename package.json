@@ -4,7 +4,7 @@
   "description": "[![Node.js](https://img.shields.io/badge/Node.js-v16.13.1-green.svg)](https://nodejs.org/)\r [![Express.js](https://img.shields.io/badge/Express.js-v4.17.1-blue.svg)](https://expressjs.com/)\r [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)",
   "main": "index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --testTimeout=5000"
+    "test": "cross-env NODE_ENV=test jest --coverage --testTimeout=5000"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
     "express-validator": "^7.0.1",
+    "jest-mock-extended": "^3.0.4",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^5.5.0",
     "mongoose": "^7.1.1",

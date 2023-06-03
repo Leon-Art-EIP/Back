@@ -25,13 +25,14 @@ exports.signup = async (req, res) => {
             user: { id: user.id },
         };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
+            /* istanbul ignore next */
             if (err) {
                 console.error(err.message);
                 return res.status(500).json({ msg: 'Error generating token' });
             }
             res.json({ token });
         });
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ msg: 'Server Error' });
     }
@@ -58,13 +59,15 @@ exports.login = async (req, res) => {
             user: { id: user.id },
         };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
+            /* istanbul ignore next */
             if (err) {
                 console.error(err.message);
                 return res.status(500).json({ msg: 'Error generating token' });
             }
             res.json({ token });
         });
-    } catch (err) {
+    }
+    catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ msg: 'Server Error' });
     }

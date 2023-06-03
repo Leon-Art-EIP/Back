@@ -4,7 +4,7 @@
   "description": "[![Node.js](https://img.shields.io/badge/Node.js-v16.13.1-green.svg)](https://nodejs.org/)\r [![Express.js](https://img.shields.io/badge/Express.js-v4.17.1-blue.svg)](https://expressjs.com/)\r [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "cross-env NODE_ENV=test jest --testTimeout=5000"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Leon-Art-EIP/Back#readme",
   "dependencies": {
     "bcrypt": "^5.1.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
@@ -35,6 +36,7 @@
     "mocha": "^10.2.0",
     "mongodb-memory-server": "^8.12.2",
     "nyc": "^15.1.0",
+    "sinon": "^15.1.0",
     "supertest": "^6.3.3"
   }
 }

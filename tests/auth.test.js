@@ -35,11 +35,11 @@ describe('Auth routes', () => {
 
     test('POST /signup', async () => {
         const response = await request(app)
-            .post('api/auth/signup')
+            .post('/api/auth/signup')
             .send({
                 username: 'testuser',
                 email: 'testuser@test.com',
-                password: 'Testpassword1',
+                password: 'StrongTestPassword123!',
             });
 
         expect(response.statusCode).toBe(200);
@@ -57,7 +57,7 @@ describe('Auth routes', () => {
         await user.save();
 
         const response = await request(app)
-            .post('/login')
+            .post('/api/auth/login')
             .send({
                 email: 'testuser@test.com',
                 password: 'Testpassword1',

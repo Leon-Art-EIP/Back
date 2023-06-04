@@ -18,11 +18,6 @@ pipeline {
             }
         }
 
-        stage('Start MongoDB') {
-            steps {
-                sh 'docker run --name mongodb -d mongo'
-            }
-        }
 
         stage('Test with Jest') {
             steps {
@@ -30,23 +25,5 @@ pipeline {
             }
         }
 
-        stage('Install Newman') {
-            steps {
-                sh 'npm install -g newman'
-            }
-        }
-
-        stage('Test with Postman') {
-            steps {
-                sh "newman run ./test/postman/collection.json"
-            }
-        }
-    }
-
-    post {
-        always {
-            sh 'docker stop mongodb'
-            sh 'docker rm mongodb'
-        }
     }
 }

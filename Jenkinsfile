@@ -4,7 +4,7 @@ pipeline {
     triggers { githubPush() }
 
     tools {nodejs "NodeJS"}
-
+    
     stages {
         stage('Install dependencies') {
             steps {

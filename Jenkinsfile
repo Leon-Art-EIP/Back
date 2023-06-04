@@ -11,8 +11,6 @@ pipeline {
                 sh 'npm install'
             }
         }
-
-
         stage('Test with Jest') {
             steps {
                 sh 'npm run test'

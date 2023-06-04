@@ -11,7 +11,7 @@ require('dotenv').config();
 // Connect Database
 connectDB();
 
-// Swaggers
+// Swaggers CONFIG
 
 const swaggerOptions = {
   swaggerDefinition: {

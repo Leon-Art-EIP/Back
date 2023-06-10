@@ -4,6 +4,10 @@ pipeline {
     triggers { githubPush() }
 
     tools {nodejs "NodeJS"}
+
+    options{
+        ansiColor('xterm')
+    }
     
     stages {
         stage('Install dependencies') {

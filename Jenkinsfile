@@ -3,6 +3,7 @@ pipeline {
     
     triggers { githubPush() }
 
+    
     tools {nodejs "NodeJS"}
 
     options{
@@ -10,6 +11,11 @@ pipeline {
     }
     
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Install dependencies') {
             steps {
                 sh 'npm install'

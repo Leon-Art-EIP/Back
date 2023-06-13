@@ -3,6 +3,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const cors = require('cors');
+
 const app = express();
 
 // load the environment variables from .env 
@@ -36,6 +38,12 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// CORS
+
+app.use(cors({
+  origin: 'http://localhost:3000'
+}));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
 

@@ -55,9 +55,6 @@ describe('Auth routes', () => {
         expect(response.statusCode).toBe(422);
         expect(response.body.errors).toContainEqual({
           msg: 'Must be a valid email address',
-          location: 'body',
-          path: 'email',
-          type: 'field',
         });      
     });
 
@@ -73,10 +70,6 @@ describe('Auth routes', () => {
         expect(response.statusCode).toBe(422);
         expect(response.body.errors).toContainEqual({
           msg: 'Must be a valid email address',
-          location: 'body',
-          path: 'email',
-          type: 'field',
-          value: 'notavalidemail',
         });
     });
 
@@ -92,17 +85,9 @@ describe('Auth routes', () => {
         expect(response.statusCode).toBe(422);
         expect(response.body.errors).toContainEqual({
           msg: 'Password is too weak',
-          location: 'body',
-          path: 'password',
-          type: 'field',
-          value: 'weak',
         });
         expect(response.body.errors).toContainEqual({
           msg: 'Password must be at least 8 characters long',
-          location: 'body',
-          path: 'password',
-          type: 'field',
-          value: 'weak',
         });      
     });
 
@@ -150,6 +135,7 @@ describe('Auth routes', () => {
         const response = await request(app)
             .post('/api/auth/login')
             .send({
+                email: 'skatman@test.com',
                 password: 'StrongTestPassword123!',
             });
 
@@ -186,5 +172,39 @@ describe('Auth routes', () => {
 
         expect(response.statusCode).toBe(401);
         expect(response.body).toHaveProperty('msg', 'Incorrect password');
+    });
+
+    test('POST /login - Empty email', async () => {
+        const response = await request(app)
+            .post('/api/auth/login')
+            .send({
+                password: 'StrongTestPassword123!'
+            });
+
+        expect(response.statusCode).toBe(422);
+        expect(response.body.errors).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    msg: 'Must be a valid email address'
+                })
+            ])
+        );
+    });
+
+    test('POST /login - Empty password', async () => {
+        const response = await request(app)
+            .post('/api/auth/login')
+            .send({
+                email: 'validemail@test.com'
+            });
+
+        expect(response.statusCode).toBe(422);
+        expect(response.body.errors).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    msg: 'Password is required'
+                })
+            ])
+        );
     });
 });

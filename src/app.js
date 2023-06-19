@@ -4,6 +4,7 @@ const authRoutes = require("./routes/auth");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const cors = require("cors");
+require('dotenv').config();
 
 const app = express();
 
@@ -41,9 +42,18 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // CORS
 
+const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS ? process.env.CORS_ALLOWED_ORIGINS.split(',') : [];
+
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: (origin, callback) => {
+            // Allow no origin (e.g. same origin requests) or if the origin is in the allowedOrigins list
+            if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        }
     })
 );
 

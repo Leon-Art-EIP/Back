@@ -5,6 +5,10 @@ pipeline {
 
     
     tools {nodejs "NodeJS"}
+
+    options{
+        ansiColor('xterm')
+    }
     
     stages {
         stage('Checkout') {

@@ -2,7 +2,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../src/app');
-const User = require('../src/models/User');
+const { User, Artwork, Collection, CollectionArtwork, Chat, ChatMessage, Order, UserFollower, UserLike, UserCollection } = require('../src/models/User');
 const bcrypt = require('bcrypt');
 
 describe('Auth routes', () => {
@@ -204,7 +204,7 @@ describe('Auth routes', () => {
                 expect.objectContaining({
                     msg: 'Password is required'
                 })
-            ])
+            ])  
         );
     });
 });

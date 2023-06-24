@@ -1,5 +1,5 @@
 # Utilisez une image Node.js comme image de base
-FROM node:14
+FROM node:20-alpine
 
 # Créez un répertoire de travail pour votre application
 WORKDIR /app
@@ -9,6 +9,8 @@ COPY package*.json ./
 
 # Installez les dépendances de l'application
 RUN npm install
+
+RUN npm install -g bcrypt
 
 # Copiez le reste des fichiers de l'application dans le répertoire de travail
 COPY . .

@@ -48,7 +48,7 @@ app.use(
     cors({
         origin: (origin, callback) => {
             // Allow no origin (e.g. same origin requests) or if the origin is in the allowedOrigins list
-            if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('https://web-') && origin.includes('-leon-art.vercel.app')) {
                 callback(null, true);
             } else {
                 callback(new Error('Not allowed by CORS'));

@@ -16,10 +16,10 @@ RUN npm install -g bcrypt
 COPY . .
 
 # Définissez la variable d'environnement pour le port 3333
-ENV PORT=3333
+ENV PORT=5000
 
 # Exposez le port 3333 pour que les connexions puissent être établies
-EXPOSE 3333
+EXPOSE 5000
 
 # Démarrez l'application
 CMD [ "npm", "start" ]

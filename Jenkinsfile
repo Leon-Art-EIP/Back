@@ -38,7 +38,7 @@ pipeline {
     post {
         always {
             script {
-                def logContent = readFile('tests_clean.log')
+                def logContent = "```\n" + readFile('tests_clean.log').trim() + "\n```"
                 def branchName = env.BRANCH_NAME
                 def userName = env.CHANGE_AUTHOR
                 def buildNumber = env.BUILD_NUMBER

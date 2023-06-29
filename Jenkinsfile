@@ -25,6 +25,7 @@ pipeline {
                 script {
                     try {
                         sh 'npm run test | tee tests.log'
+                        sh 'sed -r "s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" tests.log > tests_clean.log'
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
                         throw e
@@ -37,7 +38,7 @@ pipeline {
     post {
         always {
             script {
-                def logContent = readFile('tests.log').trim()
+                def logContent = readFile('tests_clean.log')
                 def branchName = env.BRANCH_NAME
                 def userName = env.CHANGE_AUTHOR
                 def buildNumber = env.BUILD_NUMBER

@@ -43,7 +43,7 @@ pipeline {
                 def buildNumber = env.BUILD_NUMBER
                 
                 discordSend(
-                    webhookURL: 'https://discord.com/api/webhooks/1123840483098099712/9bsMKXxHUaPmQzLXgY4I9Q2QDRjA1sbd67ywY79ruhzQpFBmQJZghtdw2T15XXEur00qL',
+                    webhookURL: "https://discord.com/api/webhooks/1123841672338489374/tlaGCd28bNClNt7Q9TRggy2Mep292PSpNkfzVStWRSvY3fepJqeJ70wjuPgyTU8A_Z3D",
                     title: "${env.JOB_NAME}",
                     description: """
                         Branch: ${branchName}

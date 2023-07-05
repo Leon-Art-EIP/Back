@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     triggers { githubPush() }
 
     tools {nodejs "NodeJS"}
@@ -25,10 +25,32 @@ pipeline {
                 script {
                     try {
                         sh 'npm run test | tee tests.log'
-                        sh 'sed -r "s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" tests.log > tests_clean.log'
+                       
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
                         throw e
+                    }
+                sh 'npm install jest-coverage-ratchet'
+                sh 'npm run test | tee tests.log'
+                sh 'sed -r "s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" tests.log > tests_clean.log'
+                sh 'npx jest-coverage-ratchet || echo "Jest tests did not reach 100% coverage" && exit 1'
+            }
+        }
+        stage('Push to DockerHub') {
+            when { 
+                branch 'dev'
+            }
+            steps {
+                script {
+                    try {
+                        echo "Pushing to DockerHub..."
+                        sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER} ."
+                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
+                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER}"
+                    } catch(Exception e) {
+                        echo "Stage failed due to exception: ${e}"
+                        error("Failed to push to DockerHub.")
                     }
                 }
             }

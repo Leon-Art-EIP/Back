@@ -3,7 +3,7 @@ pipeline {
 
     triggers { githubPush() }
 
-    tools {nodejs "NodeJS"}
+    tools { nodejs "NodeJS" }
 
     options{
         ansiColor('xterm')
@@ -25,15 +25,15 @@ pipeline {
                 script {
                     try {
                         sh 'npm run test | tee tests.log'
-                       
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
                         throw e
                     }
+                }
                 sh 'npm install jest-coverage-ratchet'
                 sh 'npm run test | tee tests.log'
                 sh 'sed -r "s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" tests.log > tests_clean.log'
-                sh 'npx jest-coverage-ratchet || echo "Jest tests did not reach 100% coverage" && exit 1'
+                sh 'npx jest-coverage-ratchet || (echo "Jest tests did not reach 100% coverage" && exit 1)'
             }
         }
         stage('Push to DockerHub') {
@@ -76,8 +76,7 @@ pipeline {
                     """,
                     footer: "Build Number: ${buildNumber}",
                     result: currentBuild.currentResult
-                    )
-                }
+                )
             }
         }
     }

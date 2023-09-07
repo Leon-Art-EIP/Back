@@ -76,7 +76,8 @@ pipeline {
                     """,
                     footer: "Build Number: ${buildNumber}",
                     result: currentBuild.currentResult
-                )
+                    )
+                }
             }
         }
     }

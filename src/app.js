@@ -5,7 +5,9 @@ const userRoutes = require('./routes/user');
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const cors = require("cors");
-require('dotenv').config();
+const AdminJS = require('adminjs');
+const buildAdminRouter = require('@adminjs/express');
+const adminOptions = require('./admin/admin');
 
 const app = express();
 
@@ -70,6 +72,14 @@ app.use(express.json({ extended: false }));
 // Define Routes
 app.use("/api/auth", authRoutes);
 app.use('/api', userRoutes);
+
+// AdminJS CONFIG
+
+const admin = new AdminJS(adminOptions);
+const router = buildAdminRouter(admin);
+
+app.use(expressSession({ secret: 'some-secret', resave: false, saveUninitialized: true }));
+app.use(admin.options.rootPath, router);
 
 module.exports = app; // Export the app
  

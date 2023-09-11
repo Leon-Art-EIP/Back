@@ -11,6 +11,12 @@ const userSchema = new Schema({
   subscription: { type: String, default: 'standard' }
 });
 
+const resetTokenSchema = new Schema({
+  email: { type: String, required: true, unique: true },
+  token: { type: String, required: true },
+  expire_at: { type: Date, default: Date.now, index: { expires: '1h' } }, // The token expires after 1 hour.
+});
+
 const artworkSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
@@ -62,6 +68,7 @@ const userCollectionSchema = new Schema({
 
 module.exports = {
     User: mongoose.model('User', userSchema),
+    ResetToken: mongoose.model('ResetToken', resetTokenSchema),
     Artwork: mongoose.model('Artwork', artworkSchema),
     Collection: mongoose.model('Collection', collectionSchema),
     CollectionArtwork: mongoose.model('CollectionArtwork', collectionArtworkSchema),

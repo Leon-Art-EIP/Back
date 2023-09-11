@@ -1,7 +1,8 @@
 const express = require("express");
 const connectDB = require("./config/db");
-const authRoutes = require("./routes/auth");
-const userRoutes = require('./routes/user');
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require('./routes/userRoutes');
+const quizRoutes = require("./routes/quizzRoutes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const cors = require("cors");
@@ -70,6 +71,7 @@ app.use(express.json({ extended: false }));
 // Define Routes
 app.use("/api/auth", authRoutes);
 app.use('/api', userRoutes);
+app.use("/quiz", quizRoutes);
 
 module.exports = app; // Export the app
  

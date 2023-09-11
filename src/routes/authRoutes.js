@@ -103,4 +103,8 @@ router.post("/signup", signupValidate.validateSignup, signupController.signup);
  */
 router.post("/login", loginValidate.validateLogin, loginController.login);
 
+router.post("/request-reset", resetPasswordController.requestReset);
+router.post("/validate-token", resetPasswordController.validateToken);
+router.post("/reset-password", resetPasswordController.resetPassword);
+
 module.exports = router;

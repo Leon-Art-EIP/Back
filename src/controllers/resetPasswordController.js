@@ -1,5 +1,5 @@
 const { User } = require('../models/User');
-const { ResetToken } = require('../models/ResetToken');
+const { ResetToken } = require('../models/ResetPasswordToken');
 const crypto = require('crypto');
 
 exports.requestReset = async (req, res) => {

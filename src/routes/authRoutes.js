@@ -4,6 +4,8 @@ const signupController = require("../controllers/signupController");
 const loginController = require("../controllers/loginController");
 const signupValidate = require("../middleware/signupValidation");
 const loginValidate = require("../middleware/loginValidation");
+const resetPasswordController = require("../controllers/resetPasswordController");
+
 
 /**
  * @swagger

@@ -5,14 +5,14 @@ const authenticator = require("../middleware/authenticate");
 
 /**
  * @swagger
- * /api/quiz/submit:
+ * /api/quizz/submit:
  *   post:
- *     summary: Submit quiz answers
+ *     summary: Submit quizz answers
  *     description: |
- *       Allows an authenticated user to submit their quiz answers.
+ *       Allows an authenticated user to submit their quizz answers.
  *       Depending on the user's choices, various questions are presented in succession.
- *       The user has the flexibility to skip any question. The quiz helps the system understand user preferences.
- *     tags: [Quiz]
+ *       The user has the flexibility to skip any question. The quizz helps the system understand user preferences.
+ *     tags: [Quizz]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -54,7 +54,7 @@ const authenticator = require("../middleware/authenticate");
  *                 example: social networks
  *     responses:
  *       200:
- *         description: Quiz submitted successfully.
+ *         description: Quizz submitted successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -62,7 +62,7 @@ const authenticator = require("../middleware/authenticate");
  *               properties:
  *                 msg:
  *                   type: string
- *                   description: Message indicating the success of the quiz submission.
+ *                   description: Message indicating the success of the quizz submission.
  *       401:
  *         description: No token provided or token is invalid.
  *       422:

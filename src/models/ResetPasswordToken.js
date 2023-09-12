@@ -6,3 +6,7 @@ const resetTokenSchema = new Schema({
   token: { type: String, required: true },
   expire_at: { type: Date, default: Date.now, index: { expires: "1h" } }, // The token expires after 1 hour.
 });
+
+module.exports = {
+  ResetToken: mongoose.model('ResetToken', resetTokenSchema)
+}

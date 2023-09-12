@@ -63,7 +63,6 @@ const userCollectionSchema = new Schema({
 
 module.exports = {
     User: mongoose.model('User', userSchema),
-    ResetToken: mongoose.model('ResetToken', resetTokenSchema),
     Artwork: mongoose.model('Artwork', artworkSchema),
     Collection: mongoose.model('Collection', collectionSchema),
     CollectionArtwork: mongoose.model('CollectionArtwork', collectionArtworkSchema),

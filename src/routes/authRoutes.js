@@ -38,7 +38,7 @@ const resetPasswordController = require("../controllers/resetPasswordController"
  *               password:
  *                 type: string
  *                 description: The user's password (min. 8 characters).
- *                 example: StrongPassword123
+ *                 example: StrongPassword123*[
  *     responses:
  *       200:
  *         description: The user was successfully registered.

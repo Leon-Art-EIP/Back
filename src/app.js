@@ -3,8 +3,10 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require('./routes/userRoutes');
 const swaggerUi = require("swagger-ui-express");
+const quizzRoutes = require('./routes/quizzRoutes');
 const swaggerJsdoc = require("swagger-jsdoc");
 const cors = require("cors");
+
 require('dotenv').config();
 
 const app = express();
@@ -35,9 +37,19 @@ const swaggerOptions = {
                 },
             ],
         },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
+                }
+            }
+        },
     },
     apis: ["./src/routes/*.js", "./src/controllers/*.js"],
 };
+
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
@@ -70,6 +82,7 @@ app.use(express.json({ extended: false }));
 // Define Routes
 app.use("/api/auth", authRoutes);
 app.use('/api', userRoutes);
+app.use('/api/quizz', quizzRoutes);
 
 module.exports = app; // Export the app
  

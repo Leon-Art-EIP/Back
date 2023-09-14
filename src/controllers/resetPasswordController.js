@@ -2,18 +2,6 @@ const { User } = require('../models/User');
 const { ResetToken } = require('../models/ResetPasswordToken');
 const crypto = require('crypto');
 
-const nodemailer = require('nodemailer');
-const mg = require('nodemailer-mailgun-transport');
-
-const auth = {
-    auth: {
-        api_key: process.env.MAILGUN_API_KEY, // Mailgun API Key
-        domain: process.env.MAILGUN_DOMAIN, // Your Mailgun Domain
-    }
-}
-
-const transporter = nodemailer.createTransport(mg(auth));
-
 
 exports.requestReset = async (req, res) => {
     const { email } = req.body;
@@ -30,22 +18,22 @@ exports.requestReset = async (req, res) => {
         await resetToken.save();
 
         // TODO: Send email with link containing the token
-        const mailOptions = {
-            from: 'no-reply@yourdomain.com', // Replace with your email or domain
-            to: email, // User email
-            subject: 'Password Reset Request',
-            html: `<p>You requested a password reset. Click <a href="${process.env.BASE_WEB_URL}/reset?token=${token}">here</a> to reset your password.</p>`
-        };
+        // const mailOptions = {
+        //     from: 'no-reply@yourdomain.com', // Replace with your email or domain
+        //     to: email, // User email
+        //     subject: 'Password Reset Request',
+        //     html: `<p>You requested a password reset. Click <a href="${process.env.BASE_WEB_URL}/reset?token=${token}">here</a> to reset your password.</p>`
+        // };
         
-        transporter.sendMail(mailOptions, function(err, info) {
-            if (err) {
-                console.error("Error sending email", err);
-                return res.status(500).json({ msg: 'Error sending reset email' });
-            } else {
-                console.log("Email sent successfully", info);
-                res.json({ msg: 'Reset email sent' });
-            }
-        });
+        // transporter.sendMail(mailOptions, function(err, info) {
+        //     if (err) {
+        //         console.error("Error sending email", err);
+        //         return res.status(500).json({ msg: 'Error sending reset email' });
+        //     } else {
+        //         console.log("Email sent successfully", info);
+        //         res.json({ msg: 'Reset email sent' });
+        //     }
+        // });
 
         res.json({ msg: 'Reset email sent' });
     } catch (err) {

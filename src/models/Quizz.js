@@ -11,4 +11,6 @@ const quizzSchema = new Schema({
   discoveryMethod: String, // How they discovered the app
 });
 
-module.exports = mongoose.model('Quizz', quizzSchema);
+module.exports = {
+  Quizz: mongoose.model('Quizz', quizzSchema),
+};

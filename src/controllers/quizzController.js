@@ -1,15 +1,15 @@
-const { Quiz } = require('../models/Quizz');
+const { Quizz } = require('../models/Quizz');
 
 exports.submitQuizz = async (req, res) => {
     try {
         const userId = req.user.id;
-        const quizData = req.body;
+        const quizzData = req.body;
 
-        // Add user to the quiz data
-        quizData.user = userId;
-
-        const quiz = new Quizz(quizData);
-        await quiz.save();
+        // Add user to the quizz data
+        quizzData.user = userId;
+        
+        const quizz = new Quizz(quizzData);
+        await quizz.save();
 
         res.status(200).json({ msg: 'Quizz submitted successfully' });
     } catch (err) {

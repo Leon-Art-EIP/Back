@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 exports.authenticate = (req, res, next) => {
-    const token = req.header('x-auth-token');
+    let token = req.header('Authorization');
+
+    if (token && token.startsWith('Bearer ')) {
+        token = token.slice(7, token.length);  // extract the token from the "Bearer {token}" format
+    }
     
     // Check if token exists
     if (!token) {
@@ -11,7 +15,7 @@ exports.authenticate = (req, res, next) => {
     // Verify token
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded.user; // Assign the user from the decoded token to the request object
+        req.user = decoded.user; 
         next();
     } catch (err) {
         console.error(err.message);

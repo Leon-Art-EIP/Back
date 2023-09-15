@@ -1,7 +1,9 @@
 const { User } = require("../models/User");
 const { ResetToken } = require("../models/ResetPasswordToken");
 const nodemailer = require("nodemailer");
+const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const jwt = require('jsonwebtoken');
 
 exports.requestReset = async (req, res) => {
   const { email } = req.body;
@@ -100,7 +102,22 @@ exports.resetPassword = async (req, res) => {
     // Optionally, delete the used token
     await ResetToken.deleteOne({ token });
 
-    res.json({ msg: "Password reset successfully" });
+    // Generate and return JWT token after password reset
+    const payload = {
+      user: { id: user.id },
+    };
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: 3600 },
+      (err, token) => {
+        if (err) {
+          console.error(err.message);
+          return res.status(500).json({ msg: "Error generating token" });
+        }
+        res.json({ token, msg: "Password reset successfully" });
+      }
+    );
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });

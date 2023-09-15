@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const signupController = require("../controllers/signupController");
 const loginController = require("../controllers/loginController");
-const signupValidate = require("../middleware/signupValidation");
 const loginValidate = require("../middleware/loginValidation");
+const signupController = require("../controllers/signupController");
+const signupValidate = require("../middleware/signupValidation");
 const resetPasswordController = require("../controllers/resetPasswordController");
+const resetPasswordValidate = require("../middleware/resetPasswordValidation");
 
 
 /**
@@ -170,6 +171,8 @@ router.post("/validate-token", resetPasswordController.validateToken);
  *     summary: Reset password using token
  *     description: |
  *       Allows a user to reset their password using a valid token they received in their email.
+ *       The new password must be at least 8 characters long and should not be weak (score of at least 3 using zxcvbn).
+ *       Returns a JWT token upon successful reset.
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -184,16 +187,42 @@ router.post("/validate-token", resetPasswordController.validateToken);
  *                 example: abcd1234efgh5678
  *               newPassword:
  *                 type: string
- *                 description: The new password the user wants to set.
+ *                 description: The new password the user wants to set. It should be at least 8 characters and should have a zxcvbn score of at least 3.
  *                 example: NewPassword123!
  *     responses:
  *       200:
  *         description: Password reset successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for the user.
+ *                 msg:
+ *                   type: string
+ *                   description: Success message.
  *       404:
  *         description: Invalid token or email not found.
+ *       422:
+ *         description: Password validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       msg:
+ *                         type: string
+ *                   description: List of validation error messages.
  *       500:
  *         description: Server Error.
  */
-router.post("/reset-password", resetPasswordController.resetPassword);
+router.post("/reset-password", resetPasswordValidate.validateResetPassword, resetPasswordController.resetPassword);
 
 module.exports = router;

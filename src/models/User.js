@@ -11,6 +11,7 @@ const userSchema = new Schema({
   subscription: { type: String, default: 'standard' }
 });
 
+
 const artworkSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },

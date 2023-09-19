@@ -27,11 +27,17 @@ const authenticator = require("../middleware/authenticate");
  *                 enum: [sell, discover, both]
  *                 description: The user's main objective for using the app.
  *                 example: sell
- *               artType:
+ *               artInterestType:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Types of art the user is interested in or wants to sell. Multiple values possible.
+ *                 description: Types of art the user is interested in. Multiple values possible.
+ *                 example: [paint, sculpture]
+ *               artSellingType:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Types of art the user is interested to sell. Multiple values possible.
  *                 example: [paint, sculpture]
  *               location:
  *                 type: string

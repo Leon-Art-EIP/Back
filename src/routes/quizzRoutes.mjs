@@ -1,7 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const quizzController = require("../controllers/quizzController");
-const authenticator = require("../middleware/authenticate");
+import { Router } from "express";
+const router = Router();
+import { submitQuizz } from "../controllers/quizzController.mjs";
+import { authenticate } from "../middleware/authenticate.mjs";
 
 /**
  * @swagger
@@ -76,6 +76,6 @@ const authenticator = require("../middleware/authenticate");
  *       500:
  *         description: Server Error.
  */
-router.post("/submit", authenticator.authenticate, quizzController.submitQuizz);
+router.post("/submit", authenticate, submitQuizz);
 
-module.exports = router;
+export default router;

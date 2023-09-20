@@ -1,12 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const loginController = require("../controllers/loginController");
-const loginValidate = require("../middleware/loginValidation");
-const signupController = require("../controllers/signupController");
-const signupValidate = require("../middleware/signupValidation");
-const resetPasswordController = require("../controllers/resetPasswordController");
-const resetPasswordValidate = require("../middleware/resetPasswordValidation");
-
+import { Router } from "express";
+const router = Router();
+import { login } from "../controllers/loginController.mjs";
+import { validateLogin } from "../middleware/loginValidation.mjs";
+import { signup } from "../controllers/signupController.mjs";
+import { validateSignup } from "../middleware/signupValidation.mjs";
+import {
+  requestReset,
+  validateResetToken,
+  resetPassword,
+} from "../controllers/resetPasswordController.mjs";
+import { validateResetPassword } from "../middleware/resetPasswordValidation.mjs";
 
 /**
  * @swagger
@@ -58,7 +61,7 @@ const resetPasswordValidate = require("../middleware/resetPasswordValidation");
  *       500:
  *         description: Server Error.
  */
-router.post("/signup", signupValidate.validateSignup, signupController.signup);
+router.post("/signup", validateSignup, signup);
 
 /**
  * @swagger
@@ -104,14 +107,14 @@ router.post("/signup", signupValidate.validateSignup, signupController.signup);
  *       500:
  *         description: Server Error.
  */
-router.post("/login", loginValidate.validateLogin, loginController.login);
+router.post("/login", validateLogin, login);
 /**
  * @swagger
  * /api/auth/request-reset:
  *   post:
  *     summary: Request a password reset
  *     description: |
- *       Allows a user to request a password reset. If the email is found in the database, 
+ *       Allows a user to request a password reset. If the email is found in the database,
  *       a reset token will be generated and an email will be sent to the user with a link to reset their password.
  *     tags: [Authentication]
  *     requestBody:
@@ -133,7 +136,7 @@ router.post("/login", loginValidate.validateLogin, loginController.login);
  *       500:
  *         description: Server Error.
  */
-router.post("/request-reset", resetPasswordController.requestReset);
+router.post("/request-reset", requestReset);
 
 /**
  * @swagger
@@ -161,8 +164,8 @@ router.post("/request-reset", resetPasswordController.requestReset);
  *         description: Invalid or expired token.
  *       500:
  *         description: Server Error.
-*/
-router.post("/validate-token", resetPasswordController.validateToken);
+ */
+router.post("/validate-token", validateResetToken);
 
 /**
  * @swagger
@@ -223,6 +226,6 @@ router.post("/validate-token", resetPasswordController.validateToken);
  *       500:
  *         description: Server Error.
  */
-router.post("/reset-password", resetPasswordValidate.validateResetPassword, resetPasswordController.resetPassword);
+router.post("/reset-password", validateResetPassword, resetPassword);
 
-module.exports = router;
+export default router;

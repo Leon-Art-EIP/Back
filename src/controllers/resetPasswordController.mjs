@@ -1,11 +1,12 @@
-const { User } = require("../models/User");
-const { ResetToken } = require("../models/ResetPasswordToken");
-const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-const jwt = require('jsonwebtoken');
+import { User } from "../models/UserModel.mjs";
+import { ResetToken } from "../models/ResetPasswordTokenModel.mjs";
+import { isTokenValid } from "../utils/tokenValidation.mjs";
+import { createTransport } from "nodemailer";
+import { genSalt, hash } from "bcrypt";
+import { randomBytes } from "crypto";
+import jwt from "jsonwebtoken";
 
-exports.requestReset = async (req, res) => {
+export async function requestReset(req, res) {
   const { email } = req.body;
 
   try {
@@ -14,7 +15,7 @@ exports.requestReset = async (req, res) => {
       return res.status(404).json({ msg: "Email not found" });
     }
 
-    const token = crypto.randomBytes(20).toString("hex");
+    const token = randomBytes(20).toString("hex");
 
     let resetToken = await ResetToken.findOne({ email });
 
@@ -26,14 +27,8 @@ exports.requestReset = async (req, res) => {
 
     await resetToken.save();
 
-    console.log(
-      "user: " +
-        process.env.GOOGLE_MAIL_LEONART +
-        "pass: " +
-        process.env.GOOGLE_MAIL_LEONART_PASSWORD
-    );
     // Configure the nodemailer transporter
-    let transporter = nodemailer.createTransport({
+    let transporter = createTransport({
       service: "gmail",
       auth: {
         user: process.env.GOOGLE_MAIL_LEONART,
@@ -63,9 +58,9 @@ exports.requestReset = async (req, res) => {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
-};
+}
 
-exports.validateToken = async (req, res) => {
+export async function validateResetToken(req, res) {
   const { token } = req.body;
 
   try {
@@ -79,9 +74,9 @@ exports.validateToken = async (req, res) => {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
-};
+}
 
-exports.resetPassword = async (req, res) => {
+export async function resetPassword(req, res) {
   const { token, newPassword } = req.body;
 
   try {
@@ -95,11 +90,11 @@ exports.resetPassword = async (req, res) => {
       return res.status(404).json({ msg: "Email not found" });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    const salt = await genSalt(10);
+    user.password = await hash(newPassword, salt);
     await user.save();
 
-    // Optionally, delete the used token
+    // delete the used token
     await ResetToken.deleteOne({ token });
 
     // Generate and return JWT token after password reset
@@ -122,4 +117,4 @@ exports.resetPassword = async (req, res) => {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
-};
+}

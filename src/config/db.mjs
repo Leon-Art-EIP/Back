@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://admin-user:Admin123*@20.199.102.240:27018/', {
+        await mongoose.connect('mongodb://127.0.0.1:27017/LeonartDev', {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             dbName: 'leonart'
@@ -15,4 +15,4 @@ const connectDB = async () => {
     }
 };
 
-module.exports = connectDB;
+export default connectDB;

@@ -1,7 +1,7 @@
-const { check, validationResult } = require('express-validator');
-const zxcvbn = require('zxcvbn');
+import { check, validationResult } from 'express-validator';
+import zxcvbn from 'zxcvbn';
 
-exports.validateSignup = [
+export const validateSignup = [
     check('username')
         .not()
         .isEmpty()

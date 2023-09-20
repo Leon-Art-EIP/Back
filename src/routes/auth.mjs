@@ -1,9 +1,10 @@
-const express = require("express");
+import express from 'express';
+import { signup } from '../controllers/signupController.mjs';
+import { login } from '../controllers/loginController.mjs';
+import { validateSignup } from '../middleware/signupValidation.mjs';
+import { validateLogin } from '../middleware/loginValidation.mjs';
+
 const router = express.Router();
-const signupController = require("../controllers/signupController");
-const loginController = require("../controllers/loginController");
-const signupValidate = require("../middleware/signupValidation");
-const loginValidate = require("../middleware/loginValidation");
 
 /**
  * @swagger
@@ -55,7 +56,7 @@ const loginValidate = require("../middleware/loginValidation");
  *       500:
  *         description: Server Error.
  */
-router.post("/signup", signupValidate.validateSignup, signupController.signup);
+router.post('/signup', validateSignup, signup);
 
 /**
  * @swagger
@@ -101,6 +102,6 @@ router.post("/signup", signupValidate.validateSignup, signupController.signup);
  *       500:
  *         description: Server Error.
  */
-router.post("/login", loginValidate.validateLogin, loginController.login);
+router.post('/login', validateLogin, login);
 
-module.exports = router;
+export default router;

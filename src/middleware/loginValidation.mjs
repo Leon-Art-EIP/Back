@@ -1,6 +1,6 @@
-const { check, validationResult } = require('express-validator');
+import { check, validationResult } from 'express-validator';
 
-exports.validateLogin = [
+export const validateLogin = [
     check('email')
         .isEmail()
         .withMessage('Must be a valid email address'),

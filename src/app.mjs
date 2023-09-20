@@ -1,18 +1,19 @@
-const express = require("express");
-const connectDB = require("./config/db");
-const authRoutes = require("./routes/auth");
-const userRoutes = require('./routes/user');
-const swaggerUi = require("swagger-ui-express");
-const swaggerJsdoc = require("swagger-jsdoc");
-const cors = require("cors");
-const AdminJS = require('adminjs');
-const buildAdminRouter = require('@adminjs/express');
-const adminOptions = require('./admin/admin');
+import express from 'express'
+import connectDB from "./config/db.mjs";
+import authRoutes from "./routes/auth.mjs";
+import userRoutes from './routes/user.mjs';
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+import cors from "cors";
+import AdminJS from 'adminjs';
+import AdminJSExpress from '@adminjs/express';
+import adminOptions from './admin/admin.mjs';
+import expressSession from 'express-session';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-
-// load the environment variables from .env
-require("dotenv").config();
 
 // Connect Database
 connectDB();
@@ -38,19 +39,17 @@ const swaggerOptions = {
             ],
         },
     },
-    apis: ["./src/routes/*.js", "./src/controllers/*.js"],
+    apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs"], // Changed the file extension to .mjs
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // CORS
-
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS ? process.env.CORS_ALLOWED_ORIGINS.split(',') : [];
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow no origin (e.g. same origin requests) or if the origin is in the allowedOrigins list
             if (!origin || allowedOrigins.indexOf(origin) !== -1 || (origin.startsWith('https://web-') && origin.includes('-leon-art.vercel.app'))) {
                 callback(null, true);
             } else {
@@ -74,12 +73,10 @@ app.use("/api/auth", authRoutes);
 app.use('/api', userRoutes);
 
 // AdminJS CONFIG
-
 const admin = new AdminJS(adminOptions);
-const router = buildAdminRouter(admin);
+const router = AdminJSExpress.buildRouter(admin);
 
 app.use(expressSession({ secret: 'some-secret', resave: false, saveUninitialized: true }));
 app.use(admin.options.rootPath, router);
 
-module.exports = app; // Export the app
- 
+export default app; // Changed this line to use ES module export syntax

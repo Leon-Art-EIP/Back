@@ -1,6 +1,6 @@
-const { User } = require('../models/User');
+import { User } from '../models/User.mjs';
 
-exports.checkUsernameAvailability = async (req, res) => {
+export const checkUsernameAvailability = async (req, res) => {
     const username = req.params.username;
 
     try {
@@ -23,7 +23,7 @@ exports.checkUsernameAvailability = async (req, res) => {
     }
 };
 
-exports.checkEmailAvailability = async (req, res) => {
+export const checkEmailAvailability = async (req, res) => {
     const email = req.params.email;
 
     try {

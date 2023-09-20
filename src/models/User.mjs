@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -60,15 +61,13 @@ const userCollectionSchema = new Schema({
   collection_id: { type: Schema.Types.ObjectId, ref: 'Collection'}
 });
 
-module.exports = {
-    User: mongoose.model('User', userSchema),
-    Artwork: mongoose.model('Artwork', artworkSchema),
-    Collection: mongoose.model('Collection', collectionSchema),
-    CollectionArtwork: mongoose.model('CollectionArtwork', collectionArtworkSchema),
-    Chat: mongoose.model('Chat', chatSchema),
-    ChatMessage: mongoose.model('ChatMessage', chatMessageSchema),
-    Order: mongoose.model('Order', orderSchema),
-    UserFollower: mongoose.model('UserFollower', userFollowerSchema),
-    UserLike: mongoose.model('UserLike', userLikeSchema),
-    UserCollection: mongoose.model('UserCollection', userCollectionSchema),
-};
+export const User = mongoose.model('User', userSchema);
+export const Artwork = mongoose.model('Artwork', artworkSchema);
+export const Collection = mongoose.model('Collection', collectionSchema);
+export const CollectionArtwork = mongoose.model('CollectionArtwork', collectionArtworkSchema);
+export const Chat = mongoose.model('Chat', chatSchema);
+export const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);
+export const Order = mongoose.model('Order', orderSchema);
+export const UserFollower = mongoose.model('UserFollower', userFollowerSchema);
+export const UserLike = mongoose.model('UserLike', userLikeSchema);
+export const UserCollection = mongoose.model('UserCollection', userCollectionSchema);

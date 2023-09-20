@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose, { model } from "mongoose";
 const { Schema } = mongoose;
 
 const resetTokenSchema = new Schema({
@@ -7,6 +7,4 @@ const resetTokenSchema = new Schema({
   expire_at: { type: Date, default: Date.now, index: { expires: "1h" } }, // The token expires after 1 hour.
 });
 
-module.exports = {
-  ResetToken: mongoose.model('ResetToken', resetTokenSchema)
-}
+export const ResetToken = model("ResetToken", resetTokenSchema);

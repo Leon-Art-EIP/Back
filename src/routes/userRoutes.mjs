@@ -1,12 +1,16 @@
-const express = require('express');
+import express from "express";
+import {
+  checkUsernameAvailability,
+  checkEmailAvailability,
+} from "../controllers/userController.mjs";
+import rateLimit from "express-rate-limit";
+
 const router = express.Router();
-const userController = require('../controllers/userController');
-const rateLimit = require('express-rate-limit');
 
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 10 // limit each IP to 10 requests per windowMs
+  max: 10, // limit each IP to 10 requests per windowMs
 });
 
 /**
@@ -44,7 +48,11 @@ const limiter = rateLimit({
  *       500:
  *         description: Server Error.
  */
-router.get('/user/check-username/:username', limiter, userController.checkUsernameAvailability);
+router.get(
+  "/user/check-username/:username",
+  limiter,
+  checkUsernameAvailability
+);
 
 /**
  * @swagger
@@ -81,6 +89,6 @@ router.get('/user/check-username/:username', limiter, userController.checkUserna
  *       500:
  *         description: Server Error.
  */
-router.get('/user/check-email/:email', limiter, userController.checkEmailAvailability);
+router.get("/user/check-email/:email", limiter, checkEmailAvailability);
 
-module.exports = router;
+export default router;

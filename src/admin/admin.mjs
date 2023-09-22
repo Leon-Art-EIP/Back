@@ -13,7 +13,7 @@ import {
   UserFollower,
   UserLike,
   UserCollection
-} from '../models/User.mjs';
+} from '../models/UserModel.mjs';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 

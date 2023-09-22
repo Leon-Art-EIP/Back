@@ -1,21 +1,8 @@
 import { check, validationResult } from "express-validator";
 import zxcvbn from "zxcvbn";
 
-export const validateSignup = [
-  check("username")
-    .not()
-    .isEmpty()
-    .withMessage("Username is required")
-    .isLength({ min: 3, max: 20 })
-    .withMessage("Username must be between 3 and 20 characters")
-    .matches(/^\w+$/)
-    .withMessage(
-      "Username must contain only letters, numbers, and underscores"
-    ),
-
-  check("email").isEmail().withMessage("Must be a valid email address"),
-
-  check("password")
+export const validateResetPassword = [
+  check("newPassword")
     .not()
     .isEmpty()
     .withMessage("Password is required")

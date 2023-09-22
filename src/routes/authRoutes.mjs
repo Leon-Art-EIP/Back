@@ -33,12 +33,12 @@ import { validateResetPassword } from "../middleware/resetPasswordValidation.mjs
  *               username:
  *                 type: string
  *                 description: The user's username (3-20 characters, letters, numbers, underscores).
- *                 example: user1
+ *                 example: userBasic
  *               email:
  *                 type: string
  *                 format: email
  *                 description: The user's email address.
- *                 example: user1@example.com
+ *                 example: userBasic@example.com
  *               password:
  *                 type: string
  *                 description: The user's password (min. 8 characters).
@@ -84,11 +84,11 @@ router.post("/signup", validateSignup, signup);
  *                 type: string
  *                 format: email
  *                 description: The user's email address.
- *                 example: user1@example.com
+ *                 example: userBasic@example.com
  *               password:
  *                 type: string
  *                 description: The user's password.
- *                 example: user1Password
+ *                 example: StrongPassword123*[
  *     responses:
  *       200:
  *         description: The user was successfully logged in.
@@ -140,7 +140,7 @@ router.post("/request-reset", requestReset);
 
 /**
  * @swagger
- * /api/auth/validate-token:
+ * /api/auth/validate-reset-token:
  *   post:
  *     summary: Validate reset token
  *     description: |
@@ -165,7 +165,7 @@ router.post("/request-reset", requestReset);
  *       500:
  *         description: Server Error.
  */
-router.post("/validate-token", validateResetToken);
+router.post("/validate-reset-token", validateResetToken);
 
 /**
  * @swagger

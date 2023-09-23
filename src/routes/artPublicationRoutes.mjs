@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
 import { createArtPublication } from '../controllers/artPublicationController.mjs';
+import { validateArtPublication } from '../middleware/artPublicationValidation.mjs';
 
 /**
  * @swagger
@@ -72,6 +73,6 @@ import { createArtPublication } from '../controllers/artPublicationController.mj
  *       500:
  *         description: Server Error.
  */
-router.post('/', authenticate, createArtPublication);
+router.post('/', authenticate, validateArtPublication, createArtPublication);
 
 export default router;

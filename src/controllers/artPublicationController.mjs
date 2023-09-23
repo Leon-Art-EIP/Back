@@ -29,8 +29,11 @@ export const createArtPublication = async (req, res) => {
     await newPublication.save();
 
     return res.json({ msg: 'Art publication created successfully!' });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
+    if (err.name === 'ValidationError') {
+      return res.status(422).json({ errors: Object.keys(err.errors).map(key => ({ msg: err.errors[key].message })) });
+    }
     console.error(err.message);
     return res.status(500).json({ msg: 'Server Error' });
-  }
+  }  
 };

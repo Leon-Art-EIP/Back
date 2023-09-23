@@ -1,27 +1,15 @@
-const request = require("supertest");
-const mongoose = require("mongoose");
-const { MongoMemoryServer } = require("mongodb-memory-server");
-const app = require("../src/app");
-const {
-  User,
-  Artwork,
-  Collection,
-  CollectionArtwork,
-  Chat,
-  ChatMessage,
-  Order,
-  UserFollower,
-  UserLike,
-  UserCollection,
-} = require("../src/models/User");
-const bcrypt = require("bcrypt");
+import request from 'supertest';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import app from '../src/app';
+import { User } from '../src/models/UserModel.mjs';
+import bcrypt from 'bcrypt';
 
 describe("Auth routes", () => {
   let mongoServer;
 
   beforeAll(async () => {
     await mongoose.disconnect();
-
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
 
@@ -47,8 +35,9 @@ describe("Auth routes", () => {
       password: "StrongTestPassword123!",
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("token");
+
     const user = await User.findOne({ email: "testuser@test.com" });
     expect(user).not.toBeNull();
   });
@@ -59,10 +48,14 @@ describe("Auth routes", () => {
       password: "StrongTestPassword123!",
     });
 
-    expect(response.statusCode).toBe(422);
-    expect(response.body.errors).toContainEqual({
-      msg: "Must be a valid email address",
-    });
+    expect(response.status).toBe(422);
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          msg: "Must be a valid email address",
+        }),
+      ])
+    );
   });
 
   test("POST /signup - Invalid email", async () => {
@@ -71,29 +64,32 @@ describe("Auth routes", () => {
       email: "notavalidemail",
       password: "StrongTestPassword123!",
     });
-
-    expect(response.statusCode).toBe(422);
-    expect(response.body.errors).toContainEqual({
-      msg: "Must be a valid email address",
-    });
+  
+    expect(response.status).toBe(422);
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          msg: "Must be a valid email address",
+        }),
+      ])
+    );
   });
-
+  
   test("POST /signup - Weak password", async () => {
     const response = await request(app).post("/api/auth/signup").send({
       username: "testuser",
       email: "testuser@test.com",
       password: "weak",
     });
-
-    expect(response.statusCode).toBe(422);
-    expect(response.body.errors).toContainEqual({
-      msg: "Password is too weak",
-    });
-    expect(response.body.errors).toContainEqual({
-      msg: "Password must be at least 8 characters long",
-    });
+  
+    expect(response.status).toBe(422);
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: "Password is too weak" }),
+        expect.objectContaining({ msg: "Password must be at least 8 characters long" }),
+      ])
+    );
   });
-
   test("POST /signup - Duplicate email", async () => {
     await request(app).post("/api/auth/signup").send({
       username: "testuser1",
@@ -107,10 +103,11 @@ describe("Auth routes", () => {
       password: "StrongTestPassword123!",
     });
 
-    expect(response.statusCode).toBe(409);
+    expect(response.status).toBe(409);
     expect(response.body).toHaveProperty("msg", "Email already in use");
   });
 
+  // Test cases for login
   test("POST /login - Successful login", async () => {
     const user = new User({
       username: "testuser",
@@ -124,7 +121,7 @@ describe("Auth routes", () => {
       password: "StrongTestPassword123!",
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("token");
   });
 
@@ -144,7 +141,7 @@ describe("Auth routes", () => {
       password: "StrongTestPassword123!",
     });
 
-    expect(response.statusCode).toBe(401);
+    expect(response.status).toBe(401);
     expect(response.body).toHaveProperty("msg", "Email not registered");
   });
 
@@ -161,7 +158,7 @@ describe("Auth routes", () => {
       password: "IncorrectPassword123!",
     });
 
-    expect(response.statusCode).toBe(401);
+    expect(response.status).toBe(401);
     expect(response.body).toHaveProperty("msg", "Incorrect password");
   });
 
@@ -170,7 +167,7 @@ describe("Auth routes", () => {
       password: "StrongTestPassword123!",
     });
 
-    expect(response.statusCode).toBe(422);
+    expect(response.status).toBe(422);
     expect(response.body.errors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -185,7 +182,7 @@ describe("Auth routes", () => {
       email: "validemail@test.com",
     });
 
-    expect(response.statusCode).toBe(422);
+    expect(response.status).toBe(422);
     expect(response.body.errors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

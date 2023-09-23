@@ -5,7 +5,7 @@ import app from '../src/app';
 import { User } from '../src/models/UserModel.mjs';
 import bcrypt from 'bcrypt';
 
-describe("Auth routes", () => {
+describe("Signup routes", () => {
   let mongoServer;
 
   beforeAll(async () => {
@@ -106,89 +106,112 @@ describe("Auth routes", () => {
     expect(response.status).toBe(409);
     expect(response.body).toHaveProperty("msg", "Email already in use");
   });
+});
 
-  // Test cases for login
-  test("POST /login - Successful login", async () => {
-    const user = new User({
-      username: "testuser",
-      email: "testuser@test.com",
-      password: await bcrypt.hash("StrongTestPassword123!", 10),
+describe("login routes", () => {
+  let mongoServer;
+
+  beforeAll(async () => {
+    await mongoose.disconnect();
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-    await user.save();
-
-    const response = await request(app).post("/api/auth/login").send({
-      email: "testuser@test.com",
-      password: "StrongTestPassword123!",
-    });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty("token");
   });
 
-  test("POST /login - Missing email or password", async () => {
-    const response = await request(app).post("/api/auth/login").send({
-      email: "skatman@test.com",
-      password: "StrongTestPassword123!",
-    });
-
-    expect(response.statusCode).toBe(401);
-    expect(response.body).toHaveProperty("msg", "Email not registered");
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
   });
 
-  test("POST /login - Non-existent user", async () => {
-    const response = await request(app).post("/api/auth/login").send({
-      email: "nonexistent@test.com",
-      password: "StrongTestPassword123!",
-    });
-
-    expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty("msg", "Email not registered");
+  afterEach(async () => {
+    await User.deleteMany({});
   });
 
-  test("POST /login - Incorrect password", async () => {
-    const user = new User({
-      username: "testuser",
-      email: "testuser@test.com",
-      password: await bcrypt.hash("StrongTestPassword123!", 10),
+    test("POST /login - Successful login", async () => {
+      const user = new User({
+        username: "testuser",
+        email: "testuser@test.com",
+        password: await bcrypt.hash("StrongTestPassword123!", 10),
+      });
+      await user.save();
+  
+      const response = await request(app).post("/api/auth/login").send({
+        email: "testuser@test.com",
+        password: "StrongTestPassword123!",
+      });
+  
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("token");
     });
-    await user.save();
-
-    const response = await request(app).post("/api/auth/login").send({
-      email: "testuser@test.com",
-      password: "IncorrectPassword123!",
+  
+    test("POST /login - Missing email or password", async () => {
+      const response = await request(app).post("/api/auth/login").send({
+        email: "skatman@test.com",
+        password: "StrongTestPassword123!",
+      });
+  
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toHaveProperty("msg", "Email not registered");
     });
-
-    expect(response.status).toBe(401);
-    expect(response.body).toHaveProperty("msg", "Incorrect password");
-  });
-
-  test("POST /login - Empty email", async () => {
-    const response = await request(app).post("/api/auth/login").send({
-      password: "StrongTestPassword123!",
+  
+    test("POST /login - Non-existent user", async () => {
+      const response = await request(app).post("/api/auth/login").send({
+        email: "nonexistent@test.com",
+        password: "StrongTestPassword123!",
+      });
+  
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty("msg", "Email not registered");
     });
-
-    expect(response.status).toBe(422);
-    expect(response.body.errors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          msg: "Must be a valid email address",
-        }),
-      ])
-    );
-  });
-
-  test("POST /login - Empty password", async () => {
-    const response = await request(app).post("/api/auth/login").send({
-      email: "validemail@test.com",
+  
+    test("POST /login - Incorrect password", async () => {
+      const user = new User({
+        username: "testuser",
+        email: "testuser@test.com",
+        password: await bcrypt.hash("StrongTestPassword123!", 10),
+      });
+      await user.save();
+  
+      const response = await request(app).post("/api/auth/login").send({
+        email: "testuser@test.com",
+        password: "IncorrectPassword123!",
+      });
+  
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty("msg", "Incorrect password");
     });
-
-    expect(response.status).toBe(422);
-    expect(response.body.errors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          msg: "Password is required",
-        }),
-      ])
-    );
-  });
+  
+    test("POST /login - Empty email", async () => {
+      const response = await request(app).post("/api/auth/login").send({
+        password: "StrongTestPassword123!",
+      });
+  
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: "Must be a valid email address",
+          }),
+        ])
+      );
+    });
+  
+    test("POST /login - Empty password", async () => {
+      const response = await request(app).post("/api/auth/login").send({
+        email: "validemail@test.com",
+      });
+  
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: "Password is required",
+          }),
+        ])
+      );
+    });
 });

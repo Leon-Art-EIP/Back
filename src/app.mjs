@@ -2,6 +2,7 @@ import express from "express";
 import connectDB from "./config/db.mjs";
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
+import artPublicationRoutes from './routes/artPublication.mjs';
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
@@ -89,6 +90,8 @@ app.use(express.json({ extended: false }));
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
+app.use('/art-publication', artPublicationRoutes);
+
 
 // AdminJS CONFIG
 const admin = new AdminJS(adminOptions);

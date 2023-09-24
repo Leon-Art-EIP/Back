@@ -1,12 +1,12 @@
 {
   "name": "back",
   "version": "1.0.0",
-  "type": "module", 
+  "type": "module",
   "description": "[![Node.js](https://img.shields.io/badge/Node.js-v16.13.1-green.svg)](https://nodejs.org/)\r [![Express.js](https://img.shields.io/badge/Express.js-v4.17.1-blue.svg)](https://expressjs.com/)\r [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)",
   "main": "index.js",
   "scripts": {
     "start": "nodemon --experimental-modules server.mjs",
-    "test": "cross-env NODE_ENV=test jest --coverage --testTimeout=5000"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest --coverage --runInBand --forceExit"
   },
   "repository": {
     "type": "git",
@@ -49,7 +49,7 @@
   "devDependencies": {
     "chai": "^4.3.7",
     "chai-http": "^4.3.0",
-    "jest": "^29.5.0",
+    "jest": "^29.7.0",
     "mocha": "^10.2.0",
     "mongodb-memory-server": "^8.12.2",
     "nyc": "^15.1.0",

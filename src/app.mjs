@@ -2,7 +2,7 @@ import express from "express";
 import connectDB from "./config/db.mjs";
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
-import artPublicationRoutes from './routes/artPublication.mjs';
+import artPublicationRoutes from './routes/artPublicationRoutes.mjs';
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";

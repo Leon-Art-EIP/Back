@@ -2,6 +2,7 @@ import { Router } from "express";
 const router = Router();
 import { submitQuizz } from "../controllers/quizzController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
+import { validateQuizz } from "../middleware/quizzValidation.mjs"
 
 /**
  * @swagger
@@ -76,6 +77,6 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *       500:
  *         description: Server Error.
  */
-router.post("/submit", authenticate, submitQuizz);
+router.post("/submit", authenticate, validateQuizz, submitQuizz);
 
 export default router;

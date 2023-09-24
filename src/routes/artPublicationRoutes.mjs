@@ -2,11 +2,16 @@ import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
 import { createArtPublication } from '../controllers/artPublicationController.mjs';
+import { likeArtPublication } from '../controllers/likeController.mjs';
+import { addToCollection } from '../controllers/collectionController.mjs';
+import { addComment, deleteComment } from '../controllers/commentController.mjs';
+import { validateCollection } from '../middleware/collectionValidation.mjs';
+import { validateComment } from '../middleware/commentValidation.mjs';
 import { validateArtPublication } from '../middleware/artPublicationValidation.mjs';
 
 /**
  * @swagger
- * /art-publication:
+ * /api/art-publication:
  *   post:
  *     summary: Create an Art Publication
  *     description: |
@@ -74,5 +79,137 @@ import { validateArtPublication } from '../middleware/artPublicationValidation.m
  *         description: Server Error.
  */
 router.post('/', authenticate, validateArtPublication, createArtPublication);
+
+/**
+ * @swagger
+ * /api/art-publication/like/{id}:
+ *   post:
+ *     summary: Like or unlike an art publication
+ *     description: Allows an authenticated user to like or unlike an art publication by ID.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the art publication to like or unlike.
+ *     responses:
+ *       200:
+ *         description: Like status updated.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post('/like/:id', authenticate, likeArtPublication);
+
+/**
+ * @swagger
+ * /api/art-publication/collection:
+ *   post:
+ *     summary: Add an art publication to a user collection
+ *     description: Allows an authenticated user to add an art publication to a specified or new collection.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               artPublicationId:
+ *                 type: string
+ *                 description: ID of the art publication to add to the collection.
+ *               collectionName:
+ *                 type: string
+ *                 description: Name of the collection.
+ *     responses:
+ *       200:
+ *         description: Added to collection.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post('/collection', authenticate, validateCollection, addToCollection);
+
+/**
+ * @swagger
+ * /api/art-publication/comment/{id}:
+ *   post:
+ *     summary: Add a comment to an art publication
+ *     description: Allows an authenticated user to comment on an art publication by ID.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the art publication to comment on.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: Comment text.
+ *     responses:
+ *       200:
+ *         description: Comment added.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post('/comment/:id', authenticate, validateComment, addComment);
+
+/**
+ * @swagger
+ * /api/art-publication/comment/{commentId}:
+ *   delete:
+ *     summary: Delete a comment from an art publication
+ *     description: Allows an authenticated user to delete a comment they've made on an art publication.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the comment to delete.
+ *     responses:
+ *       200:
+ *         description: Comment deleted.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Comment belongs to another user.
+ *       404:
+ *         description: Comment not found.
+ *       500:
+ *         description: Server error.
+ */
+router.delete('/comment/:commentId', authenticate, deleteComment);
+
+
 
 export default router;

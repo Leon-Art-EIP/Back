@@ -41,7 +41,18 @@ export const signup = async (req, res) => {
           console.error(err.message);
           return res.status(500).json({ msg: "Error generating token" });
         }
-        res.json({ token });
+        res.json({
+          token,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            is_artist: user.is_artist,
+            availability: user.availability,
+            subscription: user.subscription,
+            collections: user.collections
+          },
+        });
       }
     );
   } catch (err) /* istanbul ignore next */ {

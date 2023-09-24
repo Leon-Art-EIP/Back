@@ -3,16 +3,7 @@ import * as AdminJSMongoose from '@adminjs/mongoose';
 
 import bcrypt from 'bcrypt';
 import {
-  User,
-  Artwork,
-  Collection,
-  CollectionArtwork,
-  Chat,
-  ChatMessage,
-  Order,
-  UserFollower,
-  UserLike,
-  UserCollection
+  User
 } from '../models/UserModel.mjs';
 
 AdminJS.registerAdapter(AdminJSMongoose);
@@ -39,15 +30,6 @@ const options = {
         },
       },
     },
-    Artwork,
-    Collection,
-    CollectionArtwork,
-    Chat,
-    ChatMessage,
-    Order,
-    UserFollower,
-    UserLike,
-    UserCollection,
   ],
   rootPath: '/admin',
 };

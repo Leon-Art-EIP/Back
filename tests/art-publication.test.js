@@ -23,7 +23,7 @@ describe('ArtPublication routes', () => {
     await ArtPublication.deleteMany({});
   });
 
-  it('POST /art-publication - Create a new ArtPublication (Success)', async () => {
+  it('POST /api/art-publication - Create a new ArtPublication (Success)', async () => {
     const payload = {
       image: 'image.jpg',
       artType: 'Painting',
@@ -36,7 +36,7 @@ describe('ArtPublication routes', () => {
     };
 
     const response = await request(app)
-      .post('/art-publication')
+      .post('/api/art-publication')
       .set('Authorization', `Bearer ${token}`)
       .send(payload);
 
@@ -44,10 +44,10 @@ describe('ArtPublication routes', () => {
     expect(response.body).toHaveProperty('msg', 'Art publication created successfully!');
   });
 
-  it('POST /art-publication - Missing required fields', async () => {
+  it('POST /api/art-publication - Missing required fields', async () => {
     const payload = {};
     const response = await request(app)
-      .post('/art-publication')
+      .post('/api/art-publication')
       .set('Authorization', `Bearer ${token}`)
       .send(payload);
 
@@ -61,7 +61,7 @@ describe('ArtPublication routes', () => {
     );
   });
 
-  it('POST /art-publication - Invalid optional fields', async () => {
+  it('POST /api/art-publication - Invalid optional fields', async () => {
     const payload = {
       image: 'image.jpg',
       artType: 'Painting',
@@ -72,7 +72,7 @@ describe('ArtPublication routes', () => {
     };
 
     const response = await request(app)
-      .post('/art-publication')
+      .post('/api/art-publication')
       .set('Authorization', `Bearer ${token}`)
       .send(payload);
 

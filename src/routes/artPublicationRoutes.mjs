@@ -11,7 +11,7 @@ import { validateArtPublication } from '../middleware/artPublicationValidation.m
 
 /**
  * @swagger
- * /art-publication:
+ * /api/art-publication:
  *   post:
  *     summary: Create an Art Publication
  *     description: |
@@ -82,7 +82,7 @@ router.post('/', authenticate, validateArtPublication, createArtPublication);
 
 /**
  * @swagger
- * /art-publication/like/{id}:
+ * /api/art-publication/like/{id}:
  *   post:
  *     summary: Like or unlike an art publication
  *     description: Allows an authenticated user to like or unlike an art publication by ID.
@@ -110,7 +110,7 @@ router.post('/like/:id', authenticate, likeArtPublication);
 
 /**
  * @swagger
- * /art-publication/collection:
+ * /api/art-publication/collection:
  *   post:
  *     summary: Add an art publication to a user collection
  *     description: Allows an authenticated user to add an art publication to a specified or new collection.
@@ -144,7 +144,7 @@ router.post('/collection', authenticate, validateCollection, addToCollection);
 
 /**
  * @swagger
- * /art-publication/comment/{id}:
+ * /api/art-publication/comment/{id}:
  *   post:
  *     summary: Add a comment to an art publication
  *     description: Allows an authenticated user to comment on an art publication by ID.
@@ -182,7 +182,7 @@ router.post('/comment/:id', authenticate, validateComment, addComment);
 
 /**
  * @swagger
- * /art-publication/comment/{commentId}:
+ * /api/art-publication/comment/{commentId}:
  *   delete:
  *     summary: Delete a comment from an art publication
  *     description: Allows an authenticated user to delete a comment they've made on an art publication.

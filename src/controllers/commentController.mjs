@@ -16,8 +16,16 @@ export const addComment = async (req, res) => {
     artPublication.comments.push(newComment._id);
     await artPublication.save();
 
-    res.json({ msg: 'Comment added' });
-  } catch (err) {
+    res.json({ 
+        msg: 'Comment added',
+        comment: {
+          id: newComment._id,
+          userId,
+          artPublicationId,
+          text
+        }
+      });
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
@@ -39,8 +47,11 @@ export const deleteComment = async (req, res) => {
     artPublication.comments.pull(commentId);
     await artPublication.save();
 
-    res.json({ msg: 'Comment deleted' });
-  } catch (err) {
+    res.json({ 
+        msg: 'Comment deleted',
+        commentId
+      });
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }

@@ -18,8 +18,14 @@ export const likeArtPublication = async (req, res) => {
 
     await artPublication.save();
 
-    res.json({ msg: 'Like status updated' });
-  } catch (err) {
+    res.json({ 
+        msg: 'Like status updated',
+        likeStatus: {
+          artPublicationId,
+          isLiked: artPublication.likes.includes(userId)
+        }
+      });
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }

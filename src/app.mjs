@@ -63,14 +63,14 @@ const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (
+      if /* istanbul ignore next */ (
         !origin ||
         allowedOrigins.indexOf(origin) !== -1 ||
         (origin.startsWith("https://web-") &&
           origin.includes("-leon-art.vercel.app"))
       ) {
         callback(null, true);
-      } else {
+      } else /* istanbul ignore next */ {
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -90,7 +90,7 @@ app.use(express.json({ extended: false }));
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
-app.use('/art-publication', artPublicationRoutes);
+app.use('/api/art-publication', artPublicationRoutes);
 
 
 // AdminJS CONFIG

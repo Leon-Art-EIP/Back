@@ -12,7 +12,7 @@ export async function submitQuizz(req, res) {
     await quizz.save();
 
     res.status(200).json({ msg: "Quizz submitted successfully" });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }

@@ -7,6 +7,7 @@ import { addToCollection } from '../controllers/collectionController.mjs';
 import { addComment, deleteComment } from '../controllers/commentController.mjs';
 import { validateCollection } from '../middleware/collectionValidation.mjs';
 import { validateComment } from '../middleware/commentValidation.mjs';
+import { validateArtPublication } from '../middleware/artPublicationValidation.mjs';
 
 /**
  * @swagger
@@ -77,7 +78,7 @@ import { validateComment } from '../middleware/commentValidation.mjs';
  *       500:
  *         description: Server Error.
  */
-router.post('/', authenticate, createArtPublication);
+router.post('/', authenticate, validateArtPublication, createArtPublication);
 
 /**
  * @swagger
@@ -208,5 +209,7 @@ router.post('/comment/:id', authenticate, validateComment, addComment);
  *         description: Server error.
  */
 router.delete('/comment/:commentId', authenticate, deleteComment);
+
+
 
 export default router;

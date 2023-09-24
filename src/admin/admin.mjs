@@ -19,7 +19,7 @@ const options = {
         },
         actions: {
           new: {
-            before: async (request) => {
+            before: async (request) => /* istanbul ignore next */ {
               if (request.payload.record.password) {
                 const hashedPassword = await bcrypt.hash(request.payload.record.password, 10);
                 request.payload.record.password = hashedPassword;

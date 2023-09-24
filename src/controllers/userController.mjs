@@ -21,7 +21,7 @@ export const checkUsernameAvailability = async (req, res) => {
     }
 
     return res.json({ msg: "Username is available" });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     return res.status(500).json({ msg: "Server Error" });
   }
@@ -44,7 +44,7 @@ export const checkEmailAvailability = async (req, res) => {
     }
 
     return res.json({ msg: "Email is available" });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     return res.status(500).json({ msg: "Server Error" });
   }

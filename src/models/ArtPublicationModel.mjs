@@ -11,6 +11,8 @@ const artPublicationSchema = new Schema({
   isForSale: { type: Boolean, default: false },
   price: { type: Number },
   location: { type: String },
+  likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
 });
 
 export const ArtPublication = mongoose.model('ArtPublication', artPublicationSchema);

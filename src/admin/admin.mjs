@@ -5,6 +5,11 @@ import bcrypt from 'bcrypt';
 import {
   User
 } from '../models/UserModel.mjs';
+import { ArtPublication } from '../models/ArtPublicationModel.mjs';
+import { Comment } from '../models/CommentModel.mjs';
+import { Quizz } from '../models/QuizzModel.mjs';
+import { ResetToken } from '../models/ResetPasswordTokenModel.mjs';
+
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
@@ -14,7 +19,7 @@ const options = {
       resource: User,
       options: {
         properties: {
-          password: { isVisible: false },
+          password: { isVisible: true },
           email: { isSortable: true },
         },
         actions: {
@@ -29,6 +34,10 @@ const options = {
           },
         },
       },
+      ArtPublication,
+      Comment,
+      Quizz,
+      ResetToken,
     },
   ],
   rootPath: '/admin',

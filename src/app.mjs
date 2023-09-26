@@ -61,21 +61,21 @@ const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(",")
   : [];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if /* istanbul ignore next */ (
-        !origin ||
-        allowedOrigins.indexOf(origin) !== -1 ||
-        (origin.startsWith("https://web-") &&
-          origin.includes("-leon-art.vercel.app"))
-      ) {
-        callback(null, true);
-      } else /* istanbul ignore next */ {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-  })
+app.use( cors()
+  // cors({
+  //   origin: (origin, callback) => {
+  //     if (
+  //       !origin ||
+  //       allowedOrigins.indexOf(origin) !== -1 ||
+  //       (origin.startsWith("https://web-") &&
+  //         origin.includes("-leon-art.vercel.app"))
+  //     ) {
+  //       callback(null, true);
+  //     } else {
+  //       callback(new Error("Not allowed by CORS"));
+  //     }
+  //   },
+  // })
 );
 
 app.use(

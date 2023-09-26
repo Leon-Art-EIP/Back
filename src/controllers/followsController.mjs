@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 import { User } from '../models/UserModel.mjs';
 
 export const followUser = async (req, res) => {
-  const userId = req.user._id;
+  const userId = req.user.id;
   const targetUserId = req.params.targetUserId;
 
   if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
-    return res.status(400).send({ message: 'Invalid user id.' });
+    return res.status(400).json({ msg: 'Invalid user id.' });
   }
 
   try {
@@ -14,11 +14,11 @@ export const followUser = async (req, res) => {
     const targetUser = await User.findById(targetUserId);
 
     if (!targetUser) {
-      return res.status(404).send({ message: 'User to follow not found.' });
+      return res.status(404).json({ msg: 'User to follow not found.' });
     }
-    if (user._id.equals(targetUser._id)) {
-      return res.status(400).send({ message: 'You cannot follow yourself.' });
-    }
+    if (user._id.toString() === targetUser._id.toString()) {
+        return res.status(400).json({ msg: 'You cannot follow yourself.' });
+      }
 
     const isAlreadyFollowing = user.subscriptions.includes(targetUserId.toString());
 
@@ -27,17 +27,17 @@ export const followUser = async (req, res) => {
       targetUser.subscribersCount = Math.max(0, targetUser.subscribersCount - 1);
       await user.save();
       await targetUser.save();
-      return res.status(200).send({ message: 'Successfully unfollowed user.' });
+      return res.status(200).json({ msg: 'Successfully unfollowed user.' });
     } else {
       user.subscriptions.push(targetUserId);
       targetUser.subscribersCount += 1;
       await user.save();
       await targetUser.save();
-      return res.status(200).send({ message: 'Successfully followed user.' });
+      return res.status(200).json({ msg: 'Successfully followed user.' });
     }
 
   } catch (error) {
     console.error(error);
-    return res.status(500).send({ message: 'Server error.' });
+    return res.status(500).json({ msg: 'Server error.' });
   }
 };

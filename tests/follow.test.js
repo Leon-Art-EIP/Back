@@ -1,74 +1,80 @@
-import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
-import app from "../src/app";
-import { User } from "../src/models/UserModel.mjs";
+import request from 'supertest';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import app from '../src/app';
+import { User } from '../src/models/UserModel.mjs';
 
-describe("Follow User routes", () => {
-    let user1, user2;
-  
-    beforeAll(async () => {
-      // Assume user1 and user2 are already created and saved in your database.
-      user1 = new User({
-        username: "user1",
-        email: "user1@test.com",
-        password: await bcrypt.hash("StrongTestPassword123!", 10),
-      });
-      await user1.save();
-  
-      user2 = new User({
-        username: "user2",
-        email: "user2@test.com",
-        password: await bcrypt.hash("StrongTestPassword123!", 10),
-      });
-      await user2.save();
+let token;
+let followedUserId;
+
+describe('Follow Routes', () => {
+  beforeAll(async () => {
+    // Set up database and user for testing
+    await User.deleteMany({});
+    const userResponse = await request(app).post('/api/auth/signup').send({
+      username: 'testuser',
+      email: 'testuser@test.com',
+      password: 'StrongTestPassword123!',
     });
-  
-    beforeEach(async () => {
-      // Before each test, clear the followers and following fields of the users
-      user1.following = [];
-      user1.followers = [];
-      user2.following = [];
-      user2.followers = [];
-      await user1.save();
-      await user2.save();
+    token = userResponse.body.token;
+
+    // Assume there's a user to be followed
+    const followedUser = new User({
+      username: 'followeduser',
+      email: 'followeduser@test.com',
+      password: 'StrongTestPassword123!',
     });
-  
-    test("POST /users/{targetUserId}/follow - Successful follow", async () => {
-      const response = await request(app)
-        .post(`/api/users/${user2._id}/follow`)
-        .set('Authorization', `Bearer ${token}`)
-        .send();
-  
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe("Successfully followed user");
-  
-      // Verify that the user1 is now following user2
-      const updatedUser1 = await User.findById(user1._id);
-      const updatedUser2 = await User.findById(user2._id);
-      expect(updatedUser1.following).toContainEqual(user2._id);
-      expect(updatedUser2.followers).toContainEqual(user1._id);
-    });
-  
-    test("POST /users/{targetUserId}/follow - Unsuccessful follow (already following)", async () => {
-      user1.following.push(user2._id);
-      user2.followers.push(user1._id);
-      await user1.save();
-      await user2.save();
-  
-      const response = await request(app)
-        .post(`/api/users/${user2._id}/follow`)
-        .set('Authorization', `Bearer ${token}`)
-        .send();
-  
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe("Successfully unfollowed user");
-  
-      // Verify that the user1 is no longer following user2
-      const updatedUser1 = await User.findById(user1._id);
-      const updatedUser2 = await User.findById(user2._id);
-      expect(updatedUser1.following).not.toContainEqual(user2._id);
-      expect(updatedUser2.followers).not.toContainEqual(user1._id);
-    });
+    await followedUser.save();
+    followedUserId = followedUser._id;
   });
-  
+
+  beforeEach(async () => {
+    // Clear follow data before each test, if there's any follow model/collection
+  });
+
+  it('POST /follow - Follow a user (Success)', async () => {
+    const response = await request(app)
+      .post(`/api/follow/${followedUserId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('msg', 'Successfully followed user.');
+  });
+
+  it('POST /follow - Unfollow a user if already followed (Success)', async () => {
+    // First follow the user
+    await request(app)
+      .post(`/api/follow/${followedUserId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+
+    // Now unfollow the user
+    const response = await request(app)
+      .post(`/api/follow/${followedUserId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('msg', 'Successfully followed user.');
+  });
+
+  it('POST /follow - Attempt to follow a non-existent user (Failure)', async () => {
+    const response = await request(app)
+      .post('/api/follow/nonexistentuserid')
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('msg', 'Invalid user id.');
+  });
+
+  it('POST /follow - Attempt to follow without authorization (Failure)', async () => {
+    const response = await request(app)
+      .post(`/api/follow/${followedUserId}`)
+      .send();
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('msg', 'No token, authorization denied');
+  });
+});

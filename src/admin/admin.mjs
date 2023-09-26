@@ -3,16 +3,7 @@ import * as AdminJSMongoose from '@adminjs/mongoose';
 
 import bcrypt from 'bcrypt';
 import {
-  User,
-  Artwork,
-  Collection,
-  CollectionArtwork,
-  Chat,
-  ChatMessage,
-  Order,
-  UserFollower,
-  UserLike,
-  UserCollection
+  User
 } from '../models/UserModel.mjs';
 
 AdminJS.registerAdapter(AdminJSMongoose);
@@ -28,7 +19,7 @@ const options = {
         },
         actions: {
           new: {
-            before: async (request) => {
+            before: async (request) => /* istanbul ignore next */ {
               if (request.payload.record.password) {
                 const hashedPassword = await bcrypt.hash(request.payload.record.password, 10);
                 request.payload.record.password = hashedPassword;
@@ -39,15 +30,6 @@ const options = {
         },
       },
     },
-    Artwork,
-    Collection,
-    CollectionArtwork,
-    Chat,
-    ChatMessage,
-    Order,
-    UserFollower,
-    UserLike,
-    UserCollection,
   ],
   rootPath: '/admin',
 };

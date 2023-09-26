@@ -16,6 +16,8 @@ const userSchema = new Schema({
   availability: { type: String, default: "unavailable" },
   subscription: { type: String, default: "standard" },
   collections: [collectionSchema],
+  subscriptions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  subscribersCount: { type: Number, default: 0 },
 });
 
 export const User = mongoose.model("User", userSchema);

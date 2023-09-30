@@ -11,3 +11,16 @@ export const validateCollection = [
     next();
   },
 ];
+
+
+export const validateCollectionName = [
+  check('collectionName').notEmpty().isString().withMessage('Collection name is required'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array().map(error => ({ msg: error.msg })) });
+    }
+    next();
+  },
+];

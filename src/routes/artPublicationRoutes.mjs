@@ -1,13 +1,13 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication } from '../controllers/artPublicationController.mjs';
-import { likeArtPublication } from '../controllers/likeController.mjs';
-import { addToCollection } from '../controllers/collectionController.mjs';
-import { addComment, deleteComment } from '../controllers/commentController.mjs';
-import { validateCollection } from '../middleware/collectionValidation.mjs';
-import { validateComment } from '../middleware/commentValidation.mjs';
-import { validateArtPublication } from '../middleware/artPublicationValidation.mjs';
+import { createArtPublication, getArtPublicationById, getArtPublicationsInCollection, getFollowedArtPublications, getLatestArtPublications } from '../controllers/artPublication/artPublicationController.mjs';
+import { likeArtPublication } from '../controllers/artPublication/likeController.mjs';
+import { addToCollection } from '../controllers/collection/collectionController.mjs';
+import { addComment, deleteComment } from '../controllers/artPublication/commentController.mjs';
+import { validateCollection, validateCollectionName } from '../middleware/validation/collectionValidation.mjs';
+import { validateComment } from '../middleware/validation/commentValidation.mjs';
+import { validateArtPublication, validateArtPublicationId } from '../middleware/validation/artPublicationValidation.mjs';
 
 /**
  * @swagger
@@ -210,6 +210,98 @@ router.post('/comment/:id', authenticate, validateComment, addComment);
  */
 router.delete('/comment/:commentId', authenticate, deleteComment);
 
+/**
+ * @swagger
+ * /api/art-publication/{id}:
+ *   get:
+ *     summary: Retrieve an Art Publication by ID
+ *     description: Allows an authenticated user to retrieve details of an art publication using its ID.
+ *     tags: [Art Publication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Art publication ID.
+ *     responses:
+ *       200:
+ *         description: Returns the requested art publication.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/:id', authenticate, validateArtPublicationId, getArtPublicationById);
 
+/**
+ * @swagger
+ * /api/art-publication/feed/latest:
+ *   get:
+ *     summary: Retrieve latest Art Publications
+ *     description: Get the latest 40 art publications, with pagination.
+ *     tags: [Art Publication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns the latest art publications.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/feed/latest', authenticate, getLatestArtPublications);
+
+/**
+ * @swagger
+ * /api/art-publication/feed/followed:
+ *   get:
+ *     summary: Retrieve Art Publications from followed accounts
+ *     description: Get the latest art publications from followed accounts.
+ *     tags: [Art Publication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns the art publications from followed accounts.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/feed/followed', authenticate, getFollowedArtPublications);
+
+/**
+ * @swagger
+ * /api/art-publication/collection/{collectionName}:
+ *   get:
+ *     summary: Retrieve Art Publications in a Collection
+ *     description: Get art publications from a specified collection.
+ *     tags: [Art Publication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Name of the collection.
+ *     responses:
+ *       200:
+ *         description: Returns the art publications in the collection.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       404:
+ *         description: Collection not found.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/collection/:collectionName', authenticate, validateCollectionName, getArtPublicationsInCollection);
 
 export default router;

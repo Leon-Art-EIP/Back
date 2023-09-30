@@ -1,6 +1,6 @@
 import { Router } from "express";
 const router = Router();
-import { followUser } from "../controllers/followsController.mjs";
+import { followUser } from "../controllers/user/followsController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
 
 

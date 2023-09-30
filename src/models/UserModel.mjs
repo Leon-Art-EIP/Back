@@ -18,6 +18,7 @@ const userSchema = new Schema({
   collections: [collectionSchema],
   subscriptions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   subscribersCount: { type: Number, default: 0 },
+  likedPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
 });
 
 export const User = mongoose.model("User", userSchema);

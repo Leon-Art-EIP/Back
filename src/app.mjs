@@ -3,6 +3,7 @@ import connectDB from "./config/db.mjs";
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 import artPublicationRoutes from './routes/artPublicationRoutes.mjs';
+import artistRoutes from "./routes/artistRoutes.mjs";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
@@ -12,7 +13,7 @@ import adminOptions from "./admin/admin.mjs";
 import expressSession from "express-session";
 import dotenv from "dotenv";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
-import followRoutes from "./routes/followsRoutes.mjs"; // Assuming you converted this to ES6 syntax and `.mjs` extension
+import followRoutes from "./routes/followsRoutes.mjs";
 
 dotenv.config();
 
@@ -93,6 +94,8 @@ app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
 app.use('/api/art-publication', artPublicationRoutes);
 app.use("/api", followRoutes);
+app.use('/api/artists', artistRoutes);
+
 
 
 // AdminJS CONFIG

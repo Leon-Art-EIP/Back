@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { User } from '../models/UserModel.mjs';
+import { User } from '../../models/UserModel.mjs';
 
 export const followUser = async (req, res) => {
   const userId = req.user.id;

@@ -1,7 +1,7 @@
 // controllers/CollectionController.mjs
 
-import { User } from "../models/UserModel.mjs";
-import { ArtPublication } from "../models/ArtPublicationModel.mjs";
+import { User } from "../../models/UserModel.mjs";
+import { ArtPublication } from "../../models/ArtPublicationModel.mjs";
 
 export const addToCollection = async (req, res) => {
   try {

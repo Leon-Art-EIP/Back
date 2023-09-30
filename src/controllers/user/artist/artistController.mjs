@@ -1,7 +1,7 @@
 import { User } from "../../../models/UserModel.mjs";
 
 export const getLatestArtists = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10;  // You can adjust the default limit as needed
+  const limit = parseInt(req.query.limit) || 10;
   const skip = parseInt(req.query.skip) || 0;  // To handle pagination
 
   try {

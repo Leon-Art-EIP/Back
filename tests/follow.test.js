@@ -77,4 +77,28 @@ describe('Follow Routes', () => {
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('msg', 'No token, authorization denied');
   });
+
+  it('POST /follow - Attempt to follow oneself (Failure)', async () => {
+    const user = await User.findOne({ email: 'testuser@test.com' });
+    const response = await request(app)
+      .post(`/api/follow/${user._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+  
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('msg', 'You cannot follow yourself.');
+  });
+
+  it('POST /follow - Attempt to follow a valid ObjectId but non-existent user (Failure)', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .post(`/api/follow/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+  
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('msg', 'User to follow not found.');
+  });
+  
+  
 });

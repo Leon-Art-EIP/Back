@@ -22,12 +22,13 @@ export const addComment = async (req, res) => {
           id: newComment._id,
           userId,
           artPublicationId,
-          text
+          text,
+          createdAt: newComment.createdAt
         }
       });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: 'Server Error', details: err.message });
   }
 };
 
@@ -49,10 +50,11 @@ export const deleteComment = async (req, res) => {
 
     res.json({ 
         msg: 'Comment deleted',
-        commentId
+        commentId,
+        userId
       });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: 'Server Error', details: err.message });
   }
 };

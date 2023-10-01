@@ -196,4 +196,66 @@ describe('ArtPublication Functionalities', () => {
     expect(response.status).toBe(403);
     expect(response.body.msg).toBe('Unauthorized');
   });
+
+  // Testing for fetching an art publication by its ID
+  it('GET /api/art-publication/:id - Successfully retrieve an ArtPublication by ID', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body._id.toString()).toBe(artPublicationId);
+  });
+
+  it('GET /api/art-publication/:id - ArtPublication not found by ID', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .get(`/api/art-publication/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Art publication not found');
+  });
+
+  // Testing for fetching latest art publications with pagination
+  it('GET /api/art-publication/feed/latest - Successfully retrieve latest ArtPublications', async () => {
+    const response = await request(app)
+      .get('/api/art-publication/feed/latest')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ skip: 0 });
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  // Testing for fetching art publications of followed users
+  it('GET /api/art-publication/feed/followed - Retrieve ArtPublications of followed users', async () => {
+    const response = await request(app)
+      .get('/api/art-publication/feed/followed')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  // Testing for fetching art publications within a collection
+  it('GET /api/art-publication/collection/:collectionName - Successfully retrieve ArtPublications from a collection', async () => {
+    const collectionName = 'Favorites';
+    const response = await request(app)
+      .get(`/api/art-publication/collection/${collectionName}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  it('GET /api/art-publication/collection/:collectionName - Collection not found', async () => {
+    const fakeCollectionName = 'NonExistentCollection';
+    const response = await request(app)
+      .get(`/api/art-publication/collection/${fakeCollectionName}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Collection not found');
+  });
 });

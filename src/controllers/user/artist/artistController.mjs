@@ -1,15 +1,16 @@
 import { User } from "../../../models/UserModel.mjs";
 
 export const getLatestArtists = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10;
-  const skip = parseInt(req.query.skip) || 0;  // To handle pagination
-
   try {
+    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const page = Number(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
     const artists = await User.find({ is_artist: true })
-      .sort({ _id: -1 })  // Latest first based on ObjectId timestamp
+      .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
-      .select('-password');  // Exclude sensitive info
+      .select('-password'); // Exclude sensitive info
 
     return res.json({ artists });
   } catch (err) /* istanbul ignore next */ {

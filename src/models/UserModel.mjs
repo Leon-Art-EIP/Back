@@ -20,6 +20,7 @@ const userSchema = new Schema({
   subscriptions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   subscribersCount: { type: Number, default: 0 },
   likedPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
+  canPostArticles: { type: Boolean, default: true }, // By default, users can post articles
 });
 
 export const User = mongoose.model("User", userSchema);

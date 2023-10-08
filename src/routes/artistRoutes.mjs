@@ -1,8 +1,6 @@
-// routes/artistRoutes.mjs
-
 import express from 'express';
 import { getLatestArtists } from '../controllers/user/artist/artistController.mjs';
-import { authenticate } from '../middleware/authenticate.mjs'; // Assuming you have this middleware for user authentication.
+import { authenticate } from '../middleware/authenticate.mjs';
 
 const router = express.Router();
 
@@ -25,11 +23,11 @@ const router = express.Router();
  *         description: The number of artists to retrieve (default is 10).
  *         example: 5
  *       - in: query
- *         name: skip
+ *         name: page
  *         schema:
  *           type: integer
- *         description: The number of artists to skip before starting to retrieve (used for pagination).
- *         example: 10
+ *         description: The page number for pagination.
+ *         example: 2
  *     responses:
  *       200:
  *         description: Successful retrieval of artists.

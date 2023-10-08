@@ -15,6 +15,8 @@ import expressSession from "express-session";
 import dotenv from "dotenv";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
+import articleRoutes from "./routes/articleRoutes.mjs";
+
 
 dotenv.config();
 
@@ -97,6 +99,7 @@ app.use('/api/art-publication', artPublicationRoutes);
 app.use('/api/collection', collectionRoutes);
 app.use("/api", followRoutes);
 app.use('/api/artists', artistRoutes);
+app.use('/api/article', articleRoutes);
 
 
 

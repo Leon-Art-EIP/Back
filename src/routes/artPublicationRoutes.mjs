@@ -16,7 +16,7 @@ import { validateArtPublication, validateArtPublicationId } from '../middleware/
  *       Allows an authenticated user to publish their art.
  *       The publication can include various details like art type, name, description, dimension, and more.
  *       Additionally, users can specify if the art is for sale and its price.
- *     tags: [Art Publication]
+ *     tags: [ArtPublication]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -180,7 +180,7 @@ router.delete('/comment/:commentId', authenticate, deleteComment);
  *   get:
  *     summary: Retrieve an Art Publication by ID
  *     description: Allows an authenticated user to retrieve details of an art publication using its ID.
- *     tags: [Art Publication]
+ *     tags: [ArtPublication]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -208,7 +208,7 @@ router.get('/:id', authenticate, validateArtPublicationId, getArtPublicationById
  *   get:
  *     summary: Retrieve latest Art Publications
  *     description: Get the latest art publications with pagination.
- *     tags: [Art Publication]
+ *     tags: [ArtPublication]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -238,7 +238,7 @@ router.get('/feed/latest', authenticate, getLatestArtPublications);
  *   get:
  *     summary: Retrieve Art Publications from followed accounts
  *     description: Get the latest art publications from followed accounts with pagination.
- *     tags: [Art Publication]
+ *     tags: [ArtPublication]
  *     security:
  *       - bearerAuth: []
  *     parameters:

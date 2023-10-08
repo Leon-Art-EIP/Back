@@ -4,7 +4,8 @@ const { Schema } = mongoose;
 
 const collectionSchema = new Schema({
   name: String,
-  artPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }]
+  artPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
+  isPublic: { type: Boolean, default: true }
 });
 
 const userSchema = new Schema({

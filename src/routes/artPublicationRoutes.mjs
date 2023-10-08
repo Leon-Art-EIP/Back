@@ -1,11 +1,9 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication, getArtPublicationById, getArtPublicationsInCollection, getFollowedArtPublications, getLatestArtPublications } from '../controllers/artPublication/artPublicationController.mjs';
+import { createArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications } from '../controllers/artPublication/artPublicationController.mjs';
 import { likeArtPublication } from '../controllers/artPublication/likeController.mjs';
-import { addToCollection } from '../controllers/collection/collectionController.mjs';
 import { addComment, deleteComment } from '../controllers/artPublication/commentController.mjs';
-import { validateCollection, validateCollectionName } from '../middleware/validation/collectionValidation.mjs';
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
 import { validateArtPublication, validateArtPublicationId } from '../middleware/validation/artPublicationValidation.mjs';
 
@@ -110,40 +108,6 @@ router.post('/like/:id', authenticate, likeArtPublication);
 
 /**
  * @swagger
- * /api/art-publication/collection:
- *   post:
- *     summary: Add an art publication to a user collection
- *     description: Allows an authenticated user to add an art publication to a specified or new collection.
- *     tags: [ArtPublication]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               artPublicationId:
- *                 type: string
- *                 description: ID of the art publication to add to the collection.
- *               collectionName:
- *                 type: string
- *                 description: Name of the collection.
- *     responses:
- *       200:
- *         description: Added to collection.
- *       401:
- *         description: Unauthorized.
- *       404:
- *         description: Art publication not found.
- *       500:
- *         description: Server error.
- */
-router.post('/collection', authenticate, validateCollection, addToCollection);
-
-/**
- * @swagger
  * /api/art-publication/comment/{id}:
  *   post:
  *     summary: Add a comment to an art publication
@@ -243,10 +207,21 @@ router.get('/:id', authenticate, validateArtPublicationId, getArtPublicationById
  * /api/art-publication/feed/latest:
  *   get:
  *     summary: Retrieve latest Art Publications
- *     description: Get the latest 40 art publications, with pagination.
+ *     description: Get the latest art publications with pagination.
  *     tags: [Art Publication]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of records to return.
  *     responses:
  *       200:
  *         description: Returns the latest art publications.
@@ -262,10 +237,21 @@ router.get('/feed/latest', authenticate, getLatestArtPublications);
  * /api/art-publication/feed/followed:
  *   get:
  *     summary: Retrieve Art Publications from followed accounts
- *     description: Get the latest art publications from followed accounts.
+ *     description: Get the latest art publications from followed accounts with pagination.
  *     tags: [Art Publication]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of records to return.
  *     responses:
  *       200:
  *         description: Returns the art publications from followed accounts.
@@ -276,32 +262,5 @@ router.get('/feed/latest', authenticate, getLatestArtPublications);
  */
 router.get('/feed/followed', authenticate, getFollowedArtPublications);
 
-/**
- * @swagger
- * /api/art-publication/collection/{collectionName}:
- *   get:
- *     summary: Retrieve Art Publications in a Collection
- *     description: Get art publications from a specified collection.
- *     tags: [Art Publication]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: collectionName
- *         required: true
- *         schema:
- *           type: string
- *         description: Name of the collection.
- *     responses:
- *       200:
- *         description: Returns the art publications in the collection.
- *       401:
- *         description: No token provided or token is invalid.
- *       404:
- *         description: Collection not found.
- *       500:
- *         description: Server Error.
- */
-router.get('/collection/:collectionName', authenticate, validateCollectionName, getArtPublicationsInCollection);
 
 export default router;

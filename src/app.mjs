@@ -2,6 +2,7 @@ import express from "express";
 import connectDB from "./config/db.mjs";
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
+import collectionRoutes from "./routes/collectionRoutes.mjs";
 import artPublicationRoutes from './routes/artPublicationRoutes.mjs';
 import artistRoutes from "./routes/artistRoutes.mjs";
 import swaggerUi from "swagger-ui-express";
@@ -93,6 +94,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
 app.use('/api/art-publication', artPublicationRoutes);
+app.use('/api/collection', collectionRoutes);
 app.use("/api", followRoutes);
 app.use('/api/artists', artistRoutes);
 

@@ -67,12 +67,12 @@ export const getArtPublicationById = async (req, res) => {
 
 export const getLatestArtPublications = async (req, res) => {
   try {
-    const limit = 40;
-    const skip = Number(req.query.skip) || 0;  // for pagination
+    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const page = Number(req.query.page) || 1;
 
-    const artPublications = await ArtPublication.find().sort({ _id: -1 }).limit(limit).skip(skip).populate('likes').populate('comments');
+    const artPublications = await ArtPublication.find().sort({ _id: -1 }).limit(limit).skip((page - 1) * limit).populate('likes').populate('comments');
     res.json(artPublications);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
@@ -82,29 +82,14 @@ export const getFollowedArtPublications = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
-
     const followedUsers = user.subscriptions;
 
-    const artPublications = await ArtPublication.find({ userId: { $in: followedUsers } }).sort({ _id: -1 }).limit(40);
+    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const page = Number(req.query.page) || 1;
+
+    const artPublications = await ArtPublication.find({ userId: { $in: followedUsers } }).sort({ _id: -1 }).limit(limit).skip((page - 1) * limit);
     res.json(artPublications);
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
-  }
-};
-
-export const getArtPublicationsInCollection = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const collectionName = req.params.collectionName;  // assuming you pass collection name as a param
-
-    const user = await User.findById(userId);
-    const collection = user.collections.find(coll => coll.name === collectionName);
-    if (!collection) return res.status(404).json({ msg: 'Collection not found' });
-
-    const artPublications = await ArtPublication.find({ _id: { $in: collection.artPublications } });
-    res.json(artPublications);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }

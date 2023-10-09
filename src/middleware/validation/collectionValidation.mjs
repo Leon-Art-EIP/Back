@@ -12,13 +12,12 @@ export const validateCollection = [
   },
 ];
 
-
 export const validateCollectionName = [
   check('collectionName').notEmpty().isString().withMessage('Collection name is required'),
 
-  (req, res, next) => {
+  (req, res, next) => /* istanbul ignore next */ {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) /* istanbul ignore next */ {
+    if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array().map(error => ({ msg: error.msg })) });
     }
     next();

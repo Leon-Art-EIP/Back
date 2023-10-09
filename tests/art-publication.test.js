@@ -1,6 +1,4 @@
 import request from 'supertest';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../src/app';
 import { User } from '../src/models/UserModel.mjs';
 import { ArtPublication } from '../src/models/ArtPublicationModel.mjs';

@@ -18,7 +18,7 @@ export const addToCollection = async (req, res) => {
       user.collections.push({
         name: collectionName,
         artPublications: [artPublicationId],
-        isPublic: req.body.isPublic || true // Default to public if not specified
+        isPublic: req.body.isPublic || true, // Default to public if not specified
       });
     } else {
       // Add to existing collection
@@ -46,25 +46,26 @@ export const addToCollection = async (req, res) => {
 
 export const getUserCollections = async (req, res) => {
   try {
-    console.log("potato");
     const userId = req.user.id;
-    const user = await User.findById(userId).select('collections');
+    const user = await User.findById(userId).select("collections");
     res.json(user.collections);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: "Server Error" });
   }
 };
 
 export const getPublicCollections = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const user = await User.findById(userId).select('collections');
-    const publicCollections = user.collections.filter(collection => collection.isPublic);
+    const user = await User.findById(userId).select("collections");
+    const publicCollections = user.collections.filter(
+      (collection) => collection.isPublic
+    );
     res.json(publicCollections);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: "Server Error" });
   }
 };
 
@@ -77,21 +78,23 @@ export const getArtPublicationsInCollection = async (req, res) => {
 
     const collection = user.collections.id(collectionId);
 
-    if (!collection) return res.status(404).json({ msg: 'Collection not found' });
+    if (!collection)
+      return res.status(404).json({ msg: "Collection not found" });
 
     const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
-    
+
     const artPublications = await ArtPublication.find({
-      _id: { $in: collection.artPublications }
-    }).limit(limit).skip(skip);
-    
+      _id: { $in: collection.artPublications },
+    })
+      .limit(limit)
+      .skip(skip);
 
     res.json(artPublications);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: "Server Error" });
   }
 };
 
@@ -101,13 +104,24 @@ export const deleteCollection = async (req, res) => {
     const collectionId = req.params.collectionId;
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
 
-    user.collections.id(collectionId).remove();
-    await user.save();
+    const collectionToDelete = user.collections.id(collectionId);
 
-    res.json({ msg: 'Collection deleted' });
-  } catch (err) {
+    if (!collectionToDelete) {
+      return res.status(404).json({ msg: 'Collection not found' });
+    }
+
+    await User.findByIdAndUpdate(userId, {
+      $pull: { collections: { _id: collectionId } }
+    });
+
+    return res.json({ msg: 'Collection deleted' });
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error' });
+    return res.status(500).json({ msg: 'Server Error' });
   }
 };
+

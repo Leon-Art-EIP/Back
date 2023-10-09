@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate } from '../middleware/authenticate.mjs';
 import { checkArticleAuthorization } from '../middleware/checkArticleAuthorization.mjs';
 import { postArticle, getLatestArticles } from '../controllers/article/articleController.mjs';
+import { validateArticle } from '../middleware/validation/articleValidation.mjs';
 
 const router = express.Router();
 
@@ -31,8 +32,23 @@ const router = express.Router();
  *                 type: string
  *                 description: Rich-text content of the article (HTML).
  *     responses:
- *       200:
+ *       201:
  *         description: Article posted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                 mainImage:
+ *                   type: string
+ *                 content:
+ *                   type: string
+ *                 author:
+ *                   type: string
+ *                 createdAt:
+ *                   type: date
  *       401:
  *         description: Unauthorized.
  *       403:
@@ -40,13 +56,14 @@ const router = express.Router();
  *       500:
  *         description: Server error.
  */
-router.post('/', authenticate, checkArticleAuthorization, postArticle);
+router.post('/', authenticate, checkArticleAuthorization, validateArticle, postArticle);
 
 /**
  * @swagger
  * /api/article/latest:
  *   get:
  *     summary: Fetch Latest Articles
+ *     description: Retrieve the latest articles posted on the platform.
  *     tags: [Article]
  *     parameters:
  *       - in: query
@@ -64,6 +81,26 @@ router.post('/', authenticate, checkArticleAuthorization, postArticle);
  *     responses:
  *       200:
  *         description: Successful retrieval of articles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   mainImage:
+ *                     type: string
+ *                   content:
+ *                     type: string
+ *                   author:
+ *                     type: object
+ *                     properties:
+ *                       username:
+ *                         type: string
+ *                   createdAt:
+ *                     type: date
  *       500:
  *         description: Server error.
  */

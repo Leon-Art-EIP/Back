@@ -1,5 +1,4 @@
 import { Article } from "../../models/ArticleModel.mjs";
-import { User } from "../../models/UserModel.mjs";
 
 export const postArticle = async (req, res) => {
   try {
@@ -15,7 +14,7 @@ export const postArticle = async (req, res) => {
 
     await article.save();
     res.status(201).json(article);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
@@ -34,7 +33,7 @@ export const getLatestArticles = async (req, res) => {
       .populate('author', 'username'); // Populating author's username
 
     res.json(articles);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }

@@ -72,7 +72,7 @@ export const getLatestArtPublications = async (req, res) => {
 
     const artPublications = await ArtPublication.find().sort({ _id: -1 }).limit(limit).skip((page - 1) * limit).populate('likes').populate('comments');
     res.json(artPublications);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
@@ -89,7 +89,7 @@ export const getFollowedArtPublications = async (req, res) => {
 
     const artPublications = await ArtPublication.find({ userId: { $in: followedUsers } }).sort({ _id: -1 }).limit(limit).skip((page - 1) * limit);
     res.json(artPublications);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }

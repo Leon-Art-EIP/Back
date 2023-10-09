@@ -12,6 +12,7 @@ export default async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
+    console.log("Connected to mongoDb memory server");
   }
 
   global.__MONGO_URI__ = mongoUri;

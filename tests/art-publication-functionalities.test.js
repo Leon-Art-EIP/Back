@@ -266,5 +266,4 @@ describe('ArtPublication Functionalities', () => {
     expect(response.status).toBe(404);
     expect(response.body.msg).toBe('Collection not found');
   });
-
 });

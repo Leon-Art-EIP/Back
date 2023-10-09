@@ -1,5 +1,4 @@
 import express from "express";
-import connectDB from "./config/db.mjs";
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 import collectionRoutes from "./routes/collectionRoutes.mjs";
@@ -17,13 +16,9 @@ import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
 
-
 dotenv.config();
 
 const app = express();
-
-// Connect Database
-connectDB();
 
 // Swaggers CONFIG
 

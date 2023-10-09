@@ -28,7 +28,6 @@ describe("Reset Password Routes", () => {
       const response = await request(app)
         .post("/api/auth/request-reset")
         .send({ email: userEmail });
-      console.log("response : " + response);
       expect(response.status).toBe(200);
       expect(response.body.msg).toBe("Reset email sent");
 

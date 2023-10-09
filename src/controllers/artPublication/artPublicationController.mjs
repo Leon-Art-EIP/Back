@@ -1,5 +1,5 @@
-import { ArtPublication } from '../../models/ArtPublicationModel.mjs';
-import { User } from '../../models/UserModel.mjs';
+import { ArtPublication } from '../../models/artPublicationModel.mjs';
+import { User } from '../../models/userModel.mjs';
 
 export const createArtPublication = async (req, res) => {
   try {

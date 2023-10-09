@@ -1,5 +1,5 @@
-import { User } from "../../models/UserModel.mjs";
-import { ResetToken } from "../../models/ResetPasswordTokenModel.mjs";
+import { User } from "../../models/userModel.mjs";
+import { ResetToken } from "../../models/resetPasswordTokenModel.mjs";
 import { isTokenValid } from "../../utils/tokenValidation.mjs";
 import { createTransport } from "nodemailer";
 import { genSalt, hash } from "bcrypt";

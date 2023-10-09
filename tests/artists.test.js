@@ -1,7 +1,7 @@
 import request from "supertest";
 import mongoose from "mongoose";
 import app from "../src/app";
-import { User } from "../src/models/UserModel.mjs";
+import { User } from "../src/models/userModel.mjs";
 
 let token, userId;
 

@@ -4,7 +4,7 @@ import * as AdminJSMongoose from '@adminjs/mongoose';
 import bcrypt from 'bcrypt';
 import {
   User
-} from '../models/UserModel.mjs';
+} from '../models/userModel.mjs';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 

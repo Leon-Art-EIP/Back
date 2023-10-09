@@ -2,9 +2,10 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
 import app from '../src/app';
-import { User } from '../src/models/UserModel.mjs';
-import { ArtPublication } from '../src/models/ArtPublicationModel.mjs';
-import { Comment } from '../src/models/CommentModel.mjs';
+import { User } from '../src/models/userModel.mjs';
+import { ArtPublication } from '../src/models/artPublicationModel.mjs';
+import { Comment } from '../src/models/commentModel.mjs';
+import Collection  from '../src/models/collectionModel.mjs';
 
 let token, userId, artPublicationId, commentId;
 
@@ -122,9 +123,12 @@ describe('ArtPublication Functionalities', () => {
 
   it('POST /collection - Add to existing collection', async () => {
     // First, create a collection with the name 'Favorites'
+    const newCollection = new Collection({ name: 'Favorites', artPublications: [], user: userId });
+    await newCollection.save();
     const user = await User.findById(userId);
-    user.collections.push({ name: 'Favorites', artPublications: [] });
+    user.collections.push(newCollection._id);
     await user.save();
+    
 
     const response = await request(app)
       .post('/api/collection')
@@ -241,8 +245,7 @@ describe('ArtPublication Functionalities', () => {
 
   it('GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection', async () => {
     const collectionName = 'Favorites';
-    const user = await User.findById(userId);
-    const collection = user.collections.find(c => c.name === collectionName);
+    const collection = await Collection.findOne({ user: userId, name: collectionName });
     const collectionId = collection._id;
     
     const response = await request(app)

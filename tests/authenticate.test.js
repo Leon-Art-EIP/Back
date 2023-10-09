@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../src/app";
-import { User } from "../src/models/UserModel.mjs";
-import { Quizz } from "../src/models/QuizzModel.mjs";
+import { User } from "../src/models/userModel.mjs";
+import { Quizz } from "../src/models/quizzModel.mjs";
 import jwt from "jsonwebtoken";
 
 let validToken;

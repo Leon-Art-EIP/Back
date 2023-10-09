@@ -1,42 +1,34 @@
-import { User } from "../../models/UserModel.mjs";
-import { ArtPublication } from "../../models/ArtPublicationModel.mjs";
+import { User } from "../../models/userModel.mjs";
+import Collection from "../../models/collectionModel.mjs";
+import { ArtPublication } from "../../models/artPublicationModel.mjs";
 
 export const addToCollection = async (req, res) => {
   try {
     const userId = req.user.id;
     const { collectionName, artPublicationId } = req.body;
-    const user = await User.findById(userId);
+
     const artPublication = await ArtPublication.findById(artPublicationId);
-
-    if (!artPublication)
+    if (!artPublication) {
       return res.status(404).json({ msg: "Art publication not found" });
-
-    let collection = user.collections.find((c) => c.name === collectionName);
-
-    if (!collection) {
-      // Create new collection if not exist
-      user.collections.push({
-        name: collectionName,
-        artPublications: [artPublicationId],
-        isPublic: req.body.isPublic || true, // Default to public if not specified
-      });
-    } else {
-      // Add to existing collection
-      if (!collection.artPublications.includes(artPublicationId)) {
-        collection.artPublications.push(artPublicationId);
-      }
     }
 
-    await user.save();
+    // Create or update collection
+    let collection = await Collection.findOneAndUpdate(
+      { name: collectionName, user: userId },
+      { $addToSet: { artPublications: artPublicationId } },
+      { new: true, upsert: true }
+    );
+
+    // Update user's collections
+    const user = await User.findById(userId);
+    if (!user.collections.includes(collection._id)) {
+      user.collections.push(collection._id);
+      await user.save();
+    }
 
     res.json({
       msg: "Added to collection",
-      collection: {
-        name: collectionName,
-        artPublications: collection
-          ? collection.artPublications
-          : [artPublicationId],
-      },
+      collection: collection,
     });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -47,8 +39,8 @@ export const addToCollection = async (req, res) => {
 export const getUserCollections = async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId).select("collections");
-    res.json(user.collections);
+    const userCollections = await Collection.find({ user: userId }); // Directly find by user reference
+    res.json(userCollections);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
@@ -58,10 +50,7 @@ export const getUserCollections = async (req, res) => {
 export const getPublicCollections = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const user = await User.findById(userId).select("collections");
-    const publicCollections = user.collections.filter(
-      (collection) => collection.isPublic
-    );
+    const publicCollections = await Collection.find({ user: userId, isPublic: true });
     res.json(publicCollections);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -71,15 +60,11 @@ export const getPublicCollections = async (req, res) => {
 
 export const getArtPublicationsInCollection = async (req, res) => {
   try {
-    const userId = req.user.id;
     const collectionId = req.params.collectionId;
-
-    const user = await User.findById(userId);
-
-    const collection = user.collections.id(collectionId);
-
-    if (!collection)
+    const collection = await Collection.findById(collectionId);
+    if (!collection) {
       return res.status(404).json({ msg: "Collection not found" });
+    }
 
     const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
     const page = Number(req.query.page) || 1;
@@ -108,14 +93,15 @@ export const deleteCollection = async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    const collectionToDelete = user.collections.id(collectionId);
-
-    if (!collectionToDelete) {
+    const collection = await Collection.findById(collectionId);
+    if (!collection) {
       return res.status(404).json({ msg: 'Collection not found' });
     }
 
+    await Collection.findByIdAndDelete(collectionId); // Delete collection document
+
     await User.findByIdAndUpdate(userId, {
-      $pull: { collections: { _id: collectionId } }
+      $pull: { collections: collectionId }
     });
 
     return res.json({ msg: 'Collection deleted' });
@@ -124,4 +110,3 @@ export const deleteCollection = async (req, res) => {
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
-

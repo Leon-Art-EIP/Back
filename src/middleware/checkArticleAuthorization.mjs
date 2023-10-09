@@ -1,4 +1,4 @@
-import { User } from "../models/UserModel.mjs";
+import { User } from "../models/userModel.mjs";
 
 export const checkArticleAuthorization = async (req, res, next) => {
   try {

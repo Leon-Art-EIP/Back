@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../src/app';
-import { User } from '../src/models/UserModel.mjs';
-import { Article } from '../src/models/ArticleModel.mjs';
+import { User } from '../src/models/userModel.mjs';
+import { Article } from '../src/models/articleModel.mjs';
 
 let token;
 let userId;

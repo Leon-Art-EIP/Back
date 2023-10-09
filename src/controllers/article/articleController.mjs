@@ -1,4 +1,4 @@
-import { Article } from "../../models/ArticleModel.mjs";
+import { Article } from "../../models/articleModel.mjs";
 
 export const postArticle = async (req, res) => {
   try {

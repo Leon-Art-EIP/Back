@@ -2,8 +2,10 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
 import app from '../src/app';
-import { User } from '../src/models/UserModel.mjs';
-import { ArtPublication } from '../src/models/ArtPublicationModel.mjs';
+import { User } from '../src/models/userModel.mjs';
+import { ArtPublication } from '../src/models/artPublicationModel.mjs';
+import Collection from "../src/models/collectionModel.mjs";
+
 
 let token, userId, artPublicationId;
 
@@ -75,9 +77,12 @@ describe('Collection Functionalities', () => {
 
   it('POST /collection - Add to existing collection', async () => {
     // First, create a collection with the name 'Favorites'
+    const newCollection = new Collection({ name: 'Favorites', artPublications: [], user: userId });
+    await newCollection.save();
     const user = await User.findById(userId);
-    user.collections.push({ name: 'Favorites', artPublications: [] });
+    user.collections.push(newCollection._id);
     await user.save();
+    
 
     const response = await request(app)
       .post('/api/collection')
@@ -91,8 +96,7 @@ describe('Collection Functionalities', () => {
 
   it('GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection', async () => {
     const collectionName = 'Favorites';
-    const user = await User.findById(userId);
-    const collection = user.collections.find(c => c.name === collectionName);
+    const collection = await Collection.findOne({ user: userId, name: collectionName });
     const collectionId = collection._id;
     
     const response = await request(app)
@@ -146,7 +150,7 @@ describe('Collection Functionalities', () => {
 
     // Further validate by checking if the collection is really deleted
     const updatedUser = await User.findById(userId);
-    const updatedCollection = updatedUser.collections.id(collectionId);
+    const updatedCollection = await Collection.findById(collectionId);
     expect(updatedCollection).toBeNull();
   });
 
@@ -163,8 +167,8 @@ describe('Collection Functionalities', () => {
 
   it('DELETE /:collectionId - User Not Found', async () => {
     // Get collectionId of the first collection for the current user
-    const user = await User.findById(userId);
-    const collectionId = user.collections[0]._id;
+    const collection = await Collection.findOne({ user: userId });
+    const collectionId = collection._id;    
 
     // Delete the user
     await User.findByIdAndDelete(userId);

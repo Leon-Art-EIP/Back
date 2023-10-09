@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../src/app";
-import { User } from "../src/models/UserModel.mjs";
-import { ResetToken } from "../src/models/ResetPasswordTokenModel.mjs";
+import { User } from "../src/models/userModel.mjs";
+import { ResetToken } from "../src/models/resetPasswordTokenModel.mjs";
 import bcrypt from "bcrypt";
 
 let token;

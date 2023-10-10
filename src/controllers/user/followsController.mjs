@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { User } from '../models/UserModel.mjs';
+import { User } from '../../models/userModel.mjs';
 
 export const followUser = async (req, res) => {
   const userId = req.user.id;
@@ -36,7 +36,7 @@ export const followUser = async (req, res) => {
       return res.status(200).json({ msg: 'Successfully followed user.' });
     }
 
-  } catch (error) {
+  } catch (error) /* istanbul ignore next */ {
     console.error(error);
     return res.status(500).json({ msg: 'Server error.' });
   }

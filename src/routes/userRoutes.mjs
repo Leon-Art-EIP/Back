@@ -2,7 +2,7 @@ import express from "express";
 import {
   checkUsernameAvailability,
   checkEmailAvailability,
-} from "../controllers/userController.mjs";
+} from "../controllers/user/userController.mjs";
 import rateLimit from "express-rate-limit";
 
 const router = express.Router();
@@ -90,5 +90,7 @@ router.get(
  *         description: Server Error.
  */
 router.get("/user/check-email/:email", limiter, checkEmailAvailability);
+
+
 
 export default router;

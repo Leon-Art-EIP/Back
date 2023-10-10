@@ -1,12 +1,12 @@
 import { Router } from "express";
 const router = Router();
-import { followUser } from "../controllers/followsController.mjs";
+import { followUser } from "../controllers/user/followsController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
 
 
 /**
  * @swagger
- * /api/users/{targetUserId}/follow:
+ * /api/follow/{targetUserId}:
  *   post:
  *     summary: Follow or unfollow a user
  *     description: |
@@ -15,7 +15,7 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *       and vice versa. The user must be authenticated to access this endpoint.
  *     tags: [Users]
  *     security:
- *       - BearerAuth: []  # Indicates this endpoint requires a Bearer token.
+ *       - bearerAuth: []  # Indicates this endpoint requires a Bearer token.
  *     parameters:
  *       - in: path
  *         name: targetUserId

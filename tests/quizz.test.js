@@ -2,8 +2,8 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../src/app';
-import { User } from '../src/models/UserModel.mjs';
-import { Quizz } from '../src/models/QuizzModel.mjs';
+import { User } from '../src/models/userModel.mjs';
+import { Quizz } from '../src/models/quizzModel.mjs';
 
 let token;
 

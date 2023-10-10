@@ -1,15 +1,15 @@
 import { Router } from "express";
 const router = Router();
-import { login } from "../controllers/loginController.mjs";
-import { validateLogin } from "../middleware/loginValidation.mjs";
-import { signup } from "../controllers/signupController.mjs";
-import { validateSignup } from "../middleware/signupValidation.mjs";
+import { login } from "../controllers/authentification/loginController.mjs";
+import { validateLogin } from "../middleware/validation/loginValidation.mjs";
+import { signup } from "../controllers/authentification/signupController.mjs";
+import { validateSignup } from "../middleware/validation/signupValidation.mjs";
 import {
   requestReset,
   validateResetToken,
   resetPassword,
-} from "../controllers/resetPasswordController.mjs";
-import { validateResetPassword } from "../middleware/resetPasswordValidation.mjs";
+} from "../controllers/authentification/resetPasswordController.mjs";
+import { validateResetPassword } from "../middleware/validation/resetPasswordValidation.mjs";
 
 /**
  * @swagger

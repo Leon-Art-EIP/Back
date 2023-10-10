@@ -1,4 +1,4 @@
-import { Quizz } from "../models/QuizzModel.mjs";
+import { Quizz } from "../../models/quizzModel.mjs";
 
 export async function submitQuizz(req, res) {
   try {

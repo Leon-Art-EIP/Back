@@ -1,13 +1,11 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication } from '../controllers/artPublicationController.mjs';
-import { likeArtPublication } from '../controllers/likeController.mjs';
-import { addToCollection } from '../controllers/collectionController.mjs';
-import { addComment, deleteComment } from '../controllers/commentController.mjs';
-import { validateCollection } from '../middleware/collectionValidation.mjs';
-import { validateComment } from '../middleware/commentValidation.mjs';
-import { validateArtPublication } from '../middleware/artPublicationValidation.mjs';
+import { createArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications } from '../controllers/artPublication/artPublicationController.mjs';
+import { likeArtPublication } from '../controllers/artPublication/likeController.mjs';
+import { addComment, deleteComment } from '../controllers/artPublication/commentController.mjs';
+import { validateComment } from '../middleware/validation/commentValidation.mjs';
+import { validateArtPublication, validateArtPublicationId } from '../middleware/validation/artPublicationValidation.mjs';
 
 /**
  * @swagger
@@ -18,7 +16,7 @@ import { validateArtPublication } from '../middleware/artPublicationValidation.m
  *       Allows an authenticated user to publish their art.
  *       The publication can include various details like art type, name, description, dimension, and more.
  *       Additionally, users can specify if the art is for sale and its price.
- *     tags: [Art Publication]
+ *     tags: [ArtPublication]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -110,40 +108,6 @@ router.post('/like/:id', authenticate, likeArtPublication);
 
 /**
  * @swagger
- * /api/art-publication/collection:
- *   post:
- *     summary: Add an art publication to a user collection
- *     description: Allows an authenticated user to add an art publication to a specified or new collection.
- *     tags: [ArtPublication]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               artPublicationId:
- *                 type: string
- *                 description: ID of the art publication to add to the collection.
- *               collectionName:
- *                 type: string
- *                 description: Name of the collection.
- *     responses:
- *       200:
- *         description: Added to collection.
- *       401:
- *         description: Unauthorized.
- *       404:
- *         description: Art publication not found.
- *       500:
- *         description: Server error.
- */
-router.post('/collection', authenticate, validateCollection, addToCollection);
-
-/**
- * @swagger
  * /api/art-publication/comment/{id}:
  *   post:
  *     summary: Add a comment to an art publication
@@ -210,6 +174,93 @@ router.post('/comment/:id', authenticate, validateComment, addComment);
  */
 router.delete('/comment/:commentId', authenticate, deleteComment);
 
+/**
+ * @swagger
+ * /api/art-publication/{id}:
+ *   get:
+ *     summary: Retrieve an Art Publication by ID
+ *     description: Allows an authenticated user to retrieve details of an art publication using its ID.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Art publication ID.
+ *     responses:
+ *       200:
+ *         description: Returns the requested art publication.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/:id', authenticate, validateArtPublicationId, getArtPublicationById);
+
+/**
+ * @swagger
+ * /api/art-publication/feed/latest:
+ *   get:
+ *     summary: Retrieve latest Art Publications
+ *     description: Get the latest art publications with pagination.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of records to return.
+ *     responses:
+ *       200:
+ *         description: Returns the latest art publications.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/feed/latest', authenticate, getLatestArtPublications);
+
+/**
+ * @swagger
+ * /api/art-publication/feed/followed:
+ *   get:
+ *     summary: Retrieve Art Publications from followed accounts
+ *     description: Get the latest art publications from followed accounts with pagination.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of records to return.
+ *     responses:
+ *       200:
+ *         description: Returns the art publications from followed accounts.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/feed/followed', authenticate, getFollowedArtPublications);
 
 
 export default router;

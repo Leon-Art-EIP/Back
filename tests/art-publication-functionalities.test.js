@@ -2,9 +2,10 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
 import app from '../src/app';
-import { User } from '../src/models/UserModel.mjs';
-import { ArtPublication } from '../src/models/ArtPublicationModel.mjs';
-import { Comment } from '../src/models/CommentModel.mjs';
+import { User } from '../src/models/userModel.mjs';
+import { ArtPublication } from '../src/models/artPublicationModel.mjs';
+import { Comment } from '../src/models/commentModel.mjs';
+import Collection  from '../src/models/collectionModel.mjs';
 
 let token, userId, artPublicationId, commentId;
 
@@ -56,6 +57,7 @@ describe('ArtPublication Functionalities', () => {
     });
     await comment.save();
     commentId = comment._id.toString();
+    
   });
 
   it('POST /like/:id - Like/Unlike an ArtPublication', async () => {
@@ -95,7 +97,7 @@ describe('ArtPublication Functionalities', () => {
 
   it('POST /collection - Add to Collection', async () => {
     const response = await request(app)
-      .post('/api/art-publication/collection')
+      .post('/api/collection')
       .set('Authorization', `Bearer ${token}`)
       .send({
         collectionName: 'Favorites',
@@ -111,7 +113,7 @@ describe('ArtPublication Functionalities', () => {
   it('POST /collection - ArtPublication not found', async () => {
     const fakeId = new mongoose.Types.ObjectId();
     const response = await request(app)
-      .post(`/api/art-publication/collection`)
+      .post(`/api/collection`)
       .set('Authorization', `Bearer ${token}`)
       .send({ collectionName: 'Favorites', artPublicationId: fakeId });
 
@@ -121,12 +123,15 @@ describe('ArtPublication Functionalities', () => {
 
   it('POST /collection - Add to existing collection', async () => {
     // First, create a collection with the name 'Favorites'
+    const newCollection = new Collection({ name: 'Favorites', artPublications: [], user: userId });
+    await newCollection.save();
     const user = await User.findById(userId);
-    user.collections.push({ name: 'Favorites', artPublications: [] });
+    user.collections.push(newCollection._id);
     await user.save();
+    
 
     const response = await request(app)
-      .post('/api/art-publication/collection')
+      .post('/api/collection')
       .set('Authorization', `Bearer ${token}`)
       .send({ collectionName: 'Favorites', artPublicationId });
 
@@ -195,5 +200,70 @@ describe('ArtPublication Functionalities', () => {
 
     expect(response.status).toBe(403);
     expect(response.body.msg).toBe('Unauthorized');
+  });
+
+  // Testing for fetching an art publication by its ID
+  it('GET /api/art-publication/:id - Successfully retrieve an ArtPublication by ID', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body._id.toString()).toBe(artPublicationId);
+  });
+
+  it('GET /api/art-publication/:id - ArtPublication not found by ID', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .get(`/api/art-publication/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Art publication not found');
+  });
+
+  // Testing for fetching latest art publications with pagination
+  it('GET /api/art-publication/feed/latest - Successfully retrieve latest ArtPublications', async () => {
+    const response = await request(app)
+      .get('/api/art-publication/feed/latest')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ skip: 0 });
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  // Testing for fetching art publications of followed users
+  it('GET /api/art-publication/feed/followed - Retrieve ArtPublications of followed users', async () => {
+    const response = await request(app)
+      .get('/api/art-publication/feed/followed')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  it('GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection', async () => {
+    const collectionName = 'Favorites';
+    const collection = await Collection.findOne({ user: userId, name: collectionName });
+    const collectionId = collection._id;
+    
+    const response = await request(app)
+      .get(`/api/collection/${collectionId}/publications`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  it('GET /api/collection/:collectionId/publications - Collection not found', async () => {
+    const fakeCollectionId = new mongoose.Types.ObjectId();
+    
+    const response = await request(app)
+      .get(`/api/collection/${fakeCollectionId}/publications`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Collection not found');
   });
 });

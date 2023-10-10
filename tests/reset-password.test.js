@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../src/app";
-import { User } from "../src/models/UserModel.mjs";
-import { ResetToken } from "../src/models/ResetPasswordTokenModel.mjs";
+import { User } from "../src/models/userModel.mjs";
+import { ResetToken } from "../src/models/resetPasswordTokenModel.mjs";
 import bcrypt from "bcrypt";
 
 let token;
@@ -28,7 +28,6 @@ describe("Reset Password Routes", () => {
       const response = await request(app)
         .post("/api/auth/request-reset")
         .send({ email: userEmail });
-      console.log("response : " + response);
       expect(response.status).toBe(200);
       expect(response.body.msg).toBe("Reset email sent");
 

@@ -1,8 +1,8 @@
 import { Router } from "express";
 const router = Router();
-import { submitQuizz } from "../controllers/quizzController.mjs";
+import { submitQuizz } from "../controllers/quizz/quizzController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
-import { validateQuizz } from "../middleware/quizzValidation.mjs"
+import { validateQuizz } from "../middleware/validation/quizzValidation.mjs"
 
 /**
  * @swagger

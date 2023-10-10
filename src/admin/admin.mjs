@@ -4,12 +4,11 @@ import * as AdminJSMongoose from '@adminjs/mongoose';
 import bcrypt from 'bcrypt';
 import {
   User
-} from '../models/UserModel.mjs';
+} from '../models/userModel.mjs';
 import { ArtPublication } from '../models/ArtPublicationModel.mjs';
 import { Comment } from '../models/CommentModel.mjs';
 import { Quizz } from '../models/QuizzModel.mjs';
 import { ResetToken } from '../models/ResetPasswordTokenModel.mjs';
-
 
 AdminJS.registerAdapter(AdminJSMongoose);
 

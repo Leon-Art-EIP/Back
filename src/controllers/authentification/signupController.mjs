@@ -1,7 +1,7 @@
-import { User } from "../models/UserModel.mjs";
+import { User } from "../../models/userModel.mjs";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { isTokenValid } from "../utils/tokenValidation.mjs";
+import { isTokenValid } from "../../utils/tokenValidation.mjs";
 
 export const signup = async (req, res) => {
   const { username, email, password } = req.body;

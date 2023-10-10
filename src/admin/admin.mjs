@@ -5,10 +5,10 @@ import bcrypt from 'bcrypt';
 import {
   User
 } from '../models/userModel.mjs';
-import { ArtPublication } from '../models/ArtPublicationModel.mjs';
-import { Comment } from '../models/CommentModel.mjs';
-import { Quizz } from '../models/QuizzModel.mjs';
-import { ResetToken } from '../models/ResetPasswordTokenModel.mjs';
+import { ArtPublication } from '../models/artPublicationModel.mjs';
+import { Comment } from '../models/commentModel.mjs';
+import { Quizz } from '../models/quizzModel.mjs';
+import { ResetToken } from '../models/resetPasswordTokenModel.mjs';
 
 AdminJS.registerAdapter(AdminJSMongoose);
 

@@ -94,3 +94,22 @@ export const getFollowedArtPublications = async (req, res) => {
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
+export const getArtPublicationsByUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const page = Number(req.query.page) || 1;
+
+    const artPublications = await ArtPublication.find({ userId })
+      .sort({ _id: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .populate('likes')
+      .populate('comments');
+    res.json(artPublications);
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};

@@ -58,3 +58,24 @@ export const deleteComment = async (req, res) => {
     res.status(500).json({ msg: 'Server Error', details: err.message });
   }
 };
+
+export const getCommentsByArtPublicationId = async (req, res) => {
+  try {
+    const artPublicationId = req.params.id;
+    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const page = Number(req.query.page) || 1;
+
+    // Check if the art publication exists
+    const artPublication = await ArtPublication.findById(artPublicationId);
+    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+
+    // Fetch the comments
+    const comments = await Comment.find({ artPublicationId }).sort({ createdAt: -1 }).limit(limit).skip((page - 1) * limit);
+
+    // Return the paginated comments
+    res.json(comments);
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server Error', details: err.message });
+  }
+};

@@ -1,11 +1,12 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications } from '../controllers/artPublication/artPublicationController.mjs';
-import { likeArtPublication } from '../controllers/artPublication/likeController.mjs';
-import { addComment, deleteComment } from '../controllers/artPublication/commentController.mjs';
+import { createArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
+import { likeArtPublication, getPublicationLikeCount, getUsersWhoLikedPublication } from '../controllers/artPublication/likeController.mjs';
+import { addComment, deleteComment, getCommentsByArtPublicationId } from '../controllers/artPublication/commentController.mjs';
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
 import { validateArtPublication, validateArtPublicationId } from '../middleware/validation/artPublicationValidation.mjs';
+import { validateUserId } from '../middleware/validation/userValidation.mjs';
 
 /**
  * @swagger
@@ -80,39 +81,11 @@ router.post('/', authenticate, validateArtPublication, createArtPublication);
 
 /**
  * @swagger
- * /api/art-publication/like/{id}:
- *   post:
- *     summary: Like or unlike an art publication
- *     description: Allows an authenticated user to like or unlike an art publication by ID.
- *     tags: [ArtPublication]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the art publication to like or unlike.
- *     responses:
- *       200:
- *         description: Like status updated.
- *       401:
- *         description: Unauthorized.
- *       404:
- *         description: Art publication not found.
- *       500:
- *         description: Server error.
- */
-router.post('/like/:id', authenticate, likeArtPublication);
-
-/**
- * @swagger
  * /api/art-publication/comment/{id}:
  *   post:
  *     summary: Add a comment to an art publication
  *     description: Allows an authenticated user to comment on an art publication by ID.
- *     tags: [ArtPublication]
+ *     tags: [ArtPublication Comment]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -150,7 +123,7 @@ router.post('/comment/:id', authenticate, validateComment, addComment);
  *   delete:
  *     summary: Delete a comment from an art publication
  *     description: Allows an authenticated user to delete a comment they've made on an art publication.
- *     tags: [ArtPublication]
+ *     tags: [ArtPublication Comment]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -173,6 +146,64 @@ router.post('/comment/:id', authenticate, validateComment, addComment);
  *         description: Server error.
  */
 router.delete('/comment/:commentId', authenticate, deleteComment);
+
+/**
+ * @swagger
+ * /api/art-publication/comment/{id}:
+ *   get:
+ *     summary: Get comments for an art publication
+ *     description: Fetches paginated comments for an art publication by ID.
+ *     tags: [ArtPublication Comment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the art publication to fetch comments for.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of comments to return per page (optional).
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number to fetch (optional).
+ *     responses:
+ *       200:
+ *         description: List of comments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   userId:
+ *                     type: string
+ *                     description: ID of the user who commented.
+ *                   artPublicationId:
+ *                     type: string
+ *                     description: ID of the related art publication.
+ *                   text:
+ *                     type: string
+ *                     description: Comment text.
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Date and time when the comment was created.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/comment/:id', getCommentsByArtPublicationId);
 
 /**
  * @swagger
@@ -261,6 +292,167 @@ router.get('/feed/latest', authenticate, getLatestArtPublications);
  *         description: Server Error.
  */
 router.get('/feed/followed', authenticate, getFollowedArtPublications);
+
+/**
+ * @swagger
+ * /api/art-publication/user/{userId}:
+ *   get:
+ *     summary: Retrieve Art Publications by User ID
+ *     description: Get all art publications of a specific user with pagination.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of records to return.
+ *     responses:
+ *       200:
+ *         description: Returns the art publications of the specified user.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       422:
+ *         description: Invalid User ID.
+ *       500:
+ *         description: Server Error.
+ */
+router.get('/user/:userId', authenticate, validateUserId, getArtPublicationsByUser);
+
+/**
+ * @swagger
+ * /api/art-publication/like/{id}:
+ *   post:
+ *     summary: Like or unlike an art publication
+ *     description: Allows an authenticated user to like or unlike an art publication by ID and retrieve the current like count.
+ *     tags: [ArtPublication Like]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the art publication to like or unlike.
+ *     responses:
+ *       200:
+ *         description: Like status updated along with total like count.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                 likeStatus:
+ *                   type: object
+ *                   properties:
+ *                     artPublicationId:
+ *                       type: string
+ *                     isLiked:
+ *                       type: boolean
+ *                     totalLikes:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post('/like/:id', authenticate, likeArtPublication);
+
+/**
+ * @swagger
+ * /api/art-publication/like-count/{id}:
+ *   get:
+ *     summary: Retrieve the number of likes for a specific art publication
+ *     tags: [ArtPublication Like]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the art publication.
+ *     responses:
+ *       200:
+ *         description: Returns the number of likes for the given art publication ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 artPublicationId:
+ *                   type: string
+ *                 totalLikes:
+ *                   type: integer
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/like-count/:id', getPublicationLikeCount);
+
+/**
+ * @swagger
+ * /api/art-publication/users-who-liked/{id}:
+ *   get:
+ *     summary: Retrieve users who liked a specific art publication with pagination
+ *     tags: [ArtPublication Like]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the art publication.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of users to retrieve per page.
+ *     responses:
+ *       200:
+ *         description: Returns a list of users who liked the given art publication.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 artPublicationId:
+ *                   type: string
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       username:
+ *                         type: string
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/users-who-liked/:id', getUsersWhoLikedPublication);
 
 
 export default router;

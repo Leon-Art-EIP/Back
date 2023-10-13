@@ -95,6 +95,46 @@ describe('ArtPublication Functionalities', () => {
     expect(response.body.likeStatus.isLiked).toBe(false);
   });
 
+  it('GET /like-count/:id - Retrieve like count for an ArtPublication', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/like-count/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.artPublicationId.toString()).toBe(artPublicationId);
+    expect(response.body.totalLikes).toBe(0); // Initial count should be 0
+  });
+
+  it('GET /like-count/:id - ArtPublication not found', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .get(`/api/art-publication/like-count/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Art publication not found');
+  });
+
+  it('GET /users-who-liked/:id - Retrieve users who liked the ArtPublication', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/users-who-liked/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.artPublicationId.toString()).toBe(artPublicationId);
+    expect(response.body.users).toEqual([]); // Initially no users have liked it
+  });
+
+  it('GET /users-who-liked/:id - ArtPublication not found', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .get(`/api/art-publication/users-who-liked/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Art publication not found');
+  });
+
   it('POST /collection - Add to Collection', async () => {
     const response = await request(app)
       .post('/api/collection')
@@ -202,6 +242,39 @@ describe('ArtPublication Functionalities', () => {
     expect(response.body.msg).toBe('Unauthorized');
   });
 
+  it('GET /comment/:id - Retrieve Comments of ArtPublication', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/comment/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+    
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Array);
+    expect(response.body[0].text).toBe('Nice art!'); // Expecting the comment text to match what was added
+  });
+
+  it('GET /comment/:id - No comments for ArtPublication', async () => {
+    // First, delete the comment created for the test
+    await Comment.deleteMany({ artPublicationId: artPublicationId });
+
+    const response = await request(app)
+      .get(`/api/art-publication/comment/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Array);
+    expect(response.body.length).toBe(0);  // Expecting an empty array
+  });
+
+  it('GET /comment/:id - ArtPublication not found', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .get(`/api/art-publication/comment/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Art publication not found');
+  });
+
   // Testing for fetching an art publication by its ID
   it('GET /api/art-publication/:id - Successfully retrieve an ArtPublication by ID', async () => {
     const response = await request(app)
@@ -241,6 +314,45 @@ describe('ArtPublication Functionalities', () => {
 
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBeTruthy();
+  });
+
+  it('GET /user/:userId - Retrieve art publications by user', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/user/${userId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(1); // One artPublication was added in beforeEach
+    expect(response.body[0]._id.toString()).toBe(artPublicationId);
+    expect(response.body[0].userId.toString()).toBe(userId);
+    expect(response.body[0].name).toBe('My Artwork');
+  });
+
+  it('GET /user/:userId - Retrieve art publications by user with invalid userId', async () => {
+    const fakeId = '12345'; // Non-MongoDB ObjectId
+    const response = await request(app)
+      .get(`/api/art-publication/user/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(422); // Invalid request data
+    expect(response.body.errors[0].msg).toBe('Invalid User ID');
+  });
+
+  it('GET /user/:userId - Retrieve art publications by non-existing user', async () => {
+    const fakeId = new mongoose.Types.ObjectId(); // Valid ObjectId, but no user with this ID
+    const response = await request(app)
+      .get(`/api/art-publication/user/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(0); // No art publications for this user
+  });
+
+  it('GET /user/:userId - Retrieve art publications without authorization', async () => {
+    const response = await request(app)
+      .get(`/api/art-publication/user/${userId}`);
+
+    expect(response.status).toBe(401); // Unauthorized
   });
 
   it('GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection', async () => {

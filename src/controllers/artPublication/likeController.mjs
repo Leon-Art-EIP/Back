@@ -1,5 +1,5 @@
-import { ArtPublication } from '../../models/artPublicationModel.mjs';
-import { User } from '../../models/userModel.mjs';
+import { ArtPublication } from "../../models/artPublicationModel.mjs";
+import { User } from "../../models/userModel.mjs";
 
 export const likeArtPublication = async (req, res) => {
   try {
@@ -8,8 +8,9 @@ export const likeArtPublication = async (req, res) => {
 
     const artPublication = await ArtPublication.findById(artPublicationId);
     const user = await User.findById(userId);
-    
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+
+    if (!artPublication)
+      return res.status(404).json({ msg: "Art publication not found" });
 
     if (artPublication.likes.includes(userId)) {
       // Remove like from ArtPublication
@@ -26,13 +27,56 @@ export const likeArtPublication = async (req, res) => {
     await artPublication.save();
     await user.save();
 
+    res.json({
+      msg: "Like status updated",
+      likeStatus: {
+        artPublicationId,
+        isLiked: artPublication.likes.includes(userId),
+        totalLikes: artPublication.likes.length, // Here's the count of likes
+      },
+    });
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+export const getPublicationLikeCount = async (req, res) => {
+  try {
+    const artPublication = await ArtPublication.findById(req.params.id);
+    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+
     res.json({ 
-        msg: 'Like status updated',
-        likeStatus: {
-          artPublicationId,
-          isLiked: artPublication.likes.includes(userId)
-        }
-      });
+      artPublicationId: artPublication._id,
+      totalLikes: artPublication.likes.length 
+    });
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
+export const getUsersWhoLikedPublication = async (req, res) => {
+  try {
+    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const page = Number(req.query.page) || 1;
+
+    const artPublication = await ArtPublication.findById(req.params.id).populate({
+      path: 'likes',
+      model: 'User',
+      select: 'username',
+      options: {
+        limit: limit,
+        skip: (page - 1) * limit
+      }
+    });
+    
+    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+
+    res.json({ 
+      artPublicationId: artPublication._id,
+      users: artPublication.likes 
+    });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });

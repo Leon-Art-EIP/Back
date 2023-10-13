@@ -92,7 +92,7 @@ app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
 app.use('/api/art-publication', artPublicationRoutes);
 app.use('/api/collection', collectionRoutes);
-app.use("/api", followRoutes);
+app.use("/api/follow", followRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/article', articleRoutes);
 

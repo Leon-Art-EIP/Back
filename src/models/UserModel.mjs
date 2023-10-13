@@ -12,6 +12,7 @@ const userSchema = new Schema({
   subscription: { type: String, default: "standard" },
   collections: [{ type: Schema.Types.ObjectId, ref: 'Collection' }],
   subscriptions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  subscribers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   subscribersCount: { type: Number, default: 0 },
   likedPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
   canPostArticles: { type: Boolean, default: true },

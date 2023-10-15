@@ -30,6 +30,11 @@ export const validateSignup = [
       }
     }),
 
+  check("is_artist")
+    .optional() // It's optional, so if not provided, we won't throw an error
+    .isBoolean()
+    .withMessage("is_artist must be a boolean value"),
+
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

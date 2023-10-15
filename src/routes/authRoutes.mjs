@@ -43,6 +43,10 @@ import { validateResetPassword } from "../middleware/validation/resetPasswordVal
  *                 type: string
  *                 description: The user's password (min. 8 characters).
  *                 example: StrongPassword123*[
+ *               is_artist:
+ *                 type: boolean
+ *                 description: Indicates if the user is an artist or not.
+ *                 example: true
  *     responses:
  *       200:
  *         description: The user was successfully registered.

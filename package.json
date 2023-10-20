@@ -33,6 +33,7 @@
     "express-rate-limit": "^6.10.0",
     "express-session": "^1.17.3",
     "express-validator": "^7.0.1",
+    "firebase-admin": "^11.11.0",
     "formidable": "^3.5.1",
     "jest-mock-extended": "^3.0.4",
     "jsonwebtoken": "^9.0.0",

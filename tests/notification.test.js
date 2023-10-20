@@ -2,6 +2,8 @@ import request from 'supertest';
 import app from '../src/app';
 import { User } from '../src/models/userModel.mjs';
 import { Notification } from '../src/models/notificationModel.mjs';
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 let token;
 let userId;
@@ -62,5 +64,50 @@ describe('Notification routes', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty('msg', 'Notification not found');
+  });
+
+  it('PUT /api/notifications/update-fcm-token - Update FCM token (Success)', async () => {
+    const fcmTokenSample = "sampleFcmToken12345";
+  
+    const response = await request(app)
+      .put('/api/notifications/update-fcm-token')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ fcmToken: fcmTokenSample });
+  
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('msg', 'FCM token updated successfully');
+  
+    const user = await User.findById(userId);
+    expect(user.fcmToken).toEqual(fcmTokenSample);
+  });
+  
+  it('PUT /api/notifications/update-fcm-token - Missing FCM token', async () => {
+    const response = await request(app)
+      .put('/api/notifications/update-fcm-token')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+  
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('msg', 'FCM token is required');
+  });
+
+  it('PUT /api/notifications/update-fcm-token - User not found', async () => {
+    const fcmTokenSample = "sampleFcmToken12345";
+    
+    // Generate a token with a non-existent user ID
+    const fakeUserId = new mongoose.Types.ObjectId();
+    const payload = {
+      user: { id: fakeUserId.toString() },
+    };
+  
+    const fakeToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 });
+  
+    const response = await request(app)
+      .put('/api/notifications/update-fcm-token')
+      .set('Authorization', `Bearer ${fakeToken}`)
+      .send({ fcmToken: fcmTokenSample });
+  
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('msg', 'User not found');
   });
 });

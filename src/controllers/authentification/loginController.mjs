@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, fcmToken } = req.body;
 
   try {
     // Check if user exists
@@ -16,6 +16,11 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ msg: "Incorrect password" });
+    }
+
+    if (fcmToken) /* istanbul ignore next */ {
+      user.fcmToken = fcmToken;
+      await user.save();
     }
 
     // Generate and return jwt token

@@ -16,6 +16,7 @@ const userSchema = new Schema({
   subscribersCount: { type: Number, default: 0 },
   likedPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
   canPostArticles: { type: Boolean, default: true },
+  fcmToken: String, // FCM token for push notifications
 });
 
 export const User = mongoose.model("User", userSchema);

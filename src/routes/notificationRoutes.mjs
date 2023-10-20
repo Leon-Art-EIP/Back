@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getNotifications, markNotificationRead } from "../controllers/notification/notificationController.mjs";
+import { getNotifications, markNotificationRead, updateFcmToken } from "../controllers/notification/notificationController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
 
 const router = Router();
@@ -110,5 +110,57 @@ router.get("/", authenticate, getNotifications);
  *           description: The date and time when the notification was created.
  */
 router.put("/:id/read", authenticate, markNotificationRead);
+
+/**
+ * @swagger
+ * /api/notification/update-fcm-token:
+ *   put:
+ *     summary: Update the FCM token for the authenticated user
+ *     description: |
+ *       Update the Firebase Cloud Messaging (FCM) token for the authenticated user 
+ *       to enable push notifications.
+ *     tags: [Notification]
+ *     security:
+ *       - bearerAuth: []  # Indicates this endpoint requires a Bearer token.
+ *     requestBody:
+ *       description: The FCM token data
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *                 description: The Firebase Cloud Messaging token for the user.
+ *                 example: "YOUR_FCM_TOKEN_HERE"
+ *     responses:
+ *       200:
+ *         description: Successfully updated the FCM token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *                   example: FCM token updated successfully.
+ *       400:
+ *         description: Bad Request (e.g. missing FCM token in request body).
+ *       401:
+ *         description: Unauthorized (e.g. invalid or missing Bearer token).
+ *       500:
+ *         description: Server Error.
+ * 
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+router.put('/update-fcm-token', authenticate, updateFcmToken);
+
 
 export default router;

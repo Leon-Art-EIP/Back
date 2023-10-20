@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { isTokenValid } from "../../utils/tokenValidation.mjs";
 
 export const signup = async (req, res) => {
-  const { username, email, password, is_artist } = req.body;
+  const { username, email, password, is_artist, fcmToken } = req.body;
 
   try {
     // Check if email already exists
@@ -20,11 +20,12 @@ export const signup = async (req, res) => {
     }
 
     // Create new user
-    user = new User({ username, email, password, is_artist }); 
+    user = new User({ username, email, password, is_artist, fcmToken }); 
 
     // Hash password and save user to database
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
+    
     await user.save();
 
     // Generate and return jwt token

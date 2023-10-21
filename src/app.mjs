@@ -88,6 +88,7 @@ app.use(
 app.use(express.json({ extended: false }));
 
 // Define Routes
+app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);

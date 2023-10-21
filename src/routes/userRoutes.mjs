@@ -4,6 +4,18 @@ import {
   checkEmailAvailability,
 } from "../controllers/user/userController.mjs";
 import rateLimit from "express-rate-limit";
+import {
+  getProfile,
+  updateBiography,
+  updateAvailability,
+  updateProfilePicture,
+  updateBannerPicture,
+} from "../controllers/user/profile/profileController.mjs";
+import {
+  uploadProfilePicture,
+  uploadBannerPicture,
+} from "../middleware/uploadMiddleware.mjs";
+import { authenticate } from "../middleware/authenticate.mjs";
 
 const router = express.Router();
 
@@ -91,6 +103,154 @@ router.get(
  */
 router.get("/user/check-email/:email", limiter, checkEmailAvailability);
 
+/**
+ * @swagger
+ * /api/user/profile/{userId}:
+ *   get:
+ *     summary: Get a user's profile
+ *     description: Fetches a user's profile by user ID.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user to fetch the profile for.
+ *     responses:
+ *       200:
+ *         description: User profile details.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get("/user/profile/:userId", authenticate, getProfile);
 
+/**
+ * @swagger
+ * /api/user/profile/bio:
+ *   post:
+ *     summary: Update user biography
+ *     description: Updates the biography of the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               biography:
+ *                 type: string
+ *                 description: New biography text.
+ *     responses:
+ *       200:
+ *         description: Updated user profile.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/user/profile/bio", authenticate, updateBiography);
+
+/**
+ * @swagger
+ * /api/user/profile/availability:
+ *   post:
+ *     summary: Update user availability
+ *     description: Updates the availability of the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               availability:
+ *                 type: string
+ *                 description: New availability status.
+ *     responses:
+ *       200:
+ *         description: Updated user profile.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/user/profile/availability", authenticate, updateAvailability);
+
+/**
+ * @swagger
+ * /api/user/profile/profile-pic:
+ *   post:
+ *     summary: Upload profile picture
+ *     description: Uploads a new profile picture for the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePicture:
+ *                 type: string
+ *                 format: binary
+ *                 description: Profile picture file (jpeg, jpg, png up to 5MB).
+ *     responses:
+ *       200:
+ *         description: Uploaded successfully and returns the updated user profile.
+ *       400:
+ *         description: Invalid image format.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/user/profile/profile-pic", authenticate, uploadProfilePicture, updateProfilePicture);
+
+/**
+ * @swagger
+ * /api/user/profile/banner-pic:
+ *   post:
+ *     summary: Upload banner picture
+ *     description: Uploads a new banner picture for the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               bannerPicture:
+ *                 type: string
+ *                 format: binary
+ *                 description: Banner picture file (jpeg, jpg, png up to 5MB).
+ *     responses:
+ *       200:
+ *         description: Uploaded successfully and returns the updated user profile.
+ *       400:
+ *         description: Invalid image format.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/user/profile/banner-pic", authenticate, uploadBannerPicture, updateBannerPicture);
 
 export default router;

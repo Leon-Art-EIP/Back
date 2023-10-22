@@ -17,6 +17,8 @@ const userSchema = new Schema({
   likedPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
   canPostArticles: { type: Boolean, default: true },
   fcmToken: String, // FCM token for push notifications
+  profilePicture: String,
+  bannerPicture: String,
 });
 
 export const User = mongoose.model("User", userSchema);

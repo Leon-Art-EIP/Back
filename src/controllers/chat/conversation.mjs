@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/messages', async (req, res) => {
-    const { convid } = req.query; // Récupérer le convid de la requête
+    const { convId } = req.query; // Récupérer le convid de la requête
 
     if (!convid) {
         return res.status(400).json({ error: "L'ID de conversation est requis." });
@@ -24,7 +24,7 @@ router.get('/messages', async (req, res) => {
     try {
         const messages = await Message.find({ conversationId: convid }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
-        res.json({ messages });
+        res.json({ messages: messages });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Erreur du serveur');
@@ -32,7 +32,7 @@ router.get('/messages', async (req, res) => {
 });
 
 router.get('/order/info', async (req, res) => {
-    const { convid } = req.query;
+    const { convId } = req.query;
 
     if (!convid) {
         return res.status(400).json({ error: "L'ID de conversation est requis." });

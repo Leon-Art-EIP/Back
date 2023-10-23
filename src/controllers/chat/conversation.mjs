@@ -15,14 +15,14 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/messages', async (req, res) => {
-    const { convId } = req.query; // Récupérer le convid de la requête
+    const { convId } = req.query; // Récupérer le convId de la requête
 
-    if (!convid) {
+    if (!convId) {
         return res.status(400).json({ error: "L'ID de conversation est requis." });
     }
 
     try {
-        const messages = await Message.find({ conversationId: convid }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
+        const messages = await Message.find({ conversationId: convId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
         res.json({ messages: messages });
     } catch (err) {
@@ -34,12 +34,12 @@ router.post('/messages', async (req, res) => {
 router.post('/order/info', async (req, res) => {
     const { convId } = req.query;
 
-    if (!convid) {
+    if (!convId) {
         return res.status(400).json({ error: "L'ID de conversation est requis." });
     }
 
     try {
-        const orderInfo = await Order.findOne({ conversationId: convid });
+        const orderInfo = await Order.findOne({ conversationId: convId });
 
         if (!orderInfo) {
             return res.status(404).json({ error: "Informations de commande non trouvées pour cette conversation." });

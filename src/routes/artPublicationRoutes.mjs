@@ -7,6 +7,9 @@ import { addComment, deleteComment, getCommentsByArtPublicationId } from '../con
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
 import { validateArtPublication, validateArtPublicationId } from '../middleware/validation/artPublicationValidation.mjs';
 import { validateUserId } from '../middleware/validation/userValidation.mjs';
+import {
+    uploadArtImage
+  } from "../middleware/uploadMiddleware.mjs";
 
 /**
  * @swagger
@@ -23,14 +26,14 @@ import { validateUserId } from '../middleware/validation/userValidation.mjs';
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               image:
  *                 type: string
- *                 description: URL of the art image.
- *                 example: "https://someimage.com/myart.png"
+ *                 format: binary
+ *                 description: Art image file (jpeg, jpg, png up to 5MB).
  *               artType:
  *                 type: string
  *                 description: Type of the art being published.
@@ -77,7 +80,7 @@ import { validateUserId } from '../middleware/validation/userValidation.mjs';
  *       500:
  *         description: Server Error.
  */
-router.post('/', authenticate, validateArtPublication, createArtPublication);
+router.post('/', authenticate, uploadArtImage, validateArtPublication, createArtPublication);
 
 /**
  * @swagger

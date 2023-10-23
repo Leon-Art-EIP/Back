@@ -29,3 +29,4 @@ const upload = multer({
 
 export const uploadProfilePicture = upload.single("profilePicture");
 export const uploadBannerPicture = upload.single("bannerPicture");
+export const uploadArtImage = upload.single("image");

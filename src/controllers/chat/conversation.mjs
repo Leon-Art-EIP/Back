@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/messages', async (req, res) => {
-    const { convId } = req.query; // Récupérer le convId de la requête
+    const { convId } = req.body; // Récupérer le convId de la requête
 
     if (!convId) {
         return res.status(400).json({ error: "L'ID de conversation est requis." });
@@ -32,7 +32,7 @@ router.post('/messages', async (req, res) => {
 });
 
 router.post('/order/info', async (req, res) => {
-    const { convId } = req.query;
+    const { convId } = req.body;
 
     if (!convId) {
         return res.status(400).json({ error: "L'ID de conversation est requis." });

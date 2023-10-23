@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/messages', async (req, res) => {
+router.post('/messages', async (req, res) => {
     const { convId } = req.query; // Récupérer le convid de la requête
 
     if (!convid) {
@@ -31,7 +31,7 @@ router.get('/messages', async (req, res) => {
     }
 });
 
-router.get('/order/info', async (req, res) => {
+router.post('/order/info', async (req, res) => {
     const { convId } = req.query;
 
     if (!convid) {

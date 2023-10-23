@@ -30,6 +30,31 @@ router.post('/messages', async (req, res) => {
         res.status(500).send('Erreur du serveur');
     }
 });
+router.post('/messages/new', async (req, res) => {
+    const { convId, sender, contentType, content, dateTime } = req.body;
+
+    if (convId === undefined || sender === undefined || contentType === undefined || !content || !dateTime) {
+        return res.status(400).json({ error: "Données manquantes ou invalides." });
+    }
+
+    try {
+        const message = new Message({
+            conversationId: convId,
+            sender: sender,
+            contentType: contentType,
+            content: content,
+            dateTime: dateTime
+            read: false
+        });
+
+        await message.save();
+
+        res.json({message: message});
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ success: false, error: 'Erreur du serveur' });
+    }
+});
 
 router.post('/order/info', async (req, res) => {
     const { convId } = req.body;

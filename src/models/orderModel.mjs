@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-  conversationId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
-  },
+    conversationId: {
+        type: Number,
+        ref: 'Conversation',
+        required: true
+      },
   userRole: {
     type: String,
     enum: ["buyer", "seller"],

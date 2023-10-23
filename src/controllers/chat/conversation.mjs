@@ -44,7 +44,6 @@ router.post('/messages/new', async (req, res) => {
             contentType: contentType,
             content: content,
             dateTime: dateTime
-            read: false
         });
 
         await message.save();

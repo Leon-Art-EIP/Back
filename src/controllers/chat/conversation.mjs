@@ -58,7 +58,7 @@ router.post('/messages/new', async (req, res) => {
     }
 });
 
-router.post('/order/info', async (req, res) => {
+router.post('/order/infos', async (req, res) => {
     const { convId } = req.body;
 
     if (!convId) {

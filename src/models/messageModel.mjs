@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const MessageSchema = new mongoose.Schema({
   conversationId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Number,
     ref: 'Conversation',
     required: true
   },

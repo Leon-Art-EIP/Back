@@ -31,9 +31,9 @@ router.post('/messages', async (req, res) => {
     }
 });
 router.post('/messages/new', async (req, res) => {
-    const { convId, sender, contentType, content, dateTime } = req.body;
+    const { convId, sender, contentType, content} = req.body;
 
-    if (convId === undefined || sender === undefined || contentType === undefined || !content || !dateTime) {
+    if (convId === undefined || sender === undefined || contentType === undefined || !content) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
@@ -43,7 +43,7 @@ router.post('/messages/new', async (req, res) => {
             sender: sender,
             contentType: contentType,
             content: content,
-            dateTime: dateTime
+            dateTime: new Date().toISOString()
         });
 
         await message.save();

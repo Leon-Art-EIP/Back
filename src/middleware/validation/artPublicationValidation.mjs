@@ -1,7 +1,12 @@
 import { check, validationResult } from 'express-validator';
 
 export const validateArtPublication = [
-  check('image').notEmpty().withMessage('Image is required'),
+  (req, res, next) => {
+    if (!req.file) {
+      return res.status(422).json({ errors: [{ msg: 'Image is required' }] });
+    }
+    next();
+  },
   check('artType').notEmpty().withMessage('Art type is required'),
   check('name').notEmpty().withMessage('Name is required'),
   check('description').optional().isString().withMessage('Invalid description'),

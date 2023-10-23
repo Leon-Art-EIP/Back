@@ -96,7 +96,7 @@ router.post('/order/rating', async (req, res) => {
         order.orderRating = rating;
         await order.save();
 
-        res.json({ success: true });
+        res.json({ success: true, order: order });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ success: false, error: 'Erreur du serveur' });

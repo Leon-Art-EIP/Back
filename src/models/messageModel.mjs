@@ -6,6 +6,10 @@ const MessageSchema = new mongoose.Schema({
     ref: 'Conversation',
     required: true
   },
+  id : {
+    type: Number,
+    required: true
+  },
   sender: {
     type: Number,
     enum: [0, 1],

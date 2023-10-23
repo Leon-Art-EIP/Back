@@ -61,9 +61,9 @@ router.post('/messages/new', async (req, res) => {
 router.post('/order/infos', async (req, res) => {
     const { convId } = req.body;
 
-    if (!convId) {
-        return res.status(400).json({ error: "L'ID de conversation est requis." });
-    }
+    // if (!convId) {
+    //     return res.status(400).json({ error: "L'ID de conversation est requis." });
+    // }
 
     try {
         const orderInfo = await Order.findOne({ conversationId: convId });
@@ -82,7 +82,7 @@ router.post('/order/infos', async (req, res) => {
 router.post('/order/rating', async (req, res) => {
     const { convId, rating } = req.body;
 
-    if (!convId || rating === undefined || rating < 1 || rating > 5) {
+    if (convId === undefined || rating === undefined || rating < 1 || rating > 5) {
         return res.status(400).json({ success: false, error: "Données manquantes ou invalides." });
     }
 

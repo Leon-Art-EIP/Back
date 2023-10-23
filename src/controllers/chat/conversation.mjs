@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const conversations = await Conversation.find();
-        res.json(conversations);
+        res.json(conversations: conversations);
     } catch (err) {
         res.status(500).send('Erreur lors de la récupération des conversations');
     }

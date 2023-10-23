@@ -19,7 +19,6 @@ import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import conversationRoutes from "./controllers/chat/conversation.mjs";
-
 dotenv.config();
 
 const app = express();

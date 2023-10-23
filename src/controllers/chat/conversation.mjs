@@ -30,6 +30,7 @@ router.post('/messages', async (req, res) => {
         res.status(500).send('Erreur du serveur');
     }
 });
+
 router.post('/messages/new', async (req, res) => {
     const { convId, sender, contentType, content} = req.body;
 
@@ -38,7 +39,9 @@ router.post('/messages/new', async (req, res) => {
     }
 
     try {
+        const length = await Message.find().countDocuments();
         const message = new Message({
+            id: length + 1,
             conversationId: convId,
             sender: sender,
             contentType: contentType,

@@ -6,14 +6,8 @@ import Order from '../../models/orderModel.mjs';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-    const userId = req.query.user_id;
-
-    if (!userId) {
-        return res.status(400).send('L\'user_id est nécessaire pour récupérer les conversations.');
-    }
-
     try {
-        const conversations = await Conversation.find({ userId: userId });
+        const conversations = await Conversation.find();
         res.json(conversations);
     } catch (err) {
         res.status(500).send('Erreur lors de la récupération des conversations');

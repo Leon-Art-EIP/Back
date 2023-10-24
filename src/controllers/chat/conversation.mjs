@@ -7,7 +7,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/conversation:
+ * /api/conversations:
  *   get:
  *     summary: Récupère toutes les conversations
  *     description: Récupère la liste complète des conversations.
@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
 
 /**
  * @swagger
- * /api/conversation/messages:
+ * /api/conversations/messages:
  *   post:
  *     summary: Récupère les messages d'une conversation spécifique
  *     description: Renvoie les messages liés à un ID de conversation spécifique.
@@ -89,7 +89,7 @@ router.post('/messages', async (req, res) => {
 
 /**
  * @swagger
- * /api/conversation/messages/new:
+ * /api/conversations/messages/new:
  *   post:
  *     summary: Crée un nouveau message dans une conversation
  *     description: Ajoute un nouveau message à une conversation spécifique.
@@ -153,7 +153,7 @@ router.post('/messages/new', async (req, res) => {
 
 /**
  * @swagger
- * /api/conversation/order/infos:
+ * /api/conversations/order/infos:
  *   post:
  *     summary: Récupère les informations de commande d'une conversation spécifique
  *     description: Renvoie les informations de commande liées à un ID de conversation spécifique.
@@ -203,7 +203,7 @@ router.post('/order/infos', async (req, res) => {
 
 /**
  * @swagger
- * /api/conversation/order/rating:
+ * /api/conversations/order/rating:
  *   post:
  *     summary: Met à jour la note d'une commande pour une conversation spécifique
  *     description: Met à jour la note attribuée à une commande d'une conversation donnée.

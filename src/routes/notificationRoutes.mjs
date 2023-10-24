@@ -6,7 +6,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/notification:
+ * /api/notifications:
  *   get:
  *     summary: Retrieve notifications for the authenticated user
  *     description: |
@@ -53,7 +53,7 @@ router.get("/", authenticate, getNotifications);
 
 /**
  * @swagger
- * /api/notification/{notificationId}/read:
+ * /api/notifications/{notificationId}/read:
  *   put:
  *     summary: Mark a specific notification as read
  *     description: |
@@ -113,7 +113,7 @@ router.put("/:id/read", authenticate, markNotificationRead);
 
 /**
  * @swagger
- * /api/notification/update-fcm-token:
+ * /api/notifications/update-fcm-token:
  *   put:
  *     summary: Update the FCM token for the authenticated user
  *     description: |

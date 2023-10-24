@@ -5,7 +5,7 @@ export const createArtPublication = async (req, res) => {
   try {
     const userId = req.user.id; // From the token
     const {
-      image,
+      image = req.file?.path,
       artType,
       name,
       description,

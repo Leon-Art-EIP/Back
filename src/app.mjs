@@ -18,6 +18,8 @@ import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
+import uploadRoutes from "./routes/uploadRoutes.mjs";
+
 import conversationRoutes from "./controllers/chat/conversation.mjs";
 dotenv.config();
 
@@ -93,7 +95,8 @@ app.use(
 app.use(express.json({ extended: false }));
 
 // Define Routes
-app.use("/uploads", express.static("uploads"));
+
+
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
@@ -103,6 +106,8 @@ app.use("/api/follow", followRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/uploads", uploadRoutes);
+
 app.use('/api/conversations', conversationRoutes);
 
 // AdminJS CONFIG

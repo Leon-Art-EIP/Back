@@ -5,6 +5,28 @@ import Order from '../../models/orderModel.mjs';
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/conversation:
+ *   get:
+ *     summary: Récupère toutes les conversations
+ *     description: Récupère la liste complète des conversations.
+ *     tags: [Conversation]
+ *     responses:
+ *       200:
+ *         description: Liste des conversations récupérées avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 conversations:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Conversation'
+ *       500:
+ *         description: Erreur du serveur.
+ */
 router.get('/', async (req, res) => {
     try {
         const conversations = await Conversation.find();
@@ -14,6 +36,40 @@ router.get('/', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/conversation/messages:
+ *   post:
+ *     summary: Récupère les messages d'une conversation spécifique
+ *     description: Renvoie les messages liés à un ID de conversation spécifique.
+ *     tags: [Conversation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               convId:
+ *                 type: number
+ *                 description: L'ID de la conversation.
+ *     responses:
+ *       200:
+ *         description: Liste des messages récupérés avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Données manquantes ou invalides.
+ *       500:
+ *         description: Erreur du serveur.
+ */
 router.post('/messages', async (req, res) => {
     const { convId } = req.body; // Récupérer le convId de la requête
 
@@ -31,6 +87,43 @@ router.post('/messages', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/conversation/messages/new:
+ *   post:
+ *     summary: Crée un nouveau message dans une conversation
+ *     description: Ajoute un nouveau message à une conversation spécifique.
+ *     tags: [Conversation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               convId:
+ *                 type: number
+ *               sender:
+ *                 type: number
+ *               contentType:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Message créé avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Données manquantes ou invalides.
+ *       500:
+ *         description: Erreur du serveur.
+ */
 router.post('/messages/new', async (req, res) => {
     const { convId, sender, contentType, content} = req.body;
 
@@ -58,6 +151,35 @@ router.post('/messages/new', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/conversation/order/infos:
+ *   post:
+ *     summary: Récupère les informations de commande d'une conversation spécifique
+ *     description: Renvoie les informations de commande liées à un ID de conversation spécifique.
+ *     tags: [Order]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               convId:
+ *                 type: number
+ *                 description: L'ID de la conversation.
+ *     responses:
+ *       200:
+ *         description: Informations de commande récupérées avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Order'
+ *       404:
+ *         description: Informations de commande non trouvées.
+ *       500:
+ *         description: Erreur du serveur.
+ */
 router.post('/order/infos', async (req, res) => {
     const { convId } = req.body;
 
@@ -79,6 +201,43 @@ router.post('/order/infos', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/conversation/order/rating:
+ *   post:
+ *     summary: Met à jour la note d'une commande pour une conversation spécifique
+ *     description: Met à jour la note attribuée à une commande d'une conversation donnée.
+ *     tags: [Order]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               convId:
+ *                 type: number
+ *               rating:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Note mise à jour avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 order:
+ *                   $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Données manquantes ou invalides.
+ *       404:
+ *         description: Commande non trouvée.
+ *       500:
+ *         description: Erreur du serveur.
+ */
 router.post('/order/rating', async (req, res) => {
     const { convId, rating } = req.body;
 

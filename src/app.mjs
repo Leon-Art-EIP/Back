@@ -76,7 +76,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs"], // Changed the file extension to .mjs
+  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"], // Changed the file extension to .mjs
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);

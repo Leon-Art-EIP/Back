@@ -1,4 +1,6 @@
 import express from "express";
+import http from 'http';
+import { Server } from 'socket.io';
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 import collectionRoutes from "./routes/collectionRoutes.mjs";
@@ -18,12 +20,35 @@ import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 
-
+import conversationRoutes from "./controllers/chat/conversation.mjs";
 dotenv.config();
 
 const app = express();
+const httpServer = http.createServer(app);
+const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(",")
+  : [];
 
-// Swaggers CONFIG
+// Configuration de socket.io
+const io = new Server(httpServer, {
+    cors: {
+        origin: allowedOrigins,
+        methods: ["GET", "POST"]
+    }
+});
+
+io.on('connection', (socket) => {
+    console.log('Un utilisateur s\'est connecté');
+
+    socket.on('ReceiveMessage', (data) => {
+        const { convid, message } = data;
+        io.emit('NewMessage', message);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Un utilisateur s\'est déconnecté');
+    });
+});
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -53,32 +78,12 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs"], // Changed the file extension to .mjs
+  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"], // Changed the file extension to .mjs
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-// CORS
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(",")
-  : [];
-
-app.use( cors()
-  // cors({
-  //   origin: (origin, callback) => {
-  //     if (
-  //       !origin ||
-  //       allowedOrigins.indexOf(origin) !== -1 ||
-  //       (origin.startsWith("https://web-") &&
-  //         origin.includes("-leon-art.vercel.app"))
-  //     ) {
-  //       callback(null, true);
-  //     } else {
-  //       callback(new Error("Not allowed by CORS"));
-  //     }
-  //   },
-  // })
-);
+app.use(cors());
 
 app.use(
   "/api-docs",
@@ -103,7 +108,7 @@ app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
 
-
+app.use('/api/conversations', conversationRoutes);
 
 // AdminJS CONFIG
 const admin = new AdminJS(adminOptions);
@@ -118,4 +123,5 @@ app.use(
 );
 app.use(admin.options.rootPath, router);
 
-export default app; // Changed this line to use ES module export syntax
+export default app; // Export app
+export { httpServer }; // Exportez httpServer pour le démarrage

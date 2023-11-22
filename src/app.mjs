@@ -38,16 +38,16 @@ const io = new Server(httpServer, {
 });
 
 io.on('connection', (socket) => {
-    console.log('Un utilisateur s\'est connecté');
+  console.log('Un utilisateur s\'est connecté');
 
-    socket.on('ReceiveMessage', (data) => {
-        const { convid, message } = data;
-        io.emit('NewMessage', message);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Un utilisateur s\'est déconnecté');
-    });
+  socket.on('sendMessage', async ({ convId, message }) => {
+    const savedMessage = await new Message(message).save();
+    
+    io.to(convId).emit('message', savedMessage);
+});
+  socket.on('disconnect', () => {
+      console.log('Un utilisateur s\'est déconnecté');
+  });
 });
 
 const swaggerOptions = {

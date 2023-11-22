@@ -74,7 +74,7 @@ router.post("/signup", validateSignup, signup);
  *     summary: Login a user
  *     description: |
  *       Login a user into the system by providing a valid email and password in JSON format.
- *       Returns a JWT token if successful. The token is valid for 1 hour.
+ *       Returns a JWT token and user details if successful. The token is valid for 1 hour.
  *     tags: [Auth]
  *     security: []  # Indicates this endpoint doesn't require any security (tokens).
  *     requestBody:
@@ -92,10 +92,10 @@ router.post("/signup", validateSignup, signup);
  *               password:
  *                 type: string
  *                 description: The user's password.
- *                 example: StrongPassword123*[
+ *                 example: StrongPassword123*
  *     responses:
  *       200:
- *         description: The user was successfully logged in.
+ *         description: The user was successfully logged in with user details.
  *         content:
  *           application/json:
  *             schema:
@@ -103,7 +103,35 @@ router.post("/signup", validateSignup, signup);
  *               properties:
  *                 token:
  *                   type: string
- *                   description: JWT token for the logged in user. Valid for 1 hour.
+ *                   description: JWT token for the logged-in user. Valid for 1 hour.
+ *                 user:
+ *                   type: object
+ *                   description: The logged-in user's details.
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: Unique identifier for the user.
+ *                     username:
+ *                       type: string
+ *                       description: Username of the user.
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                       description: Email address of the user.
+ *                     is_artist:
+ *                       type: boolean
+ *                       description: Indicates if the user is an artist.
+ *                     availability:
+ *                       type: string
+ *                       description: Availability status of the user.
+ *                     subscription:
+ *                       type: string
+ *                       description: Subscription status of the user.
+ *                     collections:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       description: Collection of items associated with the user.
  *       401:
  *         description: Incorrect password or email not registered.
  *       422:
@@ -112,6 +140,7 @@ router.post("/signup", validateSignup, signup);
  *         description: Server Error.
  */
 router.post("/login", validateLogin, login);
+
 /**
  * @swagger
  * /api/auth/request-reset:

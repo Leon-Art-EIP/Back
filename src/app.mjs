@@ -40,7 +40,7 @@ const io = new Server(httpServer, {
 io.on('connection', (socket) => {
   console.log('Un utilisateur s\'est connecté');
 
-  socket.on('sendMessage', async ({ convId, message }) => {
+  socket.on('receiveMessage', async ({ convId, message }) => {
     const savedMessage = await new Message(message).save();
     
     io.to(convId).emit('message', savedMessage);

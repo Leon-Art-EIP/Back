@@ -145,6 +145,11 @@ router.post('/messages/new', async (req, res) => {
 
         await message.save();
 
+        const conversation = await Conversation.findOne({ id: convId });
+        conversation.lastMessage = content;
+
+        await conversation.save();
+
         res.json({message: message});
     } catch (err) {
         console.error(err.message);

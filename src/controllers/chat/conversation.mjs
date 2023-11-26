@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * @swagger
  * /api/conversations:
- *   get:
+ *   post:
  *     summary: Récupère toutes les conversations
  *     description: Récupère la liste complète des conversations.
  *     tags: [Conversation]

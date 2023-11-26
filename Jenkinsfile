@@ -3,7 +3,7 @@ pipeline {
 
     triggers { githubPush() }
 
-    tools { nodejs "NodeJS" }
+    tools { nodejs "node" }
 
     options{
         ansiColor('xterm')

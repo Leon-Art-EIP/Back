@@ -19,6 +19,8 @@ import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
+import explorerRoutes from './routes/explorerRoutes.mjs';
+
 
 import conversationRoutes from "./controllers/chat/conversation.mjs";
 dotenv.config();
@@ -107,6 +109,8 @@ app.use('/api/artists', artistRoutes);
 app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use('/api/explorer', explorerRoutes);
+
 
 app.use('/api/conversations', conversationRoutes);
 

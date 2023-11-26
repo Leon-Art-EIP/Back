@@ -2,13 +2,16 @@ import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
 import Order from '../../models/orderModel.mjs';
+import auth from '../../middleware/auth.mjs';
 
 const router = express.Router();
+
+router.use(auth);
 
 /**
  * @swagger
  * /api/conversations:
- *   post:
+ *   get:
  *     summary: Récupère toutes les conversations
  *     description: Récupère la liste complète des conversations.
  *     tags: [Conversation]
@@ -27,13 +30,13 @@ const router = express.Router();
  *       500:
  *         description: Erreur du serveur.
  */
-router.post('/', async (req, res) => {
-    const { userId } = req.body;
+router.get('/', async (req, res) => {
+    const userId = req.user.id; // Utilisez l'ID utilisateur à partir du middleware d'authentification
     try {
         const conversations = await Conversation.find({ $or: [{ user1: userId }, { user2: userId }] });
-        res.json( {conversations: conversations} );
+        res.json({ conversations });
     } catch (err) {
-        res.status(500).send('Erreur lors de la récupération des conversations');
+        res.status(500).send('Server error');
     }
 });
 

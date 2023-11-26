@@ -33,7 +33,7 @@ router.use(auth);
 router.get('/', async (req, res) => {
     const userId = req.user.id; // Utilisez l'ID utilisateur à partir du middleware d'authentification
     try {
-        const conversations = await Conversation.find({ $or: [{ user1: userId }, { user2: userId }] });
+        const conversations = await Conversation.find({ $or: [{  sender_one_id: userId }, {  sender_two_id: userId }] });
         res.json({ conversations });
     } catch (err) {
         res.status(500).send('Server error');

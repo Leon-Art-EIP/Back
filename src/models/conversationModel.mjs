@@ -22,11 +22,11 @@ const ConversationSchema = new mongoose.Schema({
     default: false
   },
   sender_one_id: {
-    type: Number,
+    type: String,
     required: true
   },
   sender_two_id: {
-    type: Number,
+    type: String,
     required: true
   },
 });

@@ -27,7 +27,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur du serveur.
  */
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
     const { userId } = req.body;
     try {
         const conversations = await Conversation.find({ $or: [{ user1: userId }, { user2: userId }] });

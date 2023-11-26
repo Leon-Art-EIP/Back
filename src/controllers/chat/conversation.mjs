@@ -2,11 +2,11 @@ import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
 import Order from '../../models/orderModel.mjs';
-import auth from '../../middleware/auth.mjs';
+import authentification from '../../middleware/authentification.mjs';
 
 const router = express.Router();
 
-router.use(auth);
+router.use(authentification);
 
 /**
  * @swagger

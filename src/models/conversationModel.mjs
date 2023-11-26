@@ -20,7 +20,15 @@ const ConversationSchema = new mongoose.Schema({
   unreadMessages: {
     type: Boolean,
     default: false
-  }
+  },
+  sender_one_id: {
+    type: Number,
+    required: true
+  },
+  sender_two_id: {
+    type: Number,
+    required: true
+  },
 });
 
 export default mongoose.model('Conversation', ConversationSchema);

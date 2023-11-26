@@ -11,9 +11,8 @@ const MessageSchema = new mongoose.Schema({
     required: true
     
   },
-  sender: {
+  sender_id: {
     type: Number,
-    enum: [0, 1],
     required: true
   },
   contentType: {

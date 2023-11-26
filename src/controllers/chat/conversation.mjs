@@ -28,8 +28,9 @@ const router = express.Router();
  *         description: Erreur du serveur.
  */
 router.get('/', async (req, res) => {
+    const { userId } = req.body;
     try {
-        const conversations = await Conversation.find();
+        const conversations = await Conversation.find({ $or: [{ user1: userId }, { user2: userId }] });
         res.json( {conversations: conversations} );
     } catch (err) {
         res.status(500).send('Erreur lors de la récupération des conversations');
@@ -125,9 +126,9 @@ router.post('/messages', async (req, res) => {
  *         description: Erreur du serveur.
  */
 router.post('/messages/new', async (req, res) => {
-    const { convId, sender, contentType, content} = req.body;
+    const { convId, user_id, contentType, content} = req.body;
 
-    if (convId === undefined || sender === undefined || contentType === undefined || !content) {
+    if (convId === undefined || user_id === undefined || contentType === undefined || !content) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
@@ -136,7 +137,7 @@ router.post('/messages/new', async (req, res) => {
         const message = new Message({
             id: length + 1,
             conversationId: convId,
-            sender: sender,
+            user_id: user_id,
             contentType: contentType,
             content: content,
             dateTime: new Date().toISOString()

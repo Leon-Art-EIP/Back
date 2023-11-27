@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
     const sendUserSocket = onlineUsers.get(data.to);
     if (sendUserSocket) {
       const message = new Message({
-        conversationId: data.convId,
+        id: data.convId,
         sender_id: data.from,
         contentType: "text",
         content: data.msg,

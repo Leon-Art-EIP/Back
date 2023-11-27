@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const MessageSchema = new mongoose.Schema({
-  conversationId: {
+  id: {
     type: String,
     ref: 'Conversation',
     required: true

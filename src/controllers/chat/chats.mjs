@@ -75,8 +75,10 @@ router.get('/messages/:chatId', async (req, res) => {
     const chatId = req.params.chatId; // Récupérer le convId de la requête
 
     try {
-        const messages = await Message.find({ conversationId: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
+        const messages = await Message.find({ id: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
+        const conversation = await Conversation.findOne({ _id: chatId });
+        conversation.unreadMessages = false;
         res.json({ messages: messages });
     } catch (err) {
         console.error(err.message);
@@ -130,7 +132,7 @@ router.post('/messages/new', async (req, res) => {
 
     try {
         const message = new Message({
-            conversationId: convId,
+            id: convId,
             sender_id: userId,
             contentType: contentType,
             content: content,
@@ -140,6 +142,7 @@ router.post('/messages/new', async (req, res) => {
         await message.save();
 
         const conversation = await Conversation.findOne({ _id: convId });
+        conversation.unreadMessages = true;
         conversation.lastMessage = content;
 
         await conversation.save();

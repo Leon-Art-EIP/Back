@@ -133,7 +133,7 @@ router.post('/messages/new', async (req, res) => {
     try {
         const message = new Message({
             id: convId,
-            sender_id: userId,
+            senderId: userId,
             contentType: contentType,
             content: content,
             dateTime: new Date().toISOString()

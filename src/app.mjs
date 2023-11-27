@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
     if (sendUserSocket) {
       const message = new Message({
         id: data.convId,
-        sender_id: data.from,
+        senderId: data.from,
         contentType: "text",
         content: data.msg,
         dateTime: new Date().toISOString()

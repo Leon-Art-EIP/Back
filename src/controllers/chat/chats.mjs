@@ -2,11 +2,8 @@ import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
 import Order from '../../models/orderModel.mjs';
-import{ authenticate } from '../../middleware/authenticate.mjs';
 
 const router = express.Router();
-
-router.use(authenticate);
 
 /**
  * @swagger
@@ -31,10 +28,10 @@ router.use(authenticate);
  *         description: Erreur du serveur.
  */
 router.get('/', async (req, res) => {
-    const userId = req.user.id; // Utilisez l'ID utilisateur à partir du middleware d'authentification
+    const userId = req.params.userId
     try {
-        const conversations = await Conversation.find({ $or: [{  sender_one_id: userId }, {  sender_two_id: userId }] });
-        res.json({ conversations });
+        const chats = await Conversation.find({ $or: [{  sender_one_id: userId }, {  sender_two_id: userId }] });
+        res.json({ chats: chats });
     } catch (err) {
         res.status(500).send('Server error');
     }
@@ -43,7 +40,7 @@ router.get('/', async (req, res) => {
 /**
  * @swagger
  * /api/conversations/messages:
- *   post:
+ *   get:
  *     summary: Récupère les messages d'une conversation spécifique
  *     description: Renvoie les messages liés à un ID de conversation spécifique.
  *     tags: [Conversation]
@@ -74,12 +71,12 @@ router.get('/', async (req, res) => {
  *       500:
  *         description: Erreur du serveur.
  */
-router.post('/messages', async (req, res) => {
-    const { convId } = req.body; // Récupérer le convId de la requête
+router.get('/messages', async (req, res) => {
+    const { convId } = req.params.chatId; // Récupérer le convId de la requête
 
-    // if (!convId) {
-    //     return res.status(400).json({ error: "L'ID de conversation est requis." });
-    // }
+    if (!convId) {
+        return res.status(400).json({ error: "L'ID de conversation est requis." });
+    }
 
     try {
         const messages = await Message.find({ conversationId: convId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique

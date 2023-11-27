@@ -22,7 +22,7 @@ import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 
 
-import conversationRoutes from "./controllers/chat/conversation.mjs";
+import chatsRoutes from "./controllers/chat/chats.mjs";
 dotenv.config();
 
 const app = express();
@@ -39,16 +39,18 @@ const io = new Server(httpServer, {
     }
 });
 
-io.on('connection', (socket) => {
-  console.log('Un utilisateur s\'est connecté');
+global.onlineUsers = new Map();
+io.on("connection", (socket) => {
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
 
-  socket.on('receiveMessage', async ({ convId, message }) => {
-    const savedMessage = await new Message(message).save();
-    
-    io.to(convId).emit('message', savedMessage);
-});
-  socket.on('disconnect', () => {
-      console.log('Un utilisateur s\'est déconnecté');
+  socket.on("send-msg", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+    }
   });
 });
 
@@ -112,7 +114,7 @@ app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
 
 
-app.use('/api/conversations', conversationRoutes);
+app.use('/api/chats', chatsRoutes);
 
 // AdminJS CONFIG
 const admin = new AdminJS(adminOptions);

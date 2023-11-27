@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 
 const ConversationSchema = new mongoose.Schema({
-    id: {
-        type: Number,
-        required: true
-    },
   profileName: {
     type: String,
     required: true

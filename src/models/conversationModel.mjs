@@ -1,6 +1,4 @@
 import mongoose from 'mongoose';
-
-const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 // Schéma de conversation actualisé pour inclure des références aux utilisateurs
@@ -28,5 +26,5 @@ const ConversationSchema = new Schema({
 // Créer le modèle de conversation avec le schéma actualisé
 const Conversation = mongoose.model('Conversation', ConversationSchema);
 
-module.exports = Conversation;
+export default Conversation;
 

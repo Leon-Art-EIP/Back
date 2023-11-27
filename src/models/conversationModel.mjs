@@ -1,14 +1,10 @@
 import mongoose from 'mongoose';
 
-const ConversationSchema = new mongoose.Schema({
-  profileName: {
-    type: String,
-    required: true
-  },
-  profilePicture: {
-    type: String,
-    required: true
-  },
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+// Schéma de conversation actualisé pour inclure des références aux utilisateurs
+const ConversationSchema = new Schema({
   lastMessage: {
     type: String,
     required: true
@@ -17,14 +13,20 @@ const ConversationSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  sender_one_id: {
-    type: String,
-    required: true
+  UserOne: {
+    id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    profileName: { type: String, required: true },
+    profilePicture: { type: String, required: true }
   },
-  sender_two_id: {
-    type: String,
-    required: true
-  },
+  UserTwo: {
+    id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    profileName: { type: String, required: true },
+    profilePicture: { type: String, required: true }
+  }
 });
 
-export default mongoose.model('Conversation', ConversationSchema);
+// Créer le modèle de conversation avec le schéma actualisé
+const Conversation = mongoose.model('Conversation', ConversationSchema);
+
+module.exports = Conversation;
+

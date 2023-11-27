@@ -72,10 +72,10 @@ router.get('/:userId', async (req, res) => {
  *         description: Erreur du serveur.
  */
 router.get('/messages/:chatId', async (req, res) => {
-    const { convId } = req.params.chatId; // Récupérer le convId de la requête
+    const chatId = req.params.chatId; // Récupérer le convId de la requête
 
     try {
-        const messages = await Message.find({ conversationId: convId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
+        const messages = await Message.find({ conversationId: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
         res.json({ messages: messages });
     } catch (err) {
@@ -129,9 +129,7 @@ router.post('/messages/new', async (req, res) => {
     }
 
     try {
-        const length = await Message.find().countDocuments();
         const message = new Message({
-            id: length + 1,
             conversationId: convId,
             sender_id: userId,
             contentType: contentType,
@@ -141,7 +139,7 @@ router.post('/messages/new', async (req, res) => {
 
         await message.save();
 
-        const conversation = await Conversation.findOne({ id: convId });
+        const conversation = await Conversation.findOne({ _id: convId });
         conversation.lastMessage = content;
 
         await conversation.save();

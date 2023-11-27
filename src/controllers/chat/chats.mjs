@@ -73,11 +73,7 @@ router.get('/:userId', async (req, res) => {
  */
 router.get('/messages/:chatId', async (req, res) => {
     const { convId } = req.params.chatId; // Récupérer le convId de la requête
-
-    if (!convId) {
-        return res.status(400).json({ error: "L'ID de conversation est requis." });
-    }
-
+    
     try {
         const messages = await Message.find({ conversationId: convId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 

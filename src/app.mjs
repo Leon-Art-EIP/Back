@@ -20,9 +20,9 @@ import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
-
-
 import chatsRoutes from "./controllers/chat/chats.mjs";
+import Message from "./models/messageModel.mjs";
+
 dotenv.config();
 
 const app = express();

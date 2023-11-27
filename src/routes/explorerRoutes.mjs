@@ -6,7 +6,6 @@ import { searchArtworksAndArtists } from '../controllers/explorer/explorerContro
 import { validateSearch } from '../middleware/validation/searchValidation.mjs';
 
 const router = express.Router();
-
 /**
  * @swagger
  * /api/explorer/search:
@@ -16,6 +15,7 @@ const router = express.Router();
  *       Allows users to search for art publications and artists based on various criteria.
  *       Users can filter the search by the title of the artwork, the artist's name, the type of art,
  *       a price range, and sale status. Additionally, the results can be sorted by popularity or recency.
+ *       Separate pagination controls are provided for artworks and artists.
  *     tags: [Explorer]
  *     security:
  *       - bearerAuth: []
@@ -52,19 +52,33 @@ const router = express.Router();
  *           enum: [popularity, recent]
  *         description: Sorting criteria, either by popularity or recency.
  *       - in: query
- *         name: page
+ *         name: artPage
  *         required: false
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Page number for pagination.
+ *         description: Page number for pagination of artworks.
  *       - in: query
- *         name: limit
+ *         name: artLimit
  *         required: false
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Number of results per page.
+ *         description: Number of artworks per page.
+ *       - in: query
+ *         name: artistPage
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination of artists.
+ *       - in: query
+ *         name: artistLimit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of artists per page.
  *     responses:
  *       200:
  *         description: Successful retrieval of search results.

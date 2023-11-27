@@ -1,19 +1,13 @@
 import mongoose from 'mongoose';
 
 const MessageSchema = new mongoose.Schema({
-  conversationId: {
-    type: Number,
+  id: {
+    type: String,
     ref: 'Conversation',
     required: true
   },
-  id : {
-    type: Number,
-    required: true
-    
-  },
-  sender: {
-    type: Number,
-    enum: [0, 1],
+  senderId: {
+    type: String,
     required: true
   },
   contentType: {

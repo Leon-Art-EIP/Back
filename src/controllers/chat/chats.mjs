@@ -27,19 +27,25 @@ const router = express.Router();
  *       500:
  *         description: Erreur du serveur.
  */
-router.get('/', async (req, res) => {
+router.get('/:userId', async (req, res) => {
+    const userId = req.params.userId
     try {
-        const conversations = await Conversation.find();
-        res.json( {conversations: conversations} );
+        const chats = await Conversation.find({
+            $or: [
+              { UserOneId: userId }, 
+              { UserTwoId: userId }
+            ]
+          });
+        res.json({ chats: chats });
     } catch (err) {
-        res.status(500).send('Erreur lors de la récupération des conversations');
+        res.status(500).send('Server error');
     }
 });
 
 /**
  * @swagger
  * /api/conversations/messages:
- *   post:
+ *   get:
  *     summary: Récupère les messages d'une conversation spécifique
  *     description: Renvoie les messages liés à un ID de conversation spécifique.
  *     tags: [Conversation]
@@ -70,16 +76,14 @@ router.get('/', async (req, res) => {
  *       500:
  *         description: Erreur du serveur.
  */
-router.post('/messages', async (req, res) => {
-    const { convId } = req.body; // Récupérer le convId de la requête
-
-    // if (!convId) {
-    //     return res.status(400).json({ error: "L'ID de conversation est requis." });
-    // }
+router.get('/messages/:chatId', async (req, res) => {
+    const chatId = req.params.chatId; // Récupérer le convId de la requête
 
     try {
-        const messages = await Message.find({ conversationId: convId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
+        const messages = await Message.find({ id: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
+        const conversation = await Conversation.findOne({ _id: chatId });
+        conversation.unreadMessages = false;
         res.json({ messages: messages });
     } catch (err) {
         console.error(err.message);
@@ -125,24 +129,28 @@ router.post('/messages', async (req, res) => {
  *         description: Erreur du serveur.
  */
 router.post('/messages/new', async (req, res) => {
-    const { convId, sender, contentType, content} = req.body;
+    const { convId, userId, contentType, content} = req.body;
 
-    if (convId === undefined || sender === undefined || contentType === undefined || !content) {
+    if (convId === undefined || userId === undefined || contentType === undefined || !content) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
     try {
-        const length = await Message.find().countDocuments();
         const message = new Message({
-            id: length + 1,
-            conversationId: convId,
-            sender: sender,
+            id: convId,
+            senderId: userId,
             contentType: contentType,
             content: content,
             dateTime: new Date().toISOString()
         });
 
         await message.save();
+
+        const conversation = await Conversation.findOne({ _id: convId });
+        conversation.unreadMessages = true;
+        conversation.lastMessage = content;
+
+        await conversation.save();
 
         res.json({message: message});
     } catch (err) {

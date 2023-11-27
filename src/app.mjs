@@ -20,9 +20,9 @@ import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
+import chatsRoutes from "./controllers/chat/chats.mjs";
+import Message from "./models/messageModel.mjs";
 
-
-import conversationRoutes from "./controllers/chat/conversation.mjs";
 dotenv.config();
 
 const app = express();
@@ -39,17 +39,26 @@ const io = new Server(httpServer, {
     }
 });
 
-io.on('connection', (socket) => {
-    console.log('Un utilisateur s\'est connecté');
+global.onlineUsers = new Map();
+io.on("connection", (socket) => {
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
 
-    socket.on('ReceiveMessage', (data) => {
-        const { convid, message } = data;
-        io.emit('NewMessage', message);
+  socket.on("send-msg", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      const message = new Message({
+        id: data.convId,
+        senderId: data.from,
+        contentType: "text",
+        content: data.msg,
+        dateTime: new Date().toISOString()
     });
-
-    socket.on('disconnect', () => {
-        console.log('Un utilisateur s\'est déconnecté');
-    });
+      socket.to(sendUserSocket).emit("msg-recieve", message);
+    }
+  });
 });
 
 const swaggerOptions = {
@@ -112,7 +121,7 @@ app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
 
 
-app.use('/api/conversations', conversationRoutes);
+app.use('/api/chats', chatsRoutes);
 
 // AdminJS CONFIG
 const admin = new AdminJS(adminOptions);

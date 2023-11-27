@@ -30,7 +30,12 @@ const router = express.Router();
 router.get('/:userId', async (req, res) => {
     const userId = req.params.userId
     try {
-        const chats = await Conversation.find({ $or: [{  sender_one_id: userId }, {  sender_two_id: userId }] });
+        const chats = await Conversation.find({
+            $or: [
+              { 'UserOne.id': userId }, 
+              { 'UserTwo.id': userId }
+            ]
+          });
         res.json({ chats: chats });
     } catch (err) {
         res.status(500).send('Server error');

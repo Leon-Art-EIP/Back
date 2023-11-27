@@ -10,6 +10,10 @@ import {
   resetPassword,
 } from "../controllers/authentification/resetPasswordController.mjs";
 import { validateResetPassword } from "../middleware/validation/resetPasswordValidation.mjs";
+import { changePassword } from "../controllers/authentification/changePasswordController.mjs";
+import { validateChangePassword } from "../middleware/validation/changePasswordValidation.mjs";
+import { authenticate } from "../middleware/authenticate.mjs";
+
 
 /**
  * @swagger
@@ -260,5 +264,42 @@ router.post("/validate-reset-token", validateResetToken);
  *         description: Server Error.
  */
 router.post("/reset-password", validateResetPassword, resetPassword);
+
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   post:
+ *     summary: Change a user's password
+ *     description: Allows a logged-in user to change their password.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []  # Requires a valid JWT token.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The user's current password.
+ *                 example: CurrentPassword123*
+ *               newPassword:
+ *                 type: string
+ *                 description: The user's new password (min. 8 characters, strong).
+ *                 example: NewPassword123*!
+ *     responses:
+ *       200:
+ *         description: Password changed successfully.
+ *       400:
+ *         description: Incorrect current password.
+ *       422:
+ *         description: Validation error (e.g., weak new password).
+ *       500:
+ *         description: Server Error.
+ */
+router.post("/change-password", authenticate, validateChangePassword, changePassword);
+
 
 export default router;

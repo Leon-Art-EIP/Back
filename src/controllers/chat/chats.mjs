@@ -73,7 +73,7 @@ router.get('/:userId', async (req, res) => {
  */
 router.get('/messages/:chatId', async (req, res) => {
     const { convId } = req.params.chatId; // Récupérer le convId de la requête
-    
+
     try {
         const messages = await Message.find({ conversationId: convId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
@@ -122,9 +122,9 @@ router.get('/messages/:chatId', async (req, res) => {
  *         description: Erreur du serveur.
  */
 router.post('/messages/new', async (req, res) => {
-    const { convId, user_id, contentType, content} = req.body;
+    const { convId, userId, contentType, content} = req.body;
 
-    if (convId === undefined || user_id === undefined || contentType === undefined || !content) {
+    if (convId === undefined || userId === undefined || contentType === undefined || !content) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
@@ -133,7 +133,7 @@ router.post('/messages/new', async (req, res) => {
         const message = new Message({
             id: length + 1,
             conversationId: convId,
-            user_id: user_id,
+            sender_id: userId,
             contentType: contentType,
             content: content,
             dateTime: new Date().toISOString()

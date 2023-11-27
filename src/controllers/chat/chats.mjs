@@ -27,7 +27,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur du serveur.
  */
-router.get('/', async (req, res) => {
+router.get('/:userId', async (req, res) => {
     const userId = req.params.userId
     try {
         const chats = await Conversation.find({ $or: [{  sender_one_id: userId }, {  sender_two_id: userId }] });
@@ -71,7 +71,7 @@ router.get('/', async (req, res) => {
  *       500:
  *         description: Erreur du serveur.
  */
-router.get('/messages', async (req, res) => {
+router.get('/messages/:chatId', async (req, res) => {
     const { convId } = req.params.chatId; // Récupérer le convId de la requête
 
     if (!convId) {

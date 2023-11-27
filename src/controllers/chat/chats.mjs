@@ -32,8 +32,8 @@ router.get('/:userId', async (req, res) => {
     try {
         const chats = await Conversation.find({
             $or: [
-              { 'UserOne.id': userId }, 
-              { 'UserTwo.id': userId }
+              { UserOneId: userId }, 
+              { UserTwoId: userId }
             ]
           });
         res.json({ chats: chats });

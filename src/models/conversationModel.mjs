@@ -11,16 +11,30 @@ const ConversationSchema = new Schema({
     type: Boolean,
     default: false
   },
-  UserOne: {
-    id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    profileName: { type: String, required: true },
-    profilePicture: { type: String, required: true }
+  UserOneId: {
+    type: String,
+    required: true
   },
-  UserTwo: {
-    id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    profileName: { type: String, required: true },
-    profilePicture: { type: String, required: true }
-  }
+  UserOneName: {
+    type: String,
+    required: true
+  },
+  UserOnePicture: {
+    type: String,
+    required: true
+  },
+  UserTwoId: {
+    type: String,
+    required: true
+  },
+  UserTwoName: {
+    type: String,
+    required: true
+  },
+  UserTwoPicture: {
+    type: String,
+    required: true
+  },
 });
 
 // Créer le modèle de conversation avec le schéma actualisé

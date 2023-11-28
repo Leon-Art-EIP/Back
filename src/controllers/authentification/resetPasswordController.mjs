@@ -44,7 +44,7 @@ export async function requestReset(req, res) {
       from: "leonart.projet@gmail.com",
       to: email,
       subject: "Password Reset",
-      text: `You requested a password reset. Click here to reset your password: ${process.env.BASE_WEB_URL}/reset?token=${token}`,
+      text: `You requested a password reset. Click here to reset your password: ${process.env.BASE_WEB_URL}/reset_password/${token}`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {

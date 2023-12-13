@@ -2,8 +2,9 @@ import { query, validationResult } from 'express-validator';
 
 export const validateSearch = [
   query('searchTerm').optional().isString().withMessage('Invalid search term'),
-  query('artType').optional().isString().withMessage('Invalid art type'),
-  query('priceRange').optional().matches(/^\d+-\d+$/).withMessage('Invalid price range'),
+  query('artType').optional().custom((value) => {
+    return Array.isArray(value.split(',')) && value.split(',').every(v => typeof v === 'string');
+  }).withMessage('Invalid art type'),  query('priceRange').optional().matches(/^\d+-\d+$/).withMessage('Invalid price range'),
   query('isForSale').optional().isBoolean().withMessage('Invalid sale status'),
   query('sort').optional().isIn(['popularity', 'recent']).withMessage('Invalid sort option'),
   query('page').optional().isNumeric().withMessage('Invalid page number'),

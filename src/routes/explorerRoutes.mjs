@@ -13,7 +13,7 @@ const router = express.Router();
  *     summary: Search for Art Publications and Artists
  *     description: |
  *       Allows users to search for art publications and artists based on various criteria.
- *       Users can filter the search by the title of the artwork, the artist's name, the type of art,
+ *       Users can filter the search by the title of the artwork, the artist's name, multiple types of art,
  *       a price range, and sale status. Additionally, the results can be sorted by popularity or recency.
  *       Separate pagination controls are provided for artworks and artists.
  *     tags: [Explorer]
@@ -31,7 +31,7 @@ const router = express.Router();
  *         required: false
  *         schema:
  *           type: string
- *         description: Filter by the type of art.
+ *         description: Filter by the type(s) of art. Provide a comma-separated list for multiple types.
  *       - in: query
  *         name: priceRange
  *         required: false

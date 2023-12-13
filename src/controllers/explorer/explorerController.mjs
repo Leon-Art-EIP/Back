@@ -15,6 +15,8 @@ export const searchArtworksAndArtists = async (req, res) => {
       artistLimit = process.env.DEFAULT_PAGE_LIMIT
     } = req.query;
 
+    const artTypes = req.query.artType ? req.query.artType.split(',') : [];
+
     const query = {};
     if (searchTerm) {
       query.$or = [
@@ -22,7 +24,7 @@ export const searchArtworksAndArtists = async (req, res) => {
         { 'artist.name': { $regex: searchTerm, $options: 'i' } }
       ];
     }
-    if (artType) query.artType = artType;
+    if (artTypes.length) query.artType = { $in: artTypes };
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split('-').map(Number);
       query.price = { $gte: minPrice, $lte: maxPrice };

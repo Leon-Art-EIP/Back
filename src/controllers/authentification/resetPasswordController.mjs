@@ -104,7 +104,7 @@ export async function resetPassword(req, res) {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: 3600 },
+      { expiresIn: process.env.JWT_EXPIRATION || 3600 },
       (err, token) => {
         if (err) /* istanbul ignore next */ {
           console.error(err.message);

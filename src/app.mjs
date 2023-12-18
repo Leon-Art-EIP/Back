@@ -27,14 +27,11 @@ dotenv.config();
 
 const app = express();
 const httpServer = http.createServer(app);
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(",")
-  : [];
 
 // Configuration de socket.io
 const io = new Server(httpServer, {
     cors: {
-        origin: allowedOrigins,
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
@@ -124,8 +121,20 @@ app.use('/api/explorer', explorerRoutes);
 app.use('/api/chats', chatsRoutes);
 
 // AdminJS CONFIG
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
 const admin = new AdminJS(adminOptions);
-const router = AdminJSExpress.buildRouter(admin);
+const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
+  authenticate: async (email, password) => {
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      return { email: ADMIN_EMAIL };
+    }
+    return false;
+  },
+  cookieName: 'adminjs',
+  cookiePassword: 'super-secret-and-long-cookie-password',
+});
 
 app.use(
   expressSession({
@@ -134,7 +143,13 @@ app.use(
     saveUninitialized: true,
   })
 );
-app.use(admin.options.rootPath, router);
+
+app.use(admin.options.rootPath, adminRouter);
+
+
+
+
+
 
 export default app; // Export app
 export { httpServer }; // Exportez httpServer pour le démarrage

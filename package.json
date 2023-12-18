@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/Leon-Art-EIP/Back#readme",
   "dependencies": {
-    "@adminjs/express": "6.0.0",
+    "@adminjs/express": "^6.0.0",
     "@adminjs/mongoose": "^4.0.0",
     "adminjs": "^7.2.1",
     "bcrypt": "^5.1.0",
@@ -43,6 +43,7 @@
     "nodemailer": "^6.9.5",
     "nodemailer-mailgun-transport": "^2.1.5",
     "nodemon": "^3.0.1",
+    "react": "^18.2.0",
     "socket.io": "^4.7.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.3",

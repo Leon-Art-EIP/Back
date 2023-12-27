@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { authenticate } from "../middleware/authenticate.mjs";
-import { searchArtworksAndArtists } from '../controllers/explorer/explorerController.mjs';
+import { searchArtworksAndArtists, getArtTypes } from '../controllers/explorer/explorerController.mjs';
 import { validateSearch } from '../middleware/validation/searchValidation.mjs';
 
 const router = express.Router();
@@ -127,5 +127,35 @@ const router = express.Router();
  *         description: Server error.
  */
 router.get('/search', authenticate, validateSearch, searchArtworksAndArtists);
+
+/**
+ * @swagger
+ * /api/explorer/art-types:
+ *   get:
+ *     summary: Retrieve a list of art types
+ *     description: Fetches a list of available art types and their categories for filtering purposes in the art explorer.
+ *     tags: [Art Types]
+ *     responses:
+ *       200:
+ *         description: A list of art types and categories.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   category:
+ *                     type: string
+ *                     description: The category of the art type.
+ *                   types:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: A list of art types within the category.
+ *       500:
+ *         description: Server error
+ */
+router.get('/art-types', getArtTypes);
 
 export default router;

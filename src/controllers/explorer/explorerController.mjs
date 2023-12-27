@@ -1,5 +1,6 @@
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import { User } from '../../models/userModel.mjs';
+import artTypes from '../../constants/artTypesData.js';
 
 export const searchArtworksAndArtists = async (req, res) => {
   try {
@@ -41,4 +42,8 @@ export const searchArtworksAndArtists = async (req, res) => {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
+};
+
+export const getArtTypes = (req, res) => {
+  res.json(artTypes);
 };

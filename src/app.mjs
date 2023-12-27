@@ -22,6 +22,7 @@ import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
+import conditionRoute from "./routes/conditionsRoutes.mjs";
 
 dotenv.config();
 
@@ -116,6 +117,7 @@ app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
+app.use('/api', conditionRoute);
 
 
 app.use('/api/chats', chatsRoutes);

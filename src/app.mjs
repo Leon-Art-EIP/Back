@@ -1,5 +1,6 @@
 import express from "express";
 import http from 'http';
+import bodyParser from 'body-parser';
 import { Server } from 'socket.io';
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
@@ -20,8 +21,10 @@ import articleRoutes from "./routes/articleRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
+import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
+import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
 
 dotenv.config();
 
@@ -119,6 +122,31 @@ app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
+app.use('/api/order', orderRoutes);
+
+// webhooks :
+
+/**
+ * @swagger
+ * /webhooks/stripe:
+ *   post:
+ *     summary: Stripe webhook endpoint
+ *     description: Endpoint for handling Stripe webhook events.
+ *     tags: [Webhook]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *     responses:
+ *       200:
+ *         description: Webhook event received and processed successfully.
+ *       400:
+ *         description: Bad request, invalid webhook event.
+ *       500:
+ *         description: Server error.
+ */
+app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
+
 
 
 app.use('/api/chats', chatsRoutes);

@@ -9,6 +9,7 @@ const artPublicationSchema = new Schema({
   description: { type: String },
   dimension: { type: String },
   isForSale: { type: Boolean, default: false },
+  isSold: { type: Boolean, default: false },
   price: { type: Number },
   location: { type: String },
   likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],

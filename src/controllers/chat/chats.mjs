@@ -1,7 +1,7 @@
 import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
-import Order from '../../models/orderModel.mjs';
+import {Order} from '../../models/orderModel.mjs';
 
 const router = express.Router();
 

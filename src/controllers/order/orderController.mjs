@@ -1,9 +1,11 @@
-// src/controllers/orderController.mjs
-
 import { Order } from '../../models/orderModel.mjs';
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import Stripe from 'stripe';
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+let stripe;
+
+export const initializeStripe = (stripeKey) => {
+  stripe = new Stripe(stripeKey);
+};
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_...';
 
 export const createOrder = async (req, res) => {

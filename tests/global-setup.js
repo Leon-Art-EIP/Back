@@ -3,6 +3,8 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import dotenv from 'dotenv';
 dotenv.config();
 
+console.log("Dotenv configured in JEST");
+
 
 
 export default async () => {

@@ -78,10 +78,6 @@ pipeline {
                     result: currentBuild.currentResult
                 )
             }
-        }
-    }
-
-     post {
         always {
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,

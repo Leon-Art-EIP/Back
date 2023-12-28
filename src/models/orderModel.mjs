@@ -1,39 +1,56 @@
 import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
-const OrderSchema = new mongoose.Schema({
-    conversationId: {
-        type: Number,
-        ref: 'Conversation',
-        required: true
-      },
-  userRole: {
-    type: String,
-    enum: ["buyer", "seller"],
+const OrderSchema = new Schema({
+  artPublicationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'ArtPublication',
+    required: true
+  },
+  buyerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  sellerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   orderState: {
     type: String,
-    enum: ["pending", "accepted", "rejected", "none"],
+    enum: ["pending", "accepted", "rejected", "cancelled", "completed"],
+    default: "pending",
     required: true
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "paid", "refunded"],
+    default: "pending"
   },
   orderRating: {
     type: Number,
-    default: 0,
-    min: 0,
+    min: 1,
     max: 5
   },
-  orderPicture: {
-    type: String,
-    required: false
-  },
-  orderDescription: {
-    type: String,
-    required: true
-  },
+  stripePaymentIntentId: String,
   orderPrice: {
     type: Number,
     required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
 });
 
-export default mongoose.model('Order', OrderSchema);
+OrderSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+export const Order = mongoose.model('Order', OrderSchema);

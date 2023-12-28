@@ -6,7 +6,6 @@ import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_...';
 
-
 export const createOrder = async (req, res) => {
     try {
       const { artPublicationId } = req.body;
@@ -16,35 +15,39 @@ export const createOrder = async (req, res) => {
       if (!artPublication || !artPublication.isForSale || artPublication.isSold) {
         return res.status(400).json({ msg: "Art publication not available for sale" });
       }
-
+  
       // Vérifier si une commande payée existe déjà pour cette publication
       const existingOrder = await Order.findOne({
         artPublicationId: artPublication._id,
         paymentStatus: "paid",
       });
-
+  
       if (existingOrder) {
         return res.status(400).json({ msg: "This art has already been sold" });
       }
-
-      const sellerId = artPublication.userId;
-
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: artPublication.price * 100,
-        currency: "eur",
-        payment_method_types: ["card"],
-        metadata: { orderId: newOrder._id.toString() }, // Ajouter l'ID de la commande dans les métadonnées
-      });
   
+      const sellerId = artPublication.userId;
+  
+      // Créer d'abord l'objet newOrder
       const newOrder = new Order({
         artPublicationId,
         buyerId,
         sellerId,
         orderPrice: artPublication.price,
-        stripePaymentIntentId: paymentIntent.id,
         paymentStatus: 'pending'
       });
+      await newOrder.save();
   
+      // Ensuite, créer l'intention de paiement Stripe avec l'ID de la commande
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: artPublication.price * 100,
+        currency: "eur",
+        payment_method_types: ["card"],
+        metadata: { orderId: newOrder._id.toString() },
+      });
+  
+      // Mettre à jour la commande avec l'ID de l'intention de paiement
+      newOrder.stripePaymentIntentId = paymentIntent.id;
       await newOrder.save();
   
       res.status(201).json({
@@ -65,6 +68,7 @@ export const createOrder = async (req, res) => {
       res.status(500).json({ msg: 'Server Error' });
     }
   };
+  
 
 export const handleStripeWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -195,7 +199,6 @@ export const getLatestBuyOrders = async (req, res) => {
     try {
       const orderId = req.params.id;
       const order = await Order.findById(orderId);
-  
       if (!order) {
         return res.status(404).json({ msg: 'Order not found' });
       }

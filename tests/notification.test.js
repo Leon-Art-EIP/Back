@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../src/app';
+import app from '../src/app.mjs';
 import { User } from '../src/models/userModel.mjs';
 import { Notification } from '../src/models/notificationModel.mjs';
 import jwt from "jsonwebtoken";

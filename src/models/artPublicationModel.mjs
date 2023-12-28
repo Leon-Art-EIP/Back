@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const artPublicationSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  image: { type: String, required: true },
+  image: { type: String, default: 'uploads/static/default-image-art.jpg', required: true },
   artType: { type: String, required: true },
   name: { type: String, required: true },
   description: { type: String },

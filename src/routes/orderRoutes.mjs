@@ -161,36 +161,32 @@ router.get('/sell/:id', authenticate, getSellOrderById);
 
 /**
  * @swagger
- * /api/order/cancel:
+ * /api/order/cancel/{id}:
  *   post:
  *     summary: Cancel an order
- *     description: Allows an artist to cancel an order. This will initiate a refund process.
+ *     description: Allows an artist to cancel an order. This will initiate a refund process and set the art publication as unsold if applicable.
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - orderId
- *             properties:
- *               orderId:
- *                 type: string
- *                 description: The ID of the order to be cancelled.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the order to be cancelled.
  *     responses:
  *       200:
- *         description: Order cancelled successfully.
+ *         description: Order cancelled successfully, and art publication status updated if necessary.
  *       404:
  *         description: Order not found.
  *       403:
- *         description: Unauthorized, only the artist can cancel the order.
+ *         description: Unauthorized, only the seller associated with the order can cancel.
  *       500:
  *         description: Server error.
  */
-router.post('/cancel', authenticate, cancelOrder);
+router.post('/cancel/:id', authenticate, cancelOrder);
+
 
 /**
  * @swagger

@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+import { initializeStripe } from "./controllers/order/orderController.mjs";
+
+dotenv.config();
+
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
@@ -14,7 +19,6 @@ import AdminJS from "adminjs";
 import AdminJSExpress from "@adminjs/express";
 import adminOptions from "./admin/admin.mjs";
 import expressSession from "express-session";
-import dotenv from "dotenv";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
@@ -26,7 +30,7 @@ import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
 import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
 
-dotenv.config();
+initializeStripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const httpServer = http.createServer(app);

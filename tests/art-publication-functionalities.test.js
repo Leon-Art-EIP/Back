@@ -1,19 +1,16 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
-import { ObjectId } from 'mongodb';
 import app from '../src/app';
 import { User } from '../src/models/userModel.mjs';
 import { ArtPublication } from '../src/models/artPublicationModel.mjs';
 import { Comment } from '../src/models/commentModel.mjs';
-import Collection  from '../src/models/collectionModel.mjs';
+import Collection from '../src/models/collectionModel.mjs';
 
 let token, userId, artPublicationId, commentId;
 
 beforeAll(async () => {
-  // Delete all existing users
   await User.deleteMany({});
-  
-  // Create a user
+
   const userResponse = await request(app)
     .post('/api/auth/signup')
     .send({
@@ -23,13 +20,35 @@ beforeAll(async () => {
     });
 
   token = userResponse.body.token;
-  userId = userResponse.body.user.id;
+  userId = userResponse.body.user._id;
 });
 
 beforeEach(async () => {
-  // Clear the ArtPublication and Comment collections before each test
   await ArtPublication.deleteMany({});
   await Comment.deleteMany({});
+  await Collection.deleteMany({});
+
+  const artPublication = new ArtPublication({
+    userId: mongoose.Types.ObjectId(userId),
+    image: 'image.jpg',
+    artType: 'Painting',
+    name: 'My Artwork',
+    description: 'This is my artwork',
+    dimension: '5x7',
+    isForSale: true,
+    price: 200,
+    location: 'NYC',
+  });
+  await artPublication.save();
+  artPublicationId = artPublication._id.toString();
+
+  const comment = new Comment({
+    userId: mongoose.Types.ObjectId(userId),
+    artPublicationId: mongoose.Types.ObjectId(artPublicationId),
+    text: 'Nice art!',
+  });
+  await comment.save();
+  commentId = comment._id.toString();
 });
 
 describe('ArtPublication Functionalities', () => {
@@ -92,7 +111,8 @@ describe('ArtPublication Functionalities', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.msg).toBe('Like status updated');
-    expect(response.body.likeStatus.isLiked).toBe(false);
+    expect(response.body.likeStatus.isLiked).toBe(false); // Updated expectation
+
   });
 
   it('GET /like-count/:id - Retrieve like count for an ArtPublication', async () => {
@@ -166,7 +186,7 @@ describe('ArtPublication Functionalities', () => {
     const newCollection = new Collection({ name: 'Favorites', artPublications: [], user: userId });
     await newCollection.save();
     const user = await User.findById(userId);
-    user.collections.push(newCollection._id);
+    user.collections.push(newCollection.id);
     await user.save();
     
 
@@ -378,4 +398,14 @@ describe('ArtPublication Functionalities', () => {
     expect(response.status).toBe(404);
     expect(response.body.msg).toBe('Collection not found');
   });
+
+  afterAll(async () => {
+    await User.deleteMany({});
+    await ArtPublication.deleteMany({});
+    await Comment.deleteMany({});
+    await Collection.deleteMany({});
+    // If using a real database, disconnect here
+    // mongoose.disconnect();
+  });
+  
 });

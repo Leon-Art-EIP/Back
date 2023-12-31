@@ -4,44 +4,41 @@ import { User } from "../src/models/userModel.mjs";
 import { ResetToken } from "../src/models/resetPasswordTokenModel.mjs";
 import bcrypt from "bcrypt";
 
-let token;
-let userEmail;
-let resetToken;
-
 describe("Reset Password Routes", () => {
-  beforeAll(async () => {
-    await User.deleteMany({ username: "testuser" });
+  const testUserEmail = "testuser@test.com";
+  const testUserPassword = "StrongTestPassword123!";
+  let resetToken;
 
-    // Creating user for testing
-    const salt = await bcrypt.genSalt(10);
-    const password = await bcrypt.hash("StrongTestPassword123!", salt);
+  const hashPassword = async (password) => bcrypt.hash(password, await bcrypt.genSalt(10));
+
+  const createUser = async () => {
     await User.create({
       username: "testuser",
-      email: "testuser@test.com",
-      password,
+      email: testUserEmail,
+      password: await hashPassword(testUserPassword),
     });
-    userEmail = "testuser@test.com";
+  };
+
+  const postRequest = async (endpoint, payload) => request(app).post(`/api/auth/${endpoint}`).send(payload);
+
+  beforeAll(async () => {
+    await User.deleteMany({ username: "testuser" });
+    await createUser();
   });
 
   describe("POST /request-reset", () => {
     it("should send reset token if email exists", async () => {
-      const response = await request(app)
-        .post("/api/auth/request-reset")
-        .send({ email: userEmail });
+      const response = await postRequest("request-reset", { email: testUserEmail });
       expect(response.status).toBe(200);
       expect(response.body.msg).toBe("Reset email sent");
 
-      // Check if token is saved
-      const resetEntry = await ResetToken.findOne({ email: userEmail });
+      const resetEntry = await ResetToken.findOne({ email: testUserEmail });
       expect(resetEntry).not.toBeNull();
       resetToken = resetEntry.token;
     });
 
     it("should fail if email does not exist", async () => {
-      const response = await request(app)
-        .post("/api/auth/request-reset")
-        .send({ email: "notfound@test.com" });
-
+      const response = await postRequest("request-reset", { email: "notfound@test.com" });
       expect(response.status).toBe(404);
       expect(response.body.msg).toBe("Email not found");
     });
@@ -49,72 +46,45 @@ describe("Reset Password Routes", () => {
 
   describe("POST /validate-reset-token", () => {
     it("should validate correct reset token", async () => {
-      const response = await request(app)
-        .post("/api/auth/validate-reset-token")
-        .send({ token: resetToken });
-
+      const response = await postRequest("validate-reset-token", { token: resetToken });
       expect(response.status).toBe(200);
       expect(response.body.msg).toBe("Valid token");
     });
 
     it("should not validate incorrect reset token", async () => {
-      const response = await request(app)
-        .post("/api/auth/validate-reset-token")
-        .send({ token: "incorrectToken" });
-
+      const response = await postRequest("validate-reset-token", { token: "incorrectToken" });
       expect(response.status).toBe(404);
       expect(response.body.msg).toBe("Invalid or expired token");
     });
   });
 
   describe("POST /reset-password", () => {
-    it("should reset password if token is correct", async () => {
-      const newPassword = "NewStrongTestPassword123!";
-      const response = await request(app)
-        .post("/api/auth/reset-password")
-        .send({ token: resetToken, newPassword });
+    const newPassword = "NewStrongTestPassword123!";
 
+    it("should reset password if token is correct", async () => {
+      const response = await postRequest("reset-password", { token: resetToken, newPassword });
       expect(response.status).toBe(200);
       expect(response.body.msg).toBe("Password reset successfully");
 
-      // Validate new password
-      const user = await User.findOne({ email: userEmail });
-      const isMatch = await bcrypt.compare(newPassword, user.password);
-      expect(isMatch).toBeTruthy();
+      const user = await User.findOne({ email: testUserEmail });
+      expect(await bcrypt.compare(newPassword, user.password)).toBeTruthy();
     });
 
     it("should not reset password if token is incorrect", async () => {
-      const newPassword = "YetAnotherStrongTestPassword123!";
-      const response = await request(app)
-        .post("/api/auth/reset-password")
-        .send({ token: "incorrectToken", newPassword });
-
+      const response = await postRequest("reset-password", { token: "incorrectToken", newPassword });
       expect(response.status).toBe(404);
       expect(response.body.msg).toBe("Invalid or expired token");
     });
 
     it("should not reset password if new password is too weak", async () => {
-      const weakPassword = "12345678"; // This should trigger a weak password based on zxcvbn
-      const response = await request(app)
-        .post("/api/auth/reset-password")
-        .send({ token: resetToken, newPassword: weakPassword });
+      const weakPassword = "12345678";
+      const response = await postRequest("reset-password", { token: resetToken, newPassword: weakPassword });
 
       expect(response.status).toBe(422);
-      expect(response.body.errors).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            msg: "Password is too weak",
-          }),
-        ])
-      );
+      expect(response.body.errors).toEqual(expect.arrayContaining([expect.objectContaining({ msg: "Password is too weak" })]));
 
-      // Validate old password still works
-      const user = await User.findOne({ email: userEmail });
-      const isMatch = await bcrypt.compare(
-        "NewStrongTestPassword123!",
-        user.password
-      );
-      expect(isMatch).toBeTruthy();
+      const user = await User.findOne({ email: testUserEmail });
+      expect(await bcrypt.compare(newPassword, user.password)).toBeTruthy();
     });
   });
 });

@@ -28,20 +28,18 @@ import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
+import conditionRoute from "./routes/conditionsRoutes.mjs";
 import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
 
 initializeStripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const httpServer = http.createServer(app);
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(",")
-  : [];
 
 // Configuration de socket.io
 const io = new Server(httpServer, {
     cors: {
-        origin: allowedOrigins,
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
@@ -126,6 +124,7 @@ app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
+app.use('/api', conditionRoute);
 app.use('/api/order', orderRoutes);
 
 // webhooks :
@@ -152,12 +151,23 @@ app.use('/api/order', orderRoutes);
 app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
 
 
-
 app.use('/api/chats', chatsRoutes);
 
 // AdminJS CONFIG
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
 const admin = new AdminJS(adminOptions);
-const router = AdminJSExpress.buildRouter(admin);
+const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
+  authenticate: async (email, password) => {
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      return { email: ADMIN_EMAIL };
+    }
+    return false;
+  },
+  cookieName: 'adminjs',
+  cookiePassword: 'super-secret-and-long-cookie-password',
+});
 
 app.use(
   expressSession({
@@ -166,7 +176,13 @@ app.use(
     saveUninitialized: true,
   })
 );
-app.use(admin.options.rootPath, router);
+
+app.use(admin.options.rootPath, adminRouter);
+
+
+
+
+
 
 export default app; // Export app
 export { httpServer }; // Exportez httpServer pour le démarrage

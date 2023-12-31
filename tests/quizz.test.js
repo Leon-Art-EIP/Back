@@ -1,26 +1,33 @@
 import request from 'supertest';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../src/app';
 import { User } from '../src/models/userModel.mjs';
 import { Quizz } from '../src/models/quizzModel.mjs';
 
-let token;
-
 describe('Quizz Routes', () => {
-  beforeAll(async () => {
-    // Set up database and user for testing
-    await User.deleteMany({});
+  let token;
+
+  const signUpAndAuthenticateUser = async () => {
     const userResponse = await request(app).post('/api/auth/signup').send({
       username: 'testuser',
       email: 'testuser@test.com',
       password: 'StrongTestPassword123!',
     });
-    token = userResponse.body.token;
+    return userResponse.body.token;
+  };
+
+  const submitQuizz = async (payload) => {
+    return request(app)
+      .post('/api/quizz/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload);
+  };
+
+  beforeAll(async () => {
+    await User.deleteMany({});
+    token = await signUpAndAuthenticateUser();
   });
 
   beforeEach(async () => {
-    // Clear the Quizz collection before each test
     await Quizz.deleteMany({});
   });
 
@@ -35,23 +42,13 @@ describe('Quizz Routes', () => {
       discoveryMethod: 'Google Search',
     };
 
-    const response = await request(app)
-      .post('/api/quizz/submit')
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload);
-
+    const response = await submitQuizz(payload);
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('msg', 'Quizz submitted successfully');
   });
 
   it('POST /submit - Missing required fields', async () => {
-    const payload = {};
-
-    const response = await request(app)
-      .post('/api/quizz/submit')
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload);
-
+    const response = await submitQuizz({});
     expect(response.status).toBe(422);
     expect(response.body.errors).toEqual(
       expect.arrayContaining([
@@ -61,15 +58,8 @@ describe('Quizz Routes', () => {
   });
 
   it('POST /submit - Invalid objective', async () => {
-    const payload = {
-      objective: 'invalidObjective',
-    };
-
-    const response = await request(app)
-      .post('/api/quizz/submit')
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload);
-
+    const payload = { objective: 'invalidObjective' };
+    const response = await submitQuizz(payload);
     expect(response.status).toBe(422);
     expect(response.body.errors).toEqual(
       expect.arrayContaining([
@@ -79,16 +69,8 @@ describe('Quizz Routes', () => {
   });
 
   it('POST /submit - Invalid customCommands', async () => {
-    const payload = {
-      objective: 'sell',
-      customCommands: 'Invalid',
-    };
-
-    const response = await request(app)
-      .post('/api/quizz/submit')
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload);
-
+    const payload = { objective: 'sell', customCommands: 'Invalid' };
+    const response = await submitQuizz(payload);
     expect(response.status).toBe(422);
     expect(response.body.errors).toEqual(
       expect.arrayContaining([

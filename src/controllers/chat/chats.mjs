@@ -7,26 +7,30 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/conversations:
+ * /api/conversations/{userId}:
  *   get:
- *     summary: Récupère toutes les conversations
- *     description: Récupère la liste complète des conversations.
- *     tags: [Conversation]
+ *     summary: Retrieve all conversations for a specific user
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID to fetch conversations for
  *     responses:
  *       200:
- *         description: Liste des conversations récupérées avec succès.
+ *         description: Successfully retrieved conversations
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 conversations:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Conversation'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Conversation'
  *       500:
- *         description: Erreur du serveur.
+ *         description: Internal server error
  */
+
 router.get('/:userId', async (req, res) => {
     const userId = req.params.userId
     try {
@@ -42,40 +46,33 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
+
 /**
  * @swagger
- * /api/conversations/messages:
+ * /api/conversations/messages/{chatId}:
  *   get:
- *     summary: Récupère les messages d'une conversation spécifique
- *     description: Renvoie les messages liés à un ID de conversation spécifique.
- *     tags: [Conversation]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               convId:
- *                 type: number
- *                 description: L'ID de la conversation.
+ *     summary: Retrieve messages for a specific conversation
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Conversation ID to fetch messages for
  *     responses:
  *       200:
- *         description: Liste des messages récupérés avec succès.
+ *         description: Successfully retrieved messages
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 messages:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Message'
- *       400:
- *         description: Données manquantes ou invalides.
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Message'
  *       500:
- *         description: Erreur du serveur.
+ *         description: Internal server error
  */
+
 router.get('/messages/:chatId', async (req, res) => {
     const chatId = req.params.chatId; // Récupérer le convId de la requête
 
@@ -95,39 +92,41 @@ router.get('/messages/:chatId', async (req, res) => {
  * @swagger
  * /api/conversations/messages/new:
  *   post:
- *     summary: Crée un nouveau message dans une conversation
- *     description: Ajoute un nouveau message à une conversation spécifique.
- *     tags: [Conversation]
+ *     summary: Create a new message in a conversation
+ *     tags: [Messages]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - convId
+ *               - userId
+ *               - contentType
+ *               - content
  *             properties:
  *               convId:
- *                 type: number
- *               sender:
- *                 type: number
+ *                 type: string
+ *               userId:
+ *                 type: string
  *               contentType:
  *                 type: string
  *               content:
  *                 type: string
  *     responses:
  *       200:
- *         description: Message créé avec succès.
+ *         description: Successfully created message
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   $ref: '#/components/schemas/Message'
+ *               $ref: '#/components/schemas/Message'
  *       400:
- *         description: Données manquantes ou invalides.
+ *         description: Invalid request data
  *       500:
- *         description: Erreur du serveur.
+ *         description: Internal server error
  */
+
 router.post('/messages/new', async (req, res) => {
     const { convId, userId, contentType, content} = req.body;
 
@@ -163,31 +162,32 @@ router.post('/messages/new', async (req, res) => {
  * @swagger
  * /api/conversations/order/infos:
  *   post:
- *     summary: Récupère les informations de commande d'une conversation spécifique
- *     description: Renvoie les informations de commande liées à un ID de conversation spécifique.
- *     tags: [Order]
+ *     summary: Retrieve order information for a specific conversation
+ *     tags: [Orders]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - convId
  *             properties:
  *               convId:
- *                 type: number
- *                 description: L'ID de la conversation.
+ *                 type: string
  *     responses:
  *       200:
- *         description: Informations de commande récupérées avec succès.
+ *         description: Successfully retrieved order information
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Order'
  *       404:
- *         description: Informations de commande non trouvées.
+ *         description: Order information not found
  *       500:
- *         description: Erreur du serveur.
+ *         description: Internal server error
  */
+
 router.post('/order/infos', async (req, res) => {
     const { convId } = req.body;
 
@@ -213,23 +213,25 @@ router.post('/order/infos', async (req, res) => {
  * @swagger
  * /api/conversations/order/rating:
  *   post:
- *     summary: Met à jour la note d'une commande pour une conversation spécifique
- *     description: Met à jour la note attribuée à une commande d'une conversation donnée.
- *     tags: [Order]
+ *     summary: Update the rating of an order for a specific conversation
+ *     tags: [Orders]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - convId
+ *               - rating
  *             properties:
  *               convId:
- *                 type: number
+ *                 type: string
  *               rating:
  *                 type: number
  *     responses:
  *       200:
- *         description: Note mise à jour avec succès.
+ *         description: Successfully updated order rating
  *         content:
  *           application/json:
  *             schema:
@@ -240,12 +242,13 @@ router.post('/order/infos', async (req, res) => {
  *                 order:
  *                   $ref: '#/components/schemas/Order'
  *       400:
- *         description: Données manquantes ou invalides.
+ *         description: Invalid request data
  *       404:
- *         description: Commande non trouvée.
+ *         description: Order not found
  *       500:
- *         description: Erreur du serveur.
+ *         description: Internal server error
  */
+
 router.post('/order/rating', async (req, res) => {
     const { convId, rating } = req.body;
 

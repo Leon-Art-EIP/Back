@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { authenticate } from "../middleware/authenticate.mjs";
-import { searchArtworksAndArtists } from '../controllers/explorer/explorerController.mjs';
+import { searchArtworksAndArtists, getArtTypes } from '../controllers/explorer/explorerController.mjs';
 import { validateSearch } from '../middleware/validation/searchValidation.mjs';
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
  *     summary: Search for Art Publications and Artists
  *     description: |
  *       Allows users to search for art publications and artists based on various criteria.
- *       Users can filter the search by the title of the artwork, the artist's name, the type of art,
+ *       Users can filter the search by the title of the artwork, the artist's name, multiple types of art,
  *       a price range, and sale status. Additionally, the results can be sorted by popularity or recency.
  *       Separate pagination controls are provided for artworks and artists.
  *     tags: [Explorer]
@@ -31,7 +31,7 @@ const router = express.Router();
  *         required: false
  *         schema:
  *           type: string
- *         description: Filter by the type of art.
+ *         description: Filter by the type(s) of art. Provide a comma-separated list for multiple types.
  *       - in: query
  *         name: priceRange
  *         required: false
@@ -127,5 +127,35 @@ const router = express.Router();
  *         description: Server error.
  */
 router.get('/search', authenticate, validateSearch, searchArtworksAndArtists);
+
+/**
+ * @swagger
+ * /api/explorer/art-types:
+ *   get:
+ *     summary: Retrieve a list of art types
+ *     description: Fetches a list of available art types and their categories for filtering purposes in the art explorer.
+ *     tags: [Art Types]
+ *     responses:
+ *       200:
+ *         description: A list of art types and categories.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   category:
+ *                     type: string
+ *                     description: The category of the art type.
+ *                   types:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: A list of art types within the category.
+ *       500:
+ *         description: Server error
+ */
+router.get('/art-types', getArtTypes);
 
 export default router;

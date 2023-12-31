@@ -35,7 +35,7 @@ export const signup = async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: 3600 },
+      { expiresIn: Number(process.env.JWT_EXPIRATION) || 3600 },
       (err, token) => {
         /* istanbul ignore next */
         if (err) {

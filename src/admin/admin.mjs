@@ -12,7 +12,7 @@ import { Article } from '../models/articleModel.mjs';
 import Collection from '../models/collectionModel.mjs';
 import Conversation from '../models/conversationModel.mjs';
 import Message from '../models/messageModel.mjs';
-import Order from '../models/orderModel.mjs';
+import { Order } from '../models/orderModel.mjs';
 import { Notification } from '../models/notificationModel.mjs';
 
 AdminJS.registerAdapter(AdminJSMongoose);

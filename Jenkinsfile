@@ -90,6 +90,7 @@ pipeline {
                     result: currentBuild.currentResult
                 )
             }
+        }
         always {
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,
@@ -98,9 +99,9 @@ pipeline {
                     patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
                                [pattern: '.propsfile', type: 'EXCLUDE']])
             }
-        always {
-            junit '**/test-results/*.xml'
-        }
+            always {
+                junit '**/test-results/*.xml'
+            }
         }
     }
 }

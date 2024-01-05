@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
-    triggers { githubPush() }
+    triggers {
+        githubPush()
+    }
 
-    tools { nodejs "node" }
+    tools {
+        nodejs "node"
+    }
 
-    options{
+    options {
         ansiColor('xterm')
     }
 
@@ -15,11 +19,13 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Install dependencies') {
             steps {
                 sh 'npm install'
             }
         }
+
         stage('Test with Jest') {
             steps {
                 script {
@@ -30,26 +36,19 @@ pipeline {
                         throw e
                     }
                 }
+            }
+        }
+
+        stage('Post-Test Actions') {
+            steps {
                 sh 'npm install jest-coverage-ratchet'
-                sh 'npm run test | tee tests.log'
                 sh 'sed -r "s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" tests.log > tests_clean.log'
                 sh 'npx jest-coverage-ratchet || (echo "Jest tests did not reach 100% coverage" && exit 1)'
             }
         }
 
-        stage('Test with Jest unit') {
-    steps {
-        script {
-            try {
-                sh 'npm test'
-            } catch (Exception e) {
-                currentBuild.result = 'FAILURE'
-                throw e
-            }
-        }
-        
         stage('Push to DockerHub') {
-            when { 
+            when {
                 branch 'dev'
             }
             steps {
@@ -90,19 +89,15 @@ pipeline {
                     result: currentBuild.currentResult
                 )
             }
-        }
-        always {
+
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,
                     disableDeferredWipeout: true,
                     notFailBuild: true,
                     patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
                                [pattern: '.propsfile', type: 'EXCLUDE']])
-            }
-            always {
-                junit '**/test-results/*.xml'
-            }
-        }
+
+            junit '**/test-results/*.xml'
         }
     }
 }

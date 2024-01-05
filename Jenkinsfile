@@ -86,5 +86,6 @@ pipeline {
         always {
              junit '**/junit.xml'
         }
+        }
     }
 }

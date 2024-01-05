@@ -5,20 +5,17 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copiez les fichiers package.json et package-lock.json dans le répertoire de travail
+# et installez les dépendances de l'application, puis nettoyez le cache npm
 COPY package*.json ./
-
-# Installez les dépendances de l'application
-RUN npm install
-
-RUN npm install -g bcrypt
+RUN npm install && npm cache clean --force
 
 # Copiez le reste des fichiers de l'application dans le répertoire de travail
 COPY . .
 
-# Définissez la variable d'environnement pour le port 3333
+# Définissez la variable d'environnement pour le port 5000
 ENV PORT=5000
 
-# Exposez le port 3333 pour que les connexions puissent être établies
+# Exposez le port 5000 pour que les connexions puissent être établies
 EXPOSE 5000
 
 # Démarrez l'application

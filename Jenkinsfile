@@ -21,18 +21,33 @@ pipeline {
             }
         }
         stage('Test with Jest') {
+            steps {
+                script {
+                    try {
+                        sh 'npm run test | tee tests.log'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+                sh 'npm install jest-coverage-ratchet'
+                sh 'npm run test | tee tests.log'
+                sh 'sed -r "s/\\x1B\\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" tests.log > tests_clean.log'
+                sh 'npx jest-coverage-ratchet || (echo "Jest tests did not reach 100% coverage" && exit 1)'
+            }
+        }
+
+        stage('Test with Jest unit') {
     steps {
         script {
             try {
-                // Configure Jest pour utiliser le reporter jest-junit
-                sh 'npm run test -- --reporters=default --reporters=jest-junit'
+                sh 'npm test'
             } catch (Exception e) {
                 currentBuild.result = 'FAILURE'
                 throw e
             }
         }
-    }
-}
+        
         stage('Push to DockerHub') {
             when { 
                 branch 'dev'
@@ -84,7 +99,7 @@ pipeline {
                                [pattern: '.propsfile', type: 'EXCLUDE']])
             }
         always {
-             junit '**/junit.xml'
+            junit '**/test-results/*.xml'
         }
         }
     }

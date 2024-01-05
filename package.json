@@ -62,11 +62,5 @@
     "nyc": "^15.1.0",
     "sinon": "^15.1.0",
     "supertest": "^6.3.3"
-  },
-  "jest": {
-    "reporters": [
-      "default",
-      ["jest-junit", { "outputDirectory": "./test-results", "outputName": "junit.xml" }]
-    ]
   }
 }

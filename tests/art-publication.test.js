@@ -30,7 +30,7 @@ describe("ArtPublication routes", () => {
       .field("name", "My Artwork")
       .field("description", "This is my artwork")
       .field("dimension", "5x7")
-      .field("isForSale", true)
+      .field("isForSale", false)
       .field("price", 200)
       .field("location", "NYC")
       .attach("image", path.resolve("test-files/image.jpg"));

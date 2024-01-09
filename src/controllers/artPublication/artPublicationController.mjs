@@ -4,6 +4,7 @@ import { User } from '../../models/userModel.mjs';
 export const createArtPublication = async (req, res) => {
   try {
     const userId = req.user.id; // From the token
+    const user = await User.findById(userId);
     const {
       image = req.file?.path,
       artType,
@@ -14,6 +15,9 @@ export const createArtPublication = async (req, res) => {
       price,
       location
     } = req.body;
+    if (isForSale == true && !user.stripeAccountId) {
+      return res.status(403).json({ msg: "User must set up Stripe account to sell art" });
+    }
 
     const newPublication = new ArtPublication({
       userId,

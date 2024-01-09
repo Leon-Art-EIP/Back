@@ -121,7 +121,6 @@ describe("Order System Tests", () => {
     expect(Array.isArray(response.body)).toBeTruthy();
   });
 
-  // Ajouter d'autres tests si nécessaire
 });
 
 afterAll(async () => {

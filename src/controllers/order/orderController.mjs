@@ -76,7 +76,6 @@ export const handleStripeWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
 
-    // Choisissez la clé secrète de webhook appropriée
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_DEV || process.env.STRIPE_WEBHOOK_SECRET;
   
     try {

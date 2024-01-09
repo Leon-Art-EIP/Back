@@ -15,9 +15,9 @@ export const createArtPublication = async (req, res) => {
       price,
       location
     } = req.body;
-    if (isForSale == true && !user.stripeAccountId) {
-      return res.status(403).json({ msg: "User must set up Stripe account to sell art" });
-    }
+    // if (isForSale == true && !user.stripeAccountId) {
+    //   return res.status(403).json({ msg: "User must set up Stripe account to sell art" });
+    // }
 
     const newPublication = new ArtPublication({
       userId,

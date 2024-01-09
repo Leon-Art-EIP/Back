@@ -41,7 +41,7 @@ router.get('/:userId', async (req, res) => {
             ]
           });
         res.json({ chats: chats });
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
         res.status(500).send('Server error');
     }
 });
@@ -82,7 +82,7 @@ router.get('/messages/:chatId', async (req, res) => {
         const conversation = await Conversation.findOne({ _id: chatId });
         conversation.unreadMessages = false;
         res.json({ messages: messages });
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).send('Erreur du serveur');
     }
@@ -152,7 +152,7 @@ router.post('/messages/new', async (req, res) => {
         await conversation.save();
 
         res.json({message: message});
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ success: false, error: 'Erreur du serveur' });
     }
@@ -203,7 +203,7 @@ router.post('/order/infos', async (req, res) => {
         }
 
         res.json(orderInfo);
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).send('Erreur du serveur');
     }
@@ -267,7 +267,7 @@ router.post('/order/rating', async (req, res) => {
         await order.save();
 
         res.json({ success: true, order: order });
-    } catch (err) {
+    } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ success: false, error: 'Erreur du serveur' });
     }

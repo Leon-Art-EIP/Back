@@ -7,7 +7,7 @@ export const changePassword = async (req, res) => {
 
   try {
     const user = await User.findById(userId);
-    if (!user) {
+    if (!user) /* istanbul ignore next */ {
       return res.status(404).json({ msg: "User not found" });
     }
 

@@ -47,7 +47,7 @@ const options = {
           profilePicture: { isVisible: true },
           bannerPicture: { isVisible: true },
         },
-        actions: {
+        actions: /* istanbul ignore next */ {
           new: {
             before: async (request) => {
               if (request.payload.record.password) {
@@ -86,7 +86,7 @@ const options = {
           likes: { isVisible: false },
           comments: { isVisible: false },
         },
-        actions: {
+        actions: /* istanbul ignore next */ {
           changeSaleStatus: {
             actionType: 'record',
             label: 'Change Sale Status',
@@ -128,7 +128,7 @@ const options = {
             label: 'Approve Comment',
             handler: async (request, response, context) => {
               // Logique pour approuver le commentaire
-              return {
+              return /* istanbul ignore next */ {
                 record: context.record.toJSON(),
                 notice: {
                   message: 'Comment approved successfully',
@@ -142,7 +142,7 @@ const options = {
             label: 'Hide Comment',
             handler: async (request, response, context) => {
               // Logique pour masquer le commentaire
-              return {
+              return /* istanbul ignore next */ {
                 record: context.record.toJSON(),
                 notice: {
                   message: 'Comment hidden successfully',

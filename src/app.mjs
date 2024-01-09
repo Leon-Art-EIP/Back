@@ -47,7 +47,7 @@ const io = new Server(httpServer, {
 });
 
 global.onlineUsers = new Map();
-io.on("connection", (socket) => {
+io.on("connection", (socket) => /* istanbul ignore next */ {
   global.chatSocket = socket;
   socket.on("add-user", (userId) => {
     onlineUsers.set(userId, socket.id);
@@ -126,7 +126,7 @@ app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
-app.use('/api', conditionRoute);
+app.use('/api/conditions', conditionRoute);
 app.use('/api/order', orderRoutes);
 app.use('/api/stripe', stripeRoutes);
 

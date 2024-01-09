@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:alpine3.19'
+            args '-u root:root'
+        }
+    }
 
     triggers {
         githubPush()

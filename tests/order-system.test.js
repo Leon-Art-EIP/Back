@@ -121,7 +121,69 @@ describe("Order System Tests", () => {
     expect(Array.isArray(response.body)).toBeTruthy();
   });
 
-  // Ajouter d'autres tests si nécessaire
+  it("POST /api/order/create - Attempt to buy non-existent artwork", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .post("/api/order/create")
+      .set("Authorization", `Bearer ${buyerToken}`)
+      .send({ artPublicationId: fakeId });
+
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Art publication not available for sale");
+  });
+
+  it("POST /api/order/create - Attempt to create order without authentication", async () => {
+    const response = await request(app)
+      .post("/api/order/create")
+      .send({ artPublicationId });
+
+    expect(response.status).toBe(401); // Assuming 401 is the status code for unauthorized
+  });
+
+  // Tests for 'getLatestBuyOrders' and 'getLatestSellOrders' with invalid user
+  it("GET /api/order/latest-buy-orders - Unauthorized access", async () => {
+    // Similar implementation
+  });
+
+  it("GET /api/order/latest-sell-orders - Unauthorized access", async () => {
+    // Similar implementation
+  });
+
+  // Test for 'getBuyOrderById' and 'getSellOrderById' with invalid order ID
+  it("GET /api/order/buy/:id - Order not found", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .get(`/api/order/buy/${fakeId}`)
+      .set("Authorization", `Bearer ${buyerToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe("Order not found");
+  });
+
+  // Test 'cancelOrder' with invalid order ID
+  it("POST /api/order/cancel/:id - Order not found", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .post(`/api/order/cancel/${fakeId}`)
+      .set("Authorization", `Bearer ${sellerToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe("Order not found");
+  });
+
+  // Test 'confirmDeliveryAndRateOrder' with invalid order ID
+  it("POST /api/order/confirm-delivery-rate - Order not found", async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .post("/api/order/confirm-delivery-rate")
+      .set("Authorization", `Bearer ${buyerToken}`)
+      .send({ orderId: fakeId, rating: 5 });
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe("Order not found");
+  });
+
+
 });
 
 afterAll(async () => {

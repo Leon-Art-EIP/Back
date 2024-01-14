@@ -19,6 +19,7 @@ const userSchema = new Schema({
   fcmToken: String, // FCM token for push notifications
   profilePicture: { type: String, default: 'uploads/static/default-profile-pic.png' },
   bannerPicture: { type: String, default: 'uploads/static/default-banner-pic.png' },
+  stripeAccountId: { type: String },
 });
 
 export const User = mongoose.model("User", userSchema);

@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 import app from '../src/app';
 import Conversation from '../src/models/conversationModel.mjs';
 import Message from '../src/models/messageModel.mjs';
-import Order from '../src/models/orderModel.mjs';
-import User from '../src/models/userModel.mjs';
+import { Order } from '../src/models/orderModel.mjs';
+import { User } from '../src/models/userModel.mjs';
 
 let token, userId, conversationId, messageId, orderId;
 

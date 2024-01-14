@@ -36,7 +36,7 @@ export const addToCollection = async (req, res) => {
   }
 };
 
-export const getUserCollections = async (req, res) => {
+export const getMyCollections = async (req, res) => {
   try {
     const userId = req.user.id;
     const userCollections = await Collection.find({ user: userId }); // Directly find by user reference
@@ -108,5 +108,29 @@ export const deleteCollection = async (req, res) => {
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
+export const removeFromCollection = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { collectionId, artPublicationIds } = req.body; // Array of art publication IDs
+
+    const collection = await Collection.findOne({ _id: collectionId, user: userId });
+    if (!collection) {
+      return res.status(404).json({ msg: "Collection not found" });
+    }
+
+    // Remove art publications from the collection
+    collection.artPublications = collection.artPublications.filter(
+      (id) => !artPublicationIds.includes(id.toString())
+    );
+
+    await collection.save();
+
+    res.json({ msg: "Art publications removed from collection", collection });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error" });
   }
 };

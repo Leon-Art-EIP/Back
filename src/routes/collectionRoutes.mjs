@@ -7,6 +7,7 @@ import {
   getPublicCollections,
   getMyCollections,
   deleteCollection,
+  removeFromCollection
 } from "../controllers/collection/collectionController.mjs";
 import { validateCollection } from "../middleware/validation/collectionValidation.mjs";
 

@@ -114,7 +114,9 @@ export const deleteCollection = async (req, res) => {
 export const removeFromCollection = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { collectionId, artPublicationIds } = req.body; // Array of art publication IDs
+    // Retrieve collectionId from URL parameters
+    const collectionId = req.params.collectionId;
+    const { artPublicationIds } = req.body; // Array of art publication IDs
 
     const collection = await Collection.findOne({ _id: collectionId, user: userId });
     if (!collection) {

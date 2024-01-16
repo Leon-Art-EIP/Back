@@ -46,7 +46,64 @@ router.get('/:convId', async (req, res) => {
     }
 });
 
-router.put('')
+
+/**  
+ * @swagger
+ * /api/conversations/create:
+ *  put:
+ *  summary: Create a new conversation
+ * tags: [Conversations]
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * required:
+ * - UserOneId
+ * - UserTwoId
+ * properties:
+ * UserOneId:
+ * type: string
+ * UserTwoId:
+ * type: string
+ * responses:
+ * 200:
+ * description: Successfully created conversation
+ * content:
+ * application/json:
+ * schema:
+ * $ref: '#/components/schemas/Conversation'
+ * 400:
+ * description: Invalid request data
+ * 500:
+ * description: Internal server error
+*/
+router.put('/create', async (req, res) => {
+    const { UserOneId, UserTwoId } = req.body;
+
+    if (UserOneId === undefined || UserTwoId === undefined) {
+        res.status(400).json({ error: "Données manquantes ou invalides." });
+    }
+
+    try {
+        const conversation = new Conversation({
+            UserOneId: UserOneId,
+            UserTwoId: UserTwoId,
+            unreadMessages: false,
+            lastMessage: ''
+        });
+
+        await conversation.save();
+
+        res.json({ conversation: conversation });
+    } catch (err) /* istanbul ignore next */ {
+        console.error(err.message);
+        res.status(500).json({ success: false, error: 'Erreur du serveur' });
+    }
+});
+
+
 /**
  * @swagger
  * /api/conversations/specific/{convId}:

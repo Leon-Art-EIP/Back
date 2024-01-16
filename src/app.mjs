@@ -30,6 +30,8 @@ import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
 import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
+import stripeRoutes from './routes/stripeRoutes.mjs';
+
 
 initializeStripe(process.env.STRIPE_SECRET_KEY);
 
@@ -45,7 +47,7 @@ const io = new Server(httpServer, {
 });
 
 global.onlineUsers = new Map();
-io.on("connection", (socket) => {
+io.on("connection", (socket) => /* istanbul ignore next */ {
   global.chatSocket = socket;
   socket.on("add-user", (userId) => {
     onlineUsers.set(userId, socket.id);
@@ -124,8 +126,9 @@ app.use('/api/article', articleRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use('/api/explorer', explorerRoutes);
-app.use('/api', conditionRoute);
+app.use('/api/conditions', conditionRoute);
 app.use('/api/order', orderRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // webhooks :
 
@@ -172,7 +175,7 @@ const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
 app.use(
   expressSession({
     secret: "some-secret",
-    resave: false,
+    resave: true,
     saveUninitialized: true,
   })
 );

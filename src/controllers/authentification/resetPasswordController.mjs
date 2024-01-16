@@ -49,7 +49,6 @@ export async function requestReset(req, res) {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) /* istanbul ignore next */ {
-        console.log(error);
         return res.status(500).json({ msg: "Error sending the email" });
       }
       res.json({ msg: "Reset email sent" });

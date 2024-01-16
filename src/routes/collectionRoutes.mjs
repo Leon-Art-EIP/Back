@@ -5,8 +5,9 @@ import {
   addToCollection,
   getArtPublicationsInCollection,
   getPublicCollections,
-  getUserCollections,
+  getMyCollections,
   deleteCollection,
+  removeFromCollection
 } from "../controllers/collection/collectionController.mjs";
 import { validateCollection } from "../middleware/validation/collectionValidation.mjs";
 
@@ -92,7 +93,7 @@ router.delete("/:collectionId", authenticate, deleteCollection);
  *       500:
  *         description: Server error.
  */
-router.get("/my-collections", authenticate, getUserCollections);
+router.get("/my-collections", authenticate, getMyCollections);
 
 /**
  * @swagger
@@ -149,5 +150,45 @@ router.get(
   authenticate,
   getArtPublicationsInCollection
 );
+
+/**
+ * @swagger
+ * /api/collection/{collectionId}/remove:
+ *   patch:
+ *     summary: Remove art publications from a collection
+ *     description: Allows an authenticated user to remove one or multiple art publications from a specified collection.
+ *     tags: [Collection]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionId
+ *         required: true
+ *         description: ID of the collection.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               artPublicationIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of art publication IDs to be removed from the collection.
+ *     responses:
+ *       200:
+ *         description: Art publications removed from collection successfully.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Collection not found.
+ *       500:
+ *         description: Server error.
+ */
+router.patch("/:collectionId/remove", authenticate, removeFromCollection);
 
 export default router;

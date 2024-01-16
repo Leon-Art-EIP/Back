@@ -24,7 +24,7 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                sh 'chown -R 110:117 "/.npm"'
+                sh 'sudo chown -R 110:117 "/.npm"'
                 sh 'npm install'
             }
         }

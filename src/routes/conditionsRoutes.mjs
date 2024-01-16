@@ -23,6 +23,6 @@ const router = express.Router();
  *       500:
  *         description: Server error.
  */
-router.get("/conditions", getConditions);
+router.get("/", getConditions);
 
 export default router;

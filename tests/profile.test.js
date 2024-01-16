@@ -45,12 +45,6 @@ describe('User routes', () => {
     token = authData.token;
     userId = authData.userId;
   });
-    // Remove test user data
-    await User.deleteMany({ username: 'testuser' });
-
-    // If using a real database, disconnect here
-    // mongoose.disconnect();
-  });
 
   it('GET /api/user/profile/:userId - Get user profile', async () => {
     const response = await getUserProfile(userId);

@@ -2,6 +2,7 @@ import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
 import {Order} from '../../models/orderModel.mjs';
+import { User } from '../../models/userModel.mjs';
 
 const router = express.Router();
 
@@ -30,8 +31,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-
-router.get('/:convId', async (req, res) => {
+router.get('/:userId', async (req, res) => {
     const userId = req.params.userId
     try {
         const chats = await Conversation.find({
@@ -47,40 +47,42 @@ router.get('/:convId', async (req, res) => {
 });
 
 
-/**  
+/**
  * @swagger
  * /api/conversations/create:
- *  put:
- *  summary: Create a new conversation
- * tags: [Conversations]
- * requestBody:
- * required: true
- * content:
- * application/json:
- * schema:
- * type: object
- * required:
- * - UserOneId
- * - UserTwoId
- * properties:
- * UserOneId:
- * type: string
- * UserTwoId:
- * type: string
- * responses:
- * 200:
- * description: Successfully created conversation
- * content:
- * application/json:
- * schema:
- * $ref: '#/components/schemas/Conversation'
- * 400:
- * description: Invalid request data
- * 500:
- * description: Internal server error
-*/
+ *   put:
+ *     summary: Create a new conversation
+ *     tags: [Conversations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - UserOneId
+ *               - UserTwoId
+ *             properties:
+ *               UserOneId:
+ *                 type: string
+ *               UserTwoId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successfully created conversation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Conversation'
+ *       400:
+ *         description: Invalid request data
+ *       500:
+ *         description: Internal server error
+ */
 router.put('/create', async (req, res) => {
     const { UserOneId, UserTwoId } = req.body;
+    const UserOne = await User.findOne({ _id: UserOneId });
+    const UserTwo = await User.findOne({ _id: UserTwoId });
 
     if (UserOneId === undefined || UserTwoId === undefined) {
         res.status(400).json({ error: "Données manquantes ou invalides." });
@@ -91,7 +93,11 @@ router.put('/create', async (req, res) => {
             UserOneId: UserOneId,
             UserTwoId: UserTwoId,
             unreadMessages: false,
-            lastMessage: ''
+            lastMessage: ' ',
+            UserOnePicture: UserOne.profilePicture,
+            UserTwoPicture: UserTwo.profilePicture,
+            UserOneName: UserOne.username,
+            UserTwoName: UserTwo.username
         });
 
         await conversation.save();
@@ -106,31 +112,51 @@ router.put('/create', async (req, res) => {
 
 /**
  * @swagger
- * /api/conversations/specific/{convId}:
- *  get:
- *   summary: Retrieve a specific conversation
- *  tags: [Conversations]
- * parameters:
- *  - in: path
- *   name: convId
- *  required: true
- * schema:
- * type: string
- * description: Conversation ID to fetch
- * responses:
- * 200:
- * description: Successfully retrieved conversation
- * content:
- * application/json:
- * schema:
- * $ref: '#/components/schemas/Conversation'
- * 500:
- * description: Internal server error
- * 
+ * /api/conversation/single/{chatId}:
+ *   get:
+ *     summary: Retrieve messages for a specific conversation
+ *     tags: 
+ *       - Conversations
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Conversation ID to fetch messages for
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Reference to the Conversation this message belongs to
+ *                   senderId:
+ *                     type: string
+ *                     description: The ID of the sender
+ *                   contentType:
+ *                     type: string
+ *                     description: The type of content of the message
+ *                   content:
+ *                     type: string
+ *                     description: The content of the message
+ *                   dateTime:
+ *                     type: string
+ *                     description: The date and time when the message was sent
+ *                   read:
+ *                     type: boolean
+ *                     default: false
+ *                     description: Flag to indicate if the message has been read
+ *       500:
+ *         description: Internal server error
  */
- 
-
-router.get('/specific/:convId', async (req, res) => {
+router.get('/single/:convId', async (req, res) => {
     const convId = req.params.convId
     try {
         const chat = await Conversation.find({
@@ -147,7 +173,7 @@ router.get('/specific/:convId', async (req, res) => {
  * /api/conversations/messages/{chatId}:
  *   get:
  *     summary: Retrieve messages for a specific conversation
- *     tags: [Messages]
+ *     tags: [Conversations]
  *     parameters:
  *       - in: path
  *         name: chatId
@@ -161,9 +187,28 @@ router.get('/specific/:convId', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Message'
+ *               item:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Reference to the Conversation this message belongs to
+ *                   senderId:
+ *                     type: string
+ *                     description: The ID of the sender
+ *                   contentType:
+ *                     type: string
+ *                     description: The type of content of the message
+ *                   content:
+ *                     type: string
+ *                     description: The content of the message
+ *                   dateTime:
+ *                     type: string
+ *                     description: The date and time when the message was sent
+ *                   read:
+ *                     type: boolean
+ *                     default: false
+ *                     description: Flag to indicate if the message has been read
  *       500:
  *         description: Internal server error
  */
@@ -188,7 +233,7 @@ router.get('/messages/:chatId', async (req, res) => {
  * /api/conversations/messages/new:
  *   post:
  *     summary: Create a new message in a conversation
- *     tags: [Messages]
+ *     tags: [Conversations]
  *     requestBody:
  *       required: true
  *       content:
@@ -215,7 +260,28 @@ router.get('/messages/:chatId', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Message'
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Reference to the Conversation this message belongs to
+ *                   senderId:
+ *                     type: string
+ *                     description: The ID of the sender
+ *                   contentType:
+ *                     type: string
+ *                     description: The type of content of the message
+ *                   content:
+ *                     type: string
+ *                     description: The content of the message
+ *                   dateTime:
+ *                     type: string
+ *                     description: The date and time when the message was sent
+ *                   read:
+ *                     type: boolean
+ *                     default: false
+ *                     description: Flag to indicate if the message has been read
  *       400:
  *         description: Invalid request data
  *       500:

@@ -129,6 +129,7 @@ app.use('/api/explorer', explorerRoutes);
 app.use('/api/conditions', conditionRoute);
 app.use('/api/order', orderRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/conversations', chatsRoutes);
 
 // webhooks :
 

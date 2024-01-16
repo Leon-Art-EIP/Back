@@ -46,6 +46,32 @@ router.get('/:convId', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/conversations/specific/{convId}:
+ *  get:
+ *   summary: Retrieve a specific conversation
+ *  tags: [Conversations]
+ * parameters:
+ *  - in: path
+ *   name: convId
+ *  required: true
+ * schema:
+ * type: string
+ * description: Conversation ID to fetch
+ * responses:
+ * 200:
+ * description: Successfully retrieved conversation
+ * content:
+ * application/json:
+ * schema:
+ * $ref: '#/components/schemas/Conversation'
+ * 500:
+ * description: Internal server error
+ * 
+ */
+ 
+
 router.get('/specific/:convId', async (req, res) => {
     const convId = req.params.convId
     try {

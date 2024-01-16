@@ -34,13 +34,29 @@ const router = express.Router();
 router.get('/:convId', async (req, res) => {
     const userId = req.params.userId
     try {
-        const chats = await Conversation.find({ _id: convId});
+        const chats = await Conversation.find({
+            $or: [
+              { UserOneId: userId }, 
+              { UserTwoId: userId }
+            ]
+          });
         res.json({ chats: chats });
     } catch (err) /* istanbul ignore next */ {
         res.status(500).send('Server error');
     }
 });
 
+router.get('/specific/:convId', async (req, res) => {
+    const convId = req.params.convId
+    try {
+        const chat = await Conversation.find({
+            _id: convId
+          });
+        res.json({ chat: chat });
+    } catch (err) /* istanbul ignore next */ {
+        res.status(500).send('Server error');
+    }
+}
 
 /**
  * @swagger

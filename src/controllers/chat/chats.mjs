@@ -31,15 +31,10 @@ const router = express.Router();
  *         description: Internal server error
  */
 
-router.get('/:userId', async (req, res) => {
+router.get('/:convId', async (req, res) => {
     const userId = req.params.userId
     try {
-        const chats = await Conversation.find({
-            $or: [
-              { UserOneId: userId }, 
-              { UserTwoId: userId }
-            ]
-          });
+        const chats = await Conversation.find({ _id: convId});
         res.json({ chats: chats });
     } catch (err) /* istanbul ignore next */ {
         res.status(500).send('Server error');

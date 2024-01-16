@@ -1,8 +1,6 @@
 pipeline {
     agent {
-        docker {
-            image 'node:16'
-        }
+        label 'docker-slave'
     }
 
     triggers {
@@ -26,7 +24,7 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                sh 'sudo chown -R 110:117 "/.npm"'
+                sh 'chown -R 110:117 "/.npm"'
                 sh 'npm install'
             }
         }

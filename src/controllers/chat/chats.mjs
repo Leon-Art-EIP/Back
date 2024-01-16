@@ -46,6 +46,7 @@ router.get('/:convId', async (req, res) => {
     }
 });
 
+router.put('')
 /**
  * @swagger
  * /api/conversations/specific/{convId}:
@@ -82,7 +83,7 @@ router.get('/specific/:convId', async (req, res) => {
     } catch (err) /* istanbul ignore next */ {
         res.status(500).send('Server error');
     }
-}
+});
 
 /**
  * @swagger

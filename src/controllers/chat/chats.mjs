@@ -10,7 +10,7 @@ const router = express.Router();
  * @swagger
  * /api/conversations/{userId}:
  *   get:
- *     summary: Retrieve all conversations for a specific user
+ *     summary: Récupérer toutes les conversations pour un utilisateur spécifique
  *     tags: [Conversations]
  *     parameters:
  *       - in: path
@@ -102,7 +102,7 @@ router.put('/create', async (req, res) => {
 
         await conversation.save();
 
-        res.json({ conversation: conversation });
+        res.json({ conversation: conversation, convId: conversation._id });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ success: false, error: 'Erreur du serveur' });
@@ -112,56 +112,71 @@ router.put('/create', async (req, res) => {
 
 /**
  * @swagger
- * /api/conversation/single/{chatId}:
+ * /api/conversations/single/{convId}:
  *   get:
- *     summary: Retrieve messages for a specific conversation
+ *     summary: Récupérer une conversation spécifique par son ID
  *     tags: 
  *       - Conversations
  *     parameters:
  *       - in: path
- *         name: chatId
+ *         name: convId
  *         required: true
  *         schema:
  *           type: string
- *         description: Conversation ID to fetch messages for
+ *         description: ID de la conversation à récupérer
  *     responses:
  *       200:
- *         description: Successfully retrieved messages
+ *         description: Conversation récupérée avec succès
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     description: Reference to the Conversation this message belongs to
- *                   senderId:
- *                     type: string
- *                     description: The ID of the sender
- *                   contentType:
- *                     type: string
- *                     description: The type of content of the message
- *                   content:
- *                     type: string
- *                     description: The content of the message
- *                   dateTime:
- *                     type: string
- *                     description: The date and time when the message was sent
- *                   read:
- *                     type: boolean
- *                     default: false
- *                     description: Flag to indicate if the message has been read
+ *               type: object
+ *               properties:
+ *                 chat:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: ID de la conversation
+ *                     lastMessage:
+ *                       type: string
+ *                       description: Dernier message de la conversation
+ *                     unreadMessages:
+ *                       type: boolean
+ *                       description: Indicateur de messages non lus
+ *                     UserOneId:
+ *                       type: string
+ *                       description: ID de l'utilisateur 1
+ *                     UserOneName:
+ *                       type: string
+ *                       description: Nom de l'utilisateur 1
+ *                     UserOnePicture:
+ *                       type: string
+ *                       description: Photo de profil de l'utilisateur 1
+ *                     UserTwoId:
+ *                       type: string
+ *                       description: ID de l'utilisateur 2
+ *                     UserTwoName:
+ *                       type: string
+ *                       description: Nom de l'utilisateur 2
+ *                     UserTwoPicture:
+ *                       type: string
+ *                       description: Photo de profil de l'utilisateur 2
+ *       404:
+ *         description: Conversation non trouvée
  *       500:
- *         description: Internal server error
+ *         description: Erreur interne du serveur
  */
+
 router.get('/single/:convId', async (req, res) => {
     const convId = req.params.convId
     try {
-        const chat = await Conversation.find({
-            _id: convId
-          });
+        const chat = await Conversation.findById(convId);
+        
+        if (!chat) {
+            return res.status(404).json({ error: "Conversation non trouvée" });
+        }
+
         res.json({ chat: chat });
     } catch (err) /* istanbul ignore next */ {
         res.status(500).send('Server error');

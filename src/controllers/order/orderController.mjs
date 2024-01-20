@@ -138,9 +138,20 @@ export const getLatestBuyOrders = async (req, res) => {
       const buyOrders = await Order.find({ buyerId: userId })
                                    .sort({ createdAt: -1 })
                                    .skip(skip)
-                                   .limit(limit);
+                                   .limit(limit)
+                                   .populate('artPublicationId', 'name description price image');
+
+      const formattedOrders = buyOrders.map(order => ({
+        orderId: order._id,
+        orderState: order.orderState,
+        orderPrice: order.orderPrice,
+        artPublicationName: order.artPublicationId.name,
+        artPublicationDescription: order.artPublicationId.description,
+        artPublicationPrice: order.artPublicationId.price,
+        artPublicationImage: order.artPublicationId.image
+      }));
   
-      res.json(buyOrders);
+      res.json(formattedOrders);
     } catch (err) /* istanbul ignore next */ {
       console.error(err.message);
       res.status(500).json({ msg: 'Server Error' });
@@ -157,9 +168,20 @@ export const getLatestBuyOrders = async (req, res) => {
         const sellOrders = await Order.find({ sellerId: userId, paymentStatus: 'paid' })
                                       .sort({ createdAt: -1 })
                                       .skip(skip)
-                                      .limit(limit);
+                                      .limit(limit)
+                                      .populate('artPublicationId', 'name description price image');
 
-        res.json(sellOrders);
+        const formattedOrders = sellOrders.map(order => ({
+          orderId: order._id,
+          orderState: order.orderState,
+          orderPrice: order.orderPrice,
+          artPublicationName: order.artPublicationId.name,
+          artPublicationDescription: order.artPublicationId.description,
+          artPublicationPrice: order.artPublicationId.price,
+          artPublicationImage: order.artPublicationId.image
+        }));
+
+        res.json(formattedOrders);
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ msg: 'Server Error' });
@@ -171,12 +193,29 @@ export const getLatestBuyOrders = async (req, res) => {
       const orderId = req.params.id;
       const userId = req.user.id;
   
-      const order = await Order.findOne({ _id: orderId, buyerId: userId });
+      const order = await Order.findOne({ _id: orderId, buyerId: userId })
+                               .populate('artPublicationId', 'name description price image')
+                               .populate('sellerId', 'username');
+
       if (!order) {
         return res.status(404).json({ msg: 'Order not found' });
       }
-  
-      res.json(order);
+
+      const formattedOrder = {
+        orderId: order._id,
+        orderState: order.orderState,
+        orderPrice: order.orderPrice,
+        artPublicationName: order.artPublicationId.name,
+        artPublicationDescription: order.artPublicationId.description,
+        artPublicationPrice: order.artPublicationId.price,
+        artPublicationImage: order.artPublicationId.image,
+        sellerName: order.sellerId.username,
+        sellerId: order.sellerId._id,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      };
+
+      res.json(formattedOrder);
     } catch (err) /* istanbul ignore next */ {
       console.error(err.message);
       res.status(500).json({ msg: 'Server Error' });
@@ -188,12 +227,29 @@ export const getLatestBuyOrders = async (req, res) => {
         const orderId = req.params.id;
         const userId = req.user.id;
 
-        const order = await Order.findOne({ _id: orderId, sellerId: userId, paymentStatus: 'paid' });
+        const order = await Order.findOne({ _id: orderId, sellerId: userId, paymentStatus: 'paid' })
+                                .populate('artPublicationId', 'name description price image')
+                                .populate('buyerId', 'username');
+
         if (!order) {
             return res.status(404).json({ msg: 'Order not found' });
         }
 
-        res.json(order);
+        const formattedOrder = {
+          orderId: order._id,
+          orderState: order.orderState,
+          orderPrice: order.orderPrice,
+          artPublicationName: order.artPublicationId.name,
+          artPublicationDescription: order.artPublicationId.description,
+          artPublicationPrice: order.artPublicationId.price,
+          artPublicationImage: order.artPublicationId.image,
+          buyerName: order.buyerId.username,
+          buyerId: order.buyerId._id,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt
+        };
+
+        res.json(formattedOrder);
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ msg: 'Server Error' });

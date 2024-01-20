@@ -8,6 +8,8 @@ export const initializeStripe = (stripeKey) => {
 };
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_...';
 
+const BASE_WEB_URL = process.env.BASE_WEB_URL || 'localhost:3000';
+
 export const createOrder = async (req, res) => {
     try {
       const { artPublicationId } = req.body;
@@ -40,36 +42,38 @@ export const createOrder = async (req, res) => {
       });
       await newOrder.save();
   
-      // Ensuite, créer l'intention de paiement Stripe avec l'ID de la commande
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: artPublication.price * 100,
-        currency: "eur",
-        payment_method_types: ["card"],
-        metadata: { orderId: newOrder._id.toString() },
+      // Créer une session Stripe Checkout
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [{
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: artPublication.name, // ou autre nom de produit
+            },
+            unit_amount: artPublication.price * 100,
+          },
+          quantity: 1,
+        }],
+        mode: 'payment',
+        success_url: `http://${BASE_WEB_URL}/single/${artPublicationId}/success`,
+        cancel_url: `http://${BASE_WEB_URL}/single/${artPublicationId}/canceled`,
       });
-  
-      // Mettre à jour la commande avec l'ID de l'intention de paiement
-      newOrder.stripePaymentIntentId = paymentIntent.id;
+
+      // Enregistrer l'ID de la session de paiement dans la commande
+      newOrder.stripeSessionId = session.id;
       await newOrder.save();
-  
+
       res.status(201).json({
-        msg: 'Order created successfully',
-        order: {
-          id: newOrder._id,
-          artPublicationId: newOrder.artPublicationId,
-          buyerId: newOrder.buyerId,
-          sellerId: newOrder.sellerId,
-          orderState: newOrder.orderState,
-          orderPrice: newOrder.orderPrice,
-          stripePaymentIntentId: newOrder.stripePaymentIntentId,
-        },
-        clientSecret: paymentIntent.client_secret,
+        msg: 'Order created and Stripe Checkout session initiated',
+        sessionId: session.id, // Envoyer l'ID de session au frontend
       });
-    } catch (err) /* istanbul ignore next */ {
+
+    } catch (err) {
       console.error(err.message);
       res.status(500).json({ msg: 'Server Error' });
     }
-  };
+};
   
 
 export const handleStripeWebhook = async (req, res) => /* istanbul ignore next */ {

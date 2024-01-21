@@ -134,6 +134,34 @@ export const handleStripeWebhook = async (req, res) => {
   }
 };
 
+export const updateOrderToShipping = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const sellerId = req.user.id;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ msg: 'Order not found' });
+    }
+
+    if (order.sellerId.toString() !== sellerId) {
+      return res.status(403).json({ msg: 'Unauthorized: Only the seller can update the order' });
+    }
+
+    if (order.orderState !== 'paid') {
+      return res.status(400).json({ msg: 'Order must be in paid state to mark as shipping' });
+    }
+
+    order.orderState = 'shipping';
+    await order.save();
+
+    res.json({ msg: 'Order updated to shipping state', order });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
 
 export const getLatestBuyOrders = async (req, res) => {
     try {

@@ -51,7 +51,7 @@ router.get('/:userId', async (req, res) => {
  * @swagger
  * /api/conversations/create:
  *   put:
- *     summary: Create a new conversation
+ *     summary: Créer une nouvelle conversation ou récupérer une conversation existante
  *     tags: [Conversations]
  *     requestBody:
  *       required: true
@@ -69,29 +69,52 @@ router.get('/:userId', async (req, res) => {
  *                 type: string
  *     responses:
  *       200:
- *         description: Successfully created conversation
+ *         description: Conversation créée avec succès ou conversation existante trouvée
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Conversation'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 convId:
+ *                   type: string
  *       400:
- *         description: Invalid request data
+ *         description: Données manquantes ou invalides.
+ *       404:
+ *         description: Utilisateur introuvable.
  *       500:
- *         description: Internal server error
+ *         description: Erreur du serveur
  */
 router.put('/create', async (req, res) => {
     const { UserOneId, UserTwoId } = req.body;
-    const UserOne = await User.findOne({ _id: UserOneId });
-    const UserTwo = await User.findOne({ _id: UserTwoId });
 
-    if (UserOneId === undefined || UserTwoId === undefined) {
-        res.status(400).json({ error: "Données manquantes ou invalides." });
+    if (!UserOneId || !UserTwoId) {
+        return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
     try {
-        const conversation = new Conversation({
-            UserOneId: UserOneId,
-            UserTwoId: UserTwoId,
+        let conversation = await Conversation.findOne({
+            $or: [
+                { UserOneId: UserOneId, UserTwoId: UserTwoId },
+                { UserOneId: UserTwoId, UserTwoId: UserOneId }
+            ]
+        });
+
+        if (conversation) {
+            return res.json({ message: "Conversation existante trouvée", convId: conversation._id });
+        }
+
+        const UserOne = await User.findById(UserOneId);
+        const UserTwo = await User.findById(UserTwoId);
+
+        if (!UserOne || !UserTwo) {
+            return res.status(404).json({ error: "Utilisateur introuvable." });
+        }
+
+        conversation = new Conversation({
+            UserOneId,
+            UserTwoId,
             unreadMessages: false,
             lastMessage: ' ',
             UserOnePicture: UserOne.profilePicture,
@@ -102,13 +125,12 @@ router.put('/create', async (req, res) => {
 
         await conversation.save();
 
-        res.json({ conversation: conversation, convId: conversation._id });
-    } catch (err) /* istanbul ignore next */ {
+        res.json({ message: "Nouvelle conversation créée", convId: conversation._id });
+    } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, error: 'Erreur du serveur' });
+        res.status(500).json({ error: 'Erreur du serveur' });
     }
 });
-
 
 /**
  * @swagger

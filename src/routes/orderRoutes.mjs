@@ -46,33 +46,38 @@ router.post('/create', authenticate, createOrder);
 
 /**
  * @swagger
- * /api/order/{id}/shipping:
- *   patch:
- *     summary: Update order state to shipping
- *     description: Allows the seller to update the order state to shipping. Only the seller of the order can perform this action.
+ * /api/order/confirm-shipping:
+ *   post:
+ *     summary: Confirm order shipment
+ *     description: Allows the seller to confirm the shipment of an order. Only the seller of the order can perform this action.
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The ID of the order to be updated.
- *         schema:
- *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 description: The ID of the order to confirm as shipped.
  *     responses:
  *       200:
  *         description: Order state updated to shipping successfully.
  *       404:
  *         description: Order not found.
  *       403:
- *         description: Unauthorized, only the seller can update the order.
+ *         description: Unauthorized, only the seller can confirm the shipment.
  *       400:
- *         description: Bad request, order must be in paid state to mark as shipping.
+ *         description: Bad request, order must be in paid state to be marked as shipping.
  *       500:
  *         description: Server error.
  */
-router.patch('/order/:id/shipping', authenticate, updateOrderToShipping);
+router.post('/confirm-shipping', authenticate, updateOrderToShipping);
 
 /**
  * @swagger

@@ -45,7 +45,8 @@ const OrderSchema = new Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  stripeSessionId: String
 });
 
 OrderSchema.pre('save', function(next) {

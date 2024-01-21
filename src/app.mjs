@@ -109,27 +109,6 @@ app.use(
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 
-// Init Middleware
-app.use(express.json({ extended: false }));
-
-// Define Routes
-
-
-app.use("/api/auth", authRoutes);
-app.use("/api", userRoutes);
-app.use("/api/quizz", quizzRoutes);
-app.use('/api/art-publication', artPublicationRoutes);
-app.use('/api/collection', collectionRoutes);
-app.use("/api/follow", followRoutes);
-app.use('/api/artists', artistRoutes);
-app.use('/api/article', articleRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/uploads", uploadRoutes);
-app.use('/api/explorer', explorerRoutes);
-app.use('/api/conditions', conditionRoute);
-app.use('/api/order', orderRoutes);
-app.use('/api/stripe', stripeRoutes);
-
 // webhooks :
 
 /**
@@ -152,6 +131,29 @@ app.use('/api/stripe', stripeRoutes);
  *         description: Server error.
  */
 app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
+
+// Init Middleware
+app.use(express.json({ extended: false }));
+
+// Define Routes
+
+
+app.use("/api/auth", authRoutes);
+app.use("/api", userRoutes);
+app.use("/api/quizz", quizzRoutes);
+app.use('/api/art-publication', artPublicationRoutes);
+app.use('/api/collection', collectionRoutes);
+app.use("/api/follow", followRoutes);
+app.use('/api/artists', artistRoutes);
+app.use('/api/article', articleRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/uploads", uploadRoutes);
+app.use('/api/explorer', explorerRoutes);
+app.use('/api/conditions', conditionRoute);
+app.use('/api/order', orderRoutes);
+app.use('/api/stripe', stripeRoutes);
+
+
 
 
 app.use('/api/chats', chatsRoutes);

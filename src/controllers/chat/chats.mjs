@@ -2,6 +2,7 @@ import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
 import {Order} from '../../models/orderModel.mjs';
+import { User } from '../../models/userModel.mjs';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
  * @swagger
  * /api/conversations/{userId}:
  *   get:
- *     summary: Retrieve all conversations for a specific user
+ *     summary: Récupérer toutes les conversations pour un utilisateur spécifique
  *     tags: [Conversations]
  *     parameters:
  *       - in: path
@@ -30,7 +31,6 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-
 router.get('/:userId', async (req, res) => {
     const userId = req.params.userId
     try {
@@ -49,10 +49,168 @@ router.get('/:userId', async (req, res) => {
 
 /**
  * @swagger
+ * /api/conversations/create:
+ *   put:
+ *     summary: Créer une nouvelle conversation ou récupérer une conversation existante
+ *     tags: [Conversations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - UserOneId
+ *               - UserTwoId
+ *             properties:
+ *               UserOneId:
+ *                 type: string
+ *               UserTwoId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Conversation créée avec succès ou conversation existante trouvée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 convId:
+ *                   type: string
+ *       400:
+ *         description: Données manquantes ou invalides.
+ *       404:
+ *         description: Utilisateur introuvable.
+ *       500:
+ *         description: Erreur du serveur
+ */
+router.put('/create', async (req, res) => {
+    const { UserOneId, UserTwoId } = req.body;
+
+    if (!UserOneId || !UserTwoId) {
+        return res.status(400).json({ error: "Données manquantes ou invalides." });
+    }
+
+    try {
+        let conversation = await Conversation.findOne({
+            $or: [
+                { UserOneId: UserOneId, UserTwoId: UserTwoId },
+                { UserOneId: UserTwoId, UserTwoId: UserOneId }
+            ]
+        });
+
+        if (conversation) {
+            return res.json({ message: "Conversation existante trouvée", convId: conversation._id });
+        }
+
+        const UserOne = await User.findById(UserOneId);
+        const UserTwo = await User.findById(UserTwoId);
+
+        if (!UserOne || !UserTwo) {
+            return res.status(404).json({ error: "Utilisateur introuvable." });
+        }
+
+        conversation = new Conversation({
+            UserOneId,
+            UserTwoId,
+            unreadMessages: false,
+            lastMessage: ' ',
+            UserOnePicture: UserOne.profilePicture,
+            UserTwoPicture: UserTwo.profilePicture,
+            UserOneName: UserOne.username,
+            UserTwoName: UserTwo.username
+        });
+
+        await conversation.save();
+
+        res.json({ message: "Nouvelle conversation créée", convId: conversation._id });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Erreur du serveur' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/conversations/single/{convId}:
+ *   get:
+ *     summary: Récupérer une conversation spécifique par son ID
+ *     tags: 
+ *       - Conversations
+ *     parameters:
+ *       - in: path
+ *         name: convId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la conversation à récupérer
+ *     responses:
+ *       200:
+ *         description: Conversation récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 chat:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: ID de la conversation
+ *                     lastMessage:
+ *                       type: string
+ *                       description: Dernier message de la conversation
+ *                     unreadMessages:
+ *                       type: boolean
+ *                       description: Indicateur de messages non lus
+ *                     UserOneId:
+ *                       type: string
+ *                       description: ID de l'utilisateur 1
+ *                     UserOneName:
+ *                       type: string
+ *                       description: Nom de l'utilisateur 1
+ *                     UserOnePicture:
+ *                       type: string
+ *                       description: Photo de profil de l'utilisateur 1
+ *                     UserTwoId:
+ *                       type: string
+ *                       description: ID de l'utilisateur 2
+ *                     UserTwoName:
+ *                       type: string
+ *                       description: Nom de l'utilisateur 2
+ *                     UserTwoPicture:
+ *                       type: string
+ *                       description: Photo de profil de l'utilisateur 2
+ *       404:
+ *         description: Conversation non trouvée
+ *       500:
+ *         description: Erreur interne du serveur
+ */
+
+router.get('/single/:convId', async (req, res) => {
+    const convId = req.params.convId
+    try {
+        const chat = await Conversation.findById(convId);
+        
+        if (!chat) {
+            return res.status(404).json({ error: "Conversation non trouvée" });
+        }
+
+        res.json({ chat: chat });
+    } catch (err) /* istanbul ignore next */ {
+        res.status(500).send('Server error');
+    }
+});
+
+/**
+ * @swagger
  * /api/conversations/messages/{chatId}:
  *   get:
  *     summary: Retrieve messages for a specific conversation
- *     tags: [Messages]
+ *     tags: [Conversations]
  *     parameters:
  *       - in: path
  *         name: chatId
@@ -66,9 +224,28 @@ router.get('/:userId', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Message'
+ *               item:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Reference to the Conversation this message belongs to
+ *                   senderId:
+ *                     type: string
+ *                     description: The ID of the sender
+ *                   contentType:
+ *                     type: string
+ *                     description: The type of content of the message
+ *                   content:
+ *                     type: string
+ *                     description: The content of the message
+ *                   dateTime:
+ *                     type: string
+ *                     description: The date and time when the message was sent
+ *                   read:
+ *                     type: boolean
+ *                     default: false
+ *                     description: Flag to indicate if the message has been read
  *       500:
  *         description: Internal server error
  */
@@ -93,7 +270,7 @@ router.get('/messages/:chatId', async (req, res) => {
  * /api/conversations/messages/new:
  *   post:
  *     summary: Create a new message in a conversation
- *     tags: [Messages]
+ *     tags: [Conversations]
  *     requestBody:
  *       required: true
  *       content:
@@ -120,7 +297,28 @@ router.get('/messages/:chatId', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Message'
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Reference to the Conversation this message belongs to
+ *                   senderId:
+ *                     type: string
+ *                     description: The ID of the sender
+ *                   contentType:
+ *                     type: string
+ *                     description: The type of content of the message
+ *                   content:
+ *                     type: string
+ *                     description: The content of the message
+ *                   dateTime:
+ *                     type: string
+ *                     description: The date and time when the message was sent
+ *                   read:
+ *                     type: boolean
+ *                     default: false
+ *                     description: Flag to indicate if the message has been read
  *       400:
  *         description: Invalid request data
  *       500:

@@ -154,7 +154,6 @@ app.use('/api/conversations', chatsRoutes);
  */
 app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
 
-
 app.use('/api/chats', chatsRoutes);
 
 // AdminJS CONFIG

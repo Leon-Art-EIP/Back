@@ -76,57 +76,92 @@ export const createOrder = async (req, res) => {
 };
   
 
-export const handleStripeWebhook = async (req, res) => /* istanbul ignore next */ {
-    const sig = req.headers['stripe-signature'];
-    let event;
+export const handleStripeWebhook = async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
 
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_DEV || process.env.STRIPE_WEBHOOK_SECRET;
-  
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-    } catch (err) {
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_DEV || process.env.STRIPE_WEBHOOK_SECRET;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.log("err.message = " + err.message)
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  // Handle the checkout.session.completed event
+  if (event.type === 'checkout.session.completed') {
+      console.log("checkout.session.completed TRIGGERED");
+      const session = event.data.object;
+
+      // Find the order by the Stripe session ID
+      const order = await Order.findOne({ stripeSessionId: session.id });
+      if (!order) {
+          return res.status(404).send('Order not found');
+      }
+
+      // Check for existing paid orders for the same art publication
+      const existingPaidOrder = await Order.findOne({
+          _id: { $ne: order._id },
+          artPublicationId: order.artPublicationId,
+          paymentStatus: 'paid'
+      });
+
+      if (existingPaidOrder) {
+        console.log("already existingPaidOrder");
+          // Refund the order as the art publication has already been sold
+          await refundOrder(order._id);
+          return res.status(200).json({ received: true, action: 'refunded' });
+      }
+
+      // Mark the art publication as sold
+      const artPublication = await ArtPublication.findById(order.artPublicationId);
+      if (artPublication && !artPublication.isSold) {
+          artPublication.isSold = true;
+          await artPublication.save();
+      }
+
+      // Update the order status
+      order.paymentStatus = 'paid';
+      order.orderState = "paid";
+      console.log("TRANSACTION PAID !!!!");
+      await order.save();
+
+      res.status(200).json({ received: true });
+  } else {
+      // Handle other event types
+      console.log(`Unhandled event type ${event.type}`);
+      res.status(200).json({ received: true });
+  }
+};
+
+export const updateOrderToShipping = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const sellerId = req.user.id;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ msg: 'Order not found' });
     }
-  
-    if (event.type === 'payment_intent.succeeded') {
-        const paymentIntent = event.data.object;
-        const orderId = paymentIntent.metadata.orderId;
 
-        try {
-            const order = await Order.findById(orderId);
-            if (!order) {
-                return res.status(404).send('Order not found');
-            }
-
-            // Vérifier s'il existe une autre commande payée pour la même publication d'art
-            const existingPaidOrder = await Order.findOne({
-                _id: { $ne: order._id },
-                artPublicationId: order.artPublicationId,
-                paymentStatus: 'paid'
-            });
-
-            if (existingPaidOrder) {
-                // Rembourser la commande car la publication a déjà été vendue
-                await refundOrder(order._id);
-                return res.status(200).json({ received: true, action: 'refunded' });
-            }
-
-            const artPublication = await ArtPublication.findById(order.artPublicationId);
-            if (artPublication && !artPublication.isSold) {
-              artPublication.isSold = true;
-              await artPublication.save();
-            }
-
-            order.paymentStatus = 'paid';
-            await order.save();
-        } catch (err) /* istanbul ignore next */ {
-            console.error(err);
-            return res.status(500).send('Internal Server Error');
-        }
+    if (order.sellerId.toString() !== sellerId) {
+      return res.status(403).json({ msg: 'Unauthorized: Only the seller can update the order' });
     }
 
-    res.status(200).json({ received: true });
-  };
+    if (order.orderState !== 'paid') {
+      return res.status(400).json({ msg: 'Order must be in paid state to mark as shipping' });
+    }
+
+    order.orderState = 'shipping';
+    await order.save();
+
+    res.json({ msg: 'Order updated to shipping state', order });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
 
 export const getLatestBuyOrders = async (req, res) => {
     try {

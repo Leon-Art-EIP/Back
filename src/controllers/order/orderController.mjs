@@ -6,7 +6,6 @@ let stripe;
 export const initializeStripe = (stripeKey) => {
   stripe = new Stripe(stripeKey);
 };
-const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_...";
 
 const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
 
@@ -82,8 +81,7 @@ export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
 
-  const webhookSecret =
-    process.env.STRIPE_WEBHOOK_SECRET_DEV || process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);

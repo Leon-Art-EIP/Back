@@ -6,7 +6,8 @@ import {
     getBuyOrderById,
     getSellOrderById,
     cancelOrder, 
-    confirmDeliveryAndRateOrder
+    confirmDeliveryAndRateOrder,
+    updateOrderToShipping
 } from '../controllers/order/orderController.mjs';
 import { authenticate } from "../middleware/authenticate.mjs";
 
@@ -35,13 +36,48 @@ const router = express.Router();
  *                 description: The ID of the art publication being ordered.
  *     responses:
  *       201:
- *         description: Order created successfully.
+ *         description: Order created successfully. A Stripe Checkout session is initiated.
  *       400:
- *         description: Bad request, art publication not available for sale.
+ *         description: Bad request, art publication not available for sale or already sold.
  *       500:
  *         description: Server error.
  */
 router.post('/create', authenticate, createOrder);
+
+/**
+ * @swagger
+ * /api/order/confirm-shipping:
+ *   post:
+ *     summary: Confirm order shipment
+ *     description: Allows the seller to confirm the shipment of an order. Only the seller of the order can perform this action.
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 description: The ID of the order to confirm as shipped.
+ *     responses:
+ *       200:
+ *         description: Order state updated to shipping successfully.
+ *       404:
+ *         description: Order not found.
+ *       403:
+ *         description: Unauthorized, only the seller can confirm the shipment.
+ *       400:
+ *         description: Bad request, order must be in paid state to be marked as shipping.
+ *       500:
+ *         description: Server error.
+ */
+router.post('/confirm-shipping', authenticate, updateOrderToShipping);
 
 /**
  * @swagger
@@ -69,7 +105,7 @@ router.post('/create', authenticate, createOrder);
  *         description: Page number for pagination.
  *     responses:
  *       200:
- *         description: Latest buy orders retrieved successfully.
+ *         description: Latest buy orders retrieved successfully. Orders are populated with art publication details.
  *       500:
  *         description: Server error.
  */
@@ -101,7 +137,7 @@ router.get('/latest-buy-orders', authenticate, getLatestBuyOrders);
  *         description: Page number for pagination.
  *     responses:
  *       200:
- *         description: Latest sell orders retrieved successfully.
+ *         description: Latest sell orders retrieved successfully. Orders are populated with art publication details.
  *       500:
  *         description: Server error.
  */
@@ -125,7 +161,7 @@ router.get('/latest-sell-orders', authenticate, getLatestSellOrders);
  *         description: The ID of the buy order.
  *     responses:
  *       200:
- *         description: Buy order details retrieved successfully.
+ *         description: Buy order details retrieved successfully. Order is populated with art publication and seller details.
  *       404:
  *         description: Buy order not found.
  *       500:
@@ -151,7 +187,7 @@ router.get('/buy/:id', authenticate, getBuyOrderById);
  *         description: The ID of the sell order.
  *     responses:
  *       200:
- *         description: Sell order details retrieved successfully.
+ *         description: Sell order details retrieved successfully. Order is populated with art publication and buyer details.
  *       404:
  *         description: Sell order not found.
  *       500:
@@ -164,7 +200,10 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  * /api/order/cancel/{id}:
  *   post:
  *     summary: Cancel an order
- *     description: Allows an artist to cancel an order. This will initiate a refund process and set the art publication as unsold if applicable.
+ *     description: >
+ *       Allows the seller to cancel an order. If the order is already paid,
+ *       this will initiate a refund process through Stripe and mark the order as refunded.
+ *       Additionally, if the art publication is not sold to another buyer, it will be set as unsold.
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
@@ -177,7 +216,9 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  *         description: The ID of the order to be cancelled.
  *     responses:
  *       200:
- *         description: Order cancelled successfully, and art publication status updated if necessary.
+ *         description: >
+ *           Order cancelled successfully. If already paid, the order is refunded
+ *           and the art publication status is updated if necessary.
  *       404:
  *         description: Order not found.
  *       403:

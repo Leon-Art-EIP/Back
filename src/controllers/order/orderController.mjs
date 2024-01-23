@@ -311,40 +311,69 @@ export const cancelOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({ msg: "Order not found" });
     }
+
+    // Only the seller can cancel the order
     if (order.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ msg: "Unauthorized" });
     }
 
-    // Vérifier si l'état du paiement permet l'annulation
+    // If the order is already paid, initiate a refund
     if (order.paymentStatus === "paid") {
-      await refundOrder(orderId);
-      // Remettre la publication d'art en vente si la commande est annulée
-      const artPublication = await ArtPublication.findById(
-        order.artPublicationId
-      );
-      if (artPublication) {
-        artPublication.isSold = false;
-        await artPublication.save();
-      }
-    } else {
-      order.orderState = "cancelled";
-      await order.save();
-      // Remettre la publication d'art en vente si la commande est annulée
-      const artPublication = await ArtPublication.findById(
-        order.artPublicationId
-      );
-      if (artPublication) {
+      // Refund through Stripe
+      await refundOrder(order._id);
+    }
+
+    // Cancel the order in the database
+    order.orderState = "cancelled";
+    order.paymentStatus =
+      order.paymentStatus === "paid" ? "refunded" : "pending";
+    await order.save();
+
+    // If the artPublication is not sold to someone else, set it as unsold
+    const artPublication = await ArtPublication.findById(
+      order.artPublicationId
+    );
+    if (artPublication && artPublication.isSold) {
+      const otherPaidOrder = await Order.findOne({
+        artPublicationId: order.artPublicationId,
+        paymentStatus: "paid",
+        _id: { $ne: orderId },
+      });
+
+      if (!otherPaidOrder) {
         artPublication.isSold = false;
         await artPublication.save();
       }
     }
 
     res.json({ msg: "Order cancelled successfully", order });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
+async function refundOrder(orderId) {
+  const order = await Order.findById(orderId);
+  if (!order) throw new Error("Order not found");
+
+  // Retrieve the Stripe Checkout session to get the payment intent
+  const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
+  if (!session || !session.payment_intent) {
+    throw new Error("No payment intent found for this order");
+  }
+
+  // Create a refund using the payment intent
+  await stripe.refunds.create({
+    payment_intent: session.payment_intent,
+  });
+
+  order.paymentStatus = 'refunded';
+  await order.save();
+
+  return order;
+}
+
 
 export const confirmDeliveryAndRateOrder = async (req, res) => {
   try {
@@ -368,20 +397,3 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
-
-async function refundOrder(orderId) {
-  const order = await Order.findById(orderId);
-  if (!order) throw new Error("Order not found");
-
-  if (!order.stripePaymentIntentId)
-    throw new Error("No payment intent found for this order");
-
-  await stripe.refunds.create({
-    payment_intent: order.stripePaymentIntentId,
-  });
-
-  order.paymentStatus = "refunded";
-  await order.save();
-
-  return order;
-}

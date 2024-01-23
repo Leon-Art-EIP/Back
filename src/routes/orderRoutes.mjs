@@ -200,7 +200,10 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  * /api/order/cancel/{id}:
  *   post:
  *     summary: Cancel an order
- *     description: Allows the seller to cancel an order. Initiates a refund process if applicable and sets the art publication as unsold.
+ *     description: >
+ *       Allows the seller to cancel an order. If the order is already paid,
+ *       this will initiate a refund process through Stripe and mark the order as refunded.
+ *       Additionally, if the art publication is not sold to another buyer, it will be set as unsold.
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
@@ -213,7 +216,9 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  *         description: The ID of the order to be cancelled.
  *     responses:
  *       200:
- *         description: Order cancelled successfully. Art publication status updated if necessary.
+ *         description: >
+ *           Order cancelled successfully. If already paid, the order is refunded
+ *           and the art publication status is updated if necessary.
  *       404:
  *         description: Order not found.
  *       403:

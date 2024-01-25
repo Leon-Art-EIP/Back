@@ -49,6 +49,25 @@ pipeline {
                 sh 'npx jest-coverage-ratchet || (echo "Jest tests did not reach 100% coverage" && exit 1)'
             }
         }
+         stage('Install Docker') {
+            when {
+                branch 'dev'
+            }
+            steps {
+                script {
+                    try {
+                        echo "Installing Docker..."
+                        sh 'sudo dnf -y install dnf-plugins-core'
+                        sh 'sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo'
+                        sh 'sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin'
+                        sh 'sudo systemctl start docker'
+                    } catch (Exception e) {
+                        echo "Failed to install Docker: ${e}"
+                        error("Docker installation failed.")
+                    }
+                }
+            }
+        }
 
         stage('Push to DockerHub') {
             when {

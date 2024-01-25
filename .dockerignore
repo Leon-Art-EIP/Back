@@ -7,6 +7,10 @@
 
 # testing
 /coverage
+/tests
+/test-files
+.LICENSE
+.README.md
 
 # production
 /build

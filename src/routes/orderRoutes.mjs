@@ -18,25 +18,25 @@ const router = express.Router();
  * /api/order/create:
  *   post:
  *     summary: Create a new order
- *     description: Allows a buyer to create a new order for an art publication.
+ *     description: >
+ *       Allows a buyer to create a new order for an art publication. 
+ *       Initiates a Stripe Checkout session and returns a URL for the checkout page.
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
+ *       description: Required data for creating a new order
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - artPublicationId
- *             properties:
- *               artPublicationId:
- *                 type: string
- *                 description: The ID of the art publication being ordered.
+ *           example: {
+ *             artPublicationId: "123456789"
+ *           }
  *     responses:
  *       201:
- *         description: Order created successfully. A Stripe Checkout session is initiated.
+ *         description: >
+ *           Order created successfully. Returns a URL to the Stripe Checkout session.
+ *           The response body contains a message and a URL.
  *       400:
  *         description: Bad request, art publication not available for sale or already sold.
  *       500:

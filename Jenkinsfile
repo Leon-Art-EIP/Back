@@ -56,7 +56,7 @@ pipeline {
             }
             steps {
                 script {
-                    node('master') {
+                     node {
                         try {
                             echo "Pushing to DockerHub..."
                             sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER} ."

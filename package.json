@@ -36,6 +36,7 @@
     "express-validator": "^7.0.1",
     "firebase-admin": "^11.11.0",
     "formidable": "^3.5.1",
+    "jest-junit": "^16.0.0",
     "jest-mock-extended": "^3.0.4",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^5.5.0",

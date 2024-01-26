@@ -69,6 +69,7 @@ export const createOrder = async (req, res) => {
 
     res.status(201).json({
       msg: "Order created and Stripe Checkout session initiated",
+      order: newOrder,
       url: session.url,
     });
   } catch (err) {
@@ -176,11 +177,14 @@ export const getLatestBuyOrders = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const buyOrders = await Order.find({ buyerId: userId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("artPublicationId", "name description price image");
+    const buyOrders = await Order.find({
+      buyerId: userId,
+      paymentStatus: { $in: ["paid", "refunded"] }
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate("artPublicationId", "name description price image");
 
     const formattedOrders = buyOrders.map((order) => ({
       orderId: order._id,
@@ -208,7 +212,7 @@ export const getLatestSellOrders = async (req, res) => {
 
     const sellOrders = await Order.find({
       sellerId: userId,
-      paymentStatus: "paid",
+      paymentStatus: { $in: ["paid", "refunded"] }
     })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -237,7 +241,11 @@ export const getBuyOrderById = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user.id;
 
-    const order = await Order.findOne({ _id: orderId, buyerId: userId })
+    const order = await Order.findOne({
+      _id: orderId,
+      buyerId: userId,
+      paymentStatus: { $in: ["paid", "refunded"] }
+    })
       .populate("artPublicationId", "name description price image")
       .populate("sellerId", "username");
 
@@ -274,7 +282,7 @@ export const getSellOrderById = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       sellerId: userId,
-      paymentStatus: "paid",
+      paymentStatus: { $in: ["paid", "refunded"] }
     })
       .populate("artPublicationId", "name description price image")
       .populate("buyerId", "username");

@@ -69,6 +69,7 @@ export const createOrder = async (req, res) => {
 
     res.status(201).json({
       msg: "Order created and Stripe Checkout session initiated",
+      order: newOrder,
       url: session.url,
     });
   } catch (err) {

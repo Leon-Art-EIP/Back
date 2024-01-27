@@ -31,6 +31,7 @@ import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
 import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
+import foryouRoutes from './routes/foryouRoutes.mjs';
 
 
 initializeStripe(process.env.STRIPE_SECRET_KEY);
@@ -154,6 +155,7 @@ app.use('/api/order', orderRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
+app.use('/api/foryou', foryouRoutes);
 
 // AdminJS CONFIG
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;

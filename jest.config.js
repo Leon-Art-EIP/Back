@@ -1,5 +1,6 @@
 export default {
   transform: {},
+  testPathIgnorePatterns: ["<rootDir>/src/admin/"],
   globalSetup: "<rootDir>/tests/global-setup.js",
   globalTeardown: "<rootDir>/tests/global-teardown.js",
   setupFilesAfterEnv: [

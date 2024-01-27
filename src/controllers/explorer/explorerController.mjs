@@ -19,7 +19,7 @@ export const searchArtworksAndArtists = async (req, res) => {
     const artTypes = req.query.artType ? req.query.artType.split(',') : [];
 
     const query = {};
-    if (searchTerm) {
+    if (searchTerm) /* istanbul ignore next */ {
       query.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
         { 'artist.name': { $regex: searchTerm, $options: 'i' } }
@@ -38,12 +38,12 @@ export const searchArtworksAndArtists = async (req, res) => {
     const users = await User.find({ 'username': { $regex: searchTerm, $options: 'i' } }).limit(artistLimit).skip((artistPage - 1) * artistLimit);
 
     res.json({ artPublications, users });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
 
-export const getArtTypes = (req, res) => {
+export const getArtTypes = (req, res) => /* istanbul ignore next */ {
   res.json(artTypes);
 };

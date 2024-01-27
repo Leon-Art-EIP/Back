@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="137" failures="0" errors="0" time="97.311">
+  <testsuite name="Stripe routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:12" time="10.999" tests="2">
+    <testcase classname="Stripe routes POST /api/stripe/setup-stripe - Setup Stripe Account (Success)" name="Stripe routes POST /api/stripe/setup-stripe - Setup Stripe Account (Success)" time="0.02">
+    </testcase>
+    <testcase classname="Stripe routes GET /api/stripe/get-stripe-account - Get Stripe Account (Success)" name="Stripe routes GET /api/stripe/get-stripe-account - Get Stripe Account (Success)" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="Reset Password Routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:23" time="7.76" tests="7">
+    <testcase classname="Reset Password Routes POST /request-reset should send reset token if email exists" name="Reset Password Routes POST /request-reset should send reset token if email exists" time="2.832">
+    </testcase>
+    <testcase classname="Reset Password Routes POST /request-reset should fail if email does not exist" name="Reset Password Routes POST /request-reset should fail if email does not exist" time="0.006">
+    </testcase>
+    <testcase classname="Reset Password Routes POST /validate-reset-token should validate correct reset token" name="Reset Password Routes POST /validate-reset-token should validate correct reset token" time="0.006">
+    </testcase>
+    <testcase classname="Reset Password Routes POST /validate-reset-token should not validate incorrect reset token" name="Reset Password Routes POST /validate-reset-token should not validate incorrect reset token" time="0.007">
+    </testcase>
+    <testcase classname="Reset Password Routes POST /reset-password should reset password if token is correct" name="Reset Password Routes POST /reset-password should reset password if token is correct" time="0.198">
+    </testcase>
+    <testcase classname="Reset Password Routes POST /reset-password should not reset password if token is incorrect" name="Reset Password Routes POST /reset-password should not reset password if token is incorrect" time="0.017">
+    </testcase>
+    <testcase classname="Reset Password Routes POST /reset-password should not reset password if new password is too weak" name="Reset Password Routes POST /reset-password should not reset password if new password is too weak" time="0.09">
+    </testcase>
+  </testsuite>
+  <testsuite name="Signup routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:31" time="5.418" tests="12">
+    <testcase classname="Signup routes POST /signup - Successful signup" name="Signup routes POST /signup - Successful signup" time="0.196">
+    </testcase>
+    <testcase classname="Signup routes POST /signup - Missing fields" name="Signup routes POST /signup - Missing fields" time="0.02">
+    </testcase>
+    <testcase classname="Signup routes POST /signup - Invalid email" name="Signup routes POST /signup - Invalid email" time="0.014">
+    </testcase>
+    <testcase classname="Signup routes POST /signup - Weak password" name="Signup routes POST /signup - Weak password" time="0.009">
+    </testcase>
+    <testcase classname="Signup routes POST /signup - Duplicate email" name="Signup routes POST /signup - Duplicate email" time="0.112">
+    </testcase>
+    <testcase classname="Signup routes POST /signup - Duplicate Username" name="Signup routes POST /signup - Duplicate Username" time="0.143">
+    </testcase>
+    <testcase classname="login routes POST /login - Successful login" name="login routes POST /login - Successful login" time="0.172">
+    </testcase>
+    <testcase classname="login routes POST /login - Missing email or password" name="login routes POST /login - Missing email or password" time="0.009">
+    </testcase>
+    <testcase classname="login routes POST /login - Non-existent user" name="login routes POST /login - Non-existent user" time="0.008">
+    </testcase>
+    <testcase classname="login routes POST /login - Incorrect password" name="login routes POST /login - Incorrect password" time="0.166">
+    </testcase>
+    <testcase classname="login routes POST /login - Empty email" name="login routes POST /login - Empty email" time="0.005">
+    </testcase>
+    <testcase classname="login routes POST /login - Empty password" name="login routes POST /login - Empty password" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="ArtPublication Functionalities" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:37" time="5.186" tests="28">
+    <testcase classname="ArtPublication Functionalities POST /like/:id - Like/Unlike an ArtPublication" name="ArtPublication Functionalities POST /like/:id - Like/Unlike an ArtPublication" time="0.032">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /like/:id - ArtPublication not found" name="ArtPublication Functionalities POST /like/:id - ArtPublication not found" time="0.022">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /like/:id - Remove like" name="ArtPublication Functionalities POST /like/:id - Remove like" time="0.036">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /like-count/:id - Retrieve like count for an ArtPublication" name="ArtPublication Functionalities GET /like-count/:id - Retrieve like count for an ArtPublication" time="0.011">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /like-count/:id - ArtPublication not found" name="ArtPublication Functionalities GET /like-count/:id - ArtPublication not found" time="0.01">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /users-who-liked/:id - Retrieve users who liked the ArtPublication" name="ArtPublication Functionalities GET /users-who-liked/:id - Retrieve users who liked the ArtPublication" time="0.019">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /users-who-liked/:id - ArtPublication not found" name="ArtPublication Functionalities GET /users-who-liked/:id - ArtPublication not found" time="0.016">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /collection - Add to Collection" name="ArtPublication Functionalities POST /collection - Add to Collection" time="0.029">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /collection - ArtPublication not found" name="ArtPublication Functionalities POST /collection - ArtPublication not found" time="0.016">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /collection - Add to existing collection" name="ArtPublication Functionalities POST /collection - Add to existing collection" time="0.049">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /comment/:id - Add Comment" name="ArtPublication Functionalities POST /comment/:id - Add Comment" time="0.018">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities DELETE /comment/:commentId - Delete Comment" name="ArtPublication Functionalities DELETE /comment/:commentId - Delete Comment" time="0.039">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities POST /comment/:id - ArtPublication not found" name="ArtPublication Functionalities POST /comment/:id - ArtPublication not found" time="0.017">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities DELETE /comment/:commentId - Comment not found" name="ArtPublication Functionalities DELETE /comment/:commentId - Comment not found" time="0.013">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities DELETE /comment/:commentId - Unauthorized" name="ArtPublication Functionalities DELETE /comment/:commentId - Unauthorized" time="0.024">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /comment/:id - Retrieve Comments of ArtPublication" name="ArtPublication Functionalities GET /comment/:id - Retrieve Comments of ArtPublication" time="0.018">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /comment/:id - No comments for ArtPublication" name="ArtPublication Functionalities GET /comment/:id - No comments for ArtPublication" time="0.015">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /comment/:id - ArtPublication not found" name="ArtPublication Functionalities GET /comment/:id - ArtPublication not found" time="0.014">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /api/art-publication/:id - Successfully retrieve an ArtPublication by ID" name="ArtPublication Functionalities GET /api/art-publication/:id - Successfully retrieve an ArtPublication by ID" time="0.014">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /api/art-publication/:id - ArtPublication not found by ID" name="ArtPublication Functionalities GET /api/art-publication/:id - ArtPublication not found by ID" time="0.017">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /api/art-publication/feed/latest - Successfully retrieve latest ArtPublications" name="ArtPublication Functionalities GET /api/art-publication/feed/latest - Successfully retrieve latest ArtPublications" time="0.022">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /api/art-publication/feed/followed - Retrieve ArtPublications of followed users" name="ArtPublication Functionalities GET /api/art-publication/feed/followed - Retrieve ArtPublications of followed users" time="0.018">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /user/:userId - Retrieve art publications by user" name="ArtPublication Functionalities GET /user/:userId - Retrieve art publications by user" time="0.018">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /user/:userId - Retrieve art publications by user with invalid userId" name="ArtPublication Functionalities GET /user/:userId - Retrieve art publications by user with invalid userId" time="0.012">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /user/:userId - Retrieve art publications by non-existing user" name="ArtPublication Functionalities GET /user/:userId - Retrieve art publications by non-existing user" time="0.018">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /user/:userId - Retrieve art publications without authorization" name="ArtPublication Functionalities GET /user/:userId - Retrieve art publications without authorization" time="0.008">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection" name="ArtPublication Functionalities GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection" time="0.021">
+    </testcase>
+    <testcase classname="ArtPublication Functionalities GET /api/collection/:collectionId/publications - Collection not found" name="ArtPublication Functionalities GET /api/collection/:collectionId/publications - Collection not found" time="0.014">
+    </testcase>
+  </testsuite>
+  <testsuite name="Change Password Route" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:42" time="4.787" tests="5">
+    <testcase classname="Change Password Route POST /api/auth/change-password - Successful password change" name="Change Password Route POST /api/auth/change-password - Successful password change" time="0.211">
+    </testcase>
+    <testcase classname="Change Password Route POST /api/auth/change-password - Incorrect current password" name="Change Password Route POST /api/auth/change-password - Incorrect current password" time="0.099">
+    </testcase>
+    <testcase classname="Change Password Route POST /api/auth/change-password - Missing token" name="Change Password Route POST /api/auth/change-password - Missing token" time="0.006">
+    </testcase>
+    <testcase classname="Change Password Route POST /api/auth/change-password - Invalid token" name="Change Password Route POST /api/auth/change-password - Invalid token" time="0.006">
+    </testcase>
+    <testcase classname="Change Password Route POST /api/auth/change-password - Validation error for weak new password" name="Change Password Route POST /api/auth/change-password - Validation error for weak new password" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="Order System Tests" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:47" time="6.017" tests="12">
+    <testcase classname="Order System Tests POST /api/order/create - Create a new order" name="Order System Tests POST /api/order/create - Create a new order" time="0.727">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/confirm-shipping - Confirm shipping" name="Order System Tests POST /api/order/confirm-shipping - Confirm shipping" time="0.018">
+    </testcase>
+    <testcase classname="Order System Tests GET /api/order/latest-buy-orders - Get latest buy orders" name="Order System Tests GET /api/order/latest-buy-orders - Get latest buy orders" time="0.018">
+    </testcase>
+    <testcase classname="Order System Tests GET /api/order/buy/:id - Get a specific buy order" name="Order System Tests GET /api/order/buy/:id - Get a specific buy order" time="0.014">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/confirm-delivery-rate - Confirm delivery and rate" name="Order System Tests POST /api/order/confirm-delivery-rate - Confirm delivery and rate" time="0.013">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/create - Fail to create order for non-existent art publication" name="Order System Tests POST /api/order/create - Fail to create order for non-existent art publication" time="0.006">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/create - Fail to create order for sold art publication" name="Order System Tests POST /api/order/create - Fail to create order for sold art publication" time="0.014">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/confirm-shipping - Fail to confirm shipping for non-existent order" name="Order System Tests POST /api/order/confirm-shipping - Fail to confirm shipping for non-existent order" time="0.007">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/confirm-shipping - Fail to confirm shipping by non-seller" name="Order System Tests POST /api/order/confirm-shipping - Fail to confirm shipping by non-seller" time="0.009">
+    </testcase>
+    <testcase classname="Order System Tests GET /api/order/sell/:id - Fail to get non-existent sell order" name="Order System Tests GET /api/order/sell/:id - Fail to get non-existent sell order" time="0.009">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/confirm-delivery-rate - Fail to confirm delivery and rate non-existent order" name="Order System Tests POST /api/order/confirm-delivery-rate - Fail to confirm delivery and rate non-existent order" time="0.008">
+    </testcase>
+    <testcase classname="Order System Tests POST /api/order/confirm-delivery-rate - Fail to confirm delivery and rate by non-buyer" name="Order System Tests POST /api/order/confirm-delivery-rate - Fail to confirm delivery and rate by non-buyer" time="0.008">
+    </testcase>
+  </testsuite>
+  <testsuite name="Quizz Routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:53" time="4.214" tests="4">
+    <testcase classname="Quizz Routes POST /submit - Submit a new Quizz (Success)" name="Quizz Routes POST /submit - Submit a new Quizz (Success)" time="0.02">
+    </testcase>
+    <testcase classname="Quizz Routes POST /submit - Missing required fields" name="Quizz Routes POST /submit - Missing required fields" time="0.009">
+    </testcase>
+    <testcase classname="Quizz Routes POST /submit - Invalid objective" name="Quizz Routes POST /submit - Invalid objective" time="0.007">
+    </testcase>
+    <testcase classname="Quizz Routes POST /submit - Invalid customCommands" name="Quizz Routes POST /submit - Invalid customCommands" time="0.006">
+    </testcase>
+  </testsuite>
+  <testsuite name="Follow routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:32:57" time="4.148" tests="11">
+    <testcase classname="Follow routes POST /api/follow/:targetUserId - Follow a user successfully" name="Follow routes POST /api/follow/:targetUserId - Follow a user successfully" time="0.021">
+    </testcase>
+    <testcase classname="Follow routes POST /api/follow/:targetUserId - Unfollow a user successfully" name="Follow routes POST /api/follow/:targetUserId - Unfollow a user successfully" time="0.013">
+    </testcase>
+    <testcase classname="Follow routes POST /api/follow/:targetUserId - Cannot follow oneself" name="Follow routes POST /api/follow/:targetUserId - Cannot follow oneself" time="0.009">
+    </testcase>
+    <testcase classname="Follow routes should return 400 for invalid user id" name="Follow routes should return 400 for invalid user id" time="0.007">
+    </testcase>
+    <testcase classname="Follow routes should return 404 if user to follow is not found" name="Follow routes should return 404 if user to follow is not found" time="0.011">
+    </testcase>
+    <testcase classname="Follow routes GET /api/follow/following - Get list of users following" name="Follow routes GET /api/follow/following - Get list of users following" time="0.014">
+    </testcase>
+    <testcase classname="Follow routes GET /api/follow/followers - Get list of followers of authenticated user" name="Follow routes GET /api/follow/followers - Get list of followers of authenticated user" time="0.009">
+    </testcase>
+    <testcase classname="Follow routes GET /api/follow/:targetUserId/followers - Get followers of a specific user" name="Follow routes GET /api/follow/:targetUserId/followers - Get followers of a specific user" time="0.008">
+    </testcase>
+    <testcase classname="Follow routes should return 404 if user is not found" name="Follow routes should return 404 if user is not found" time="0.007">
+    </testcase>
+    <testcase classname="Follow routes GET /api/follow/:targetUserId/following - Get users followed by a specific user" name="Follow routes GET /api/follow/:targetUserId/following - Get users followed by a specific user" time="0.011">
+    </testcase>
+    <testcase classname="Follow routes should return 404 if user is not found" name="Follow routes should return 404 if user is not found" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="User routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:01" time="4.277" tests="6">
+    <testcase classname="User routes GET /api/user/profile/:userId - Get user profile" name="User routes GET /api/user/profile/:userId - Get user profile" time="0.019">
+    </testcase>
+    <testcase classname="User routes GET /api/user/profile/:nonExistentUserId - User not found" name="User routes GET /api/user/profile/:nonExistentUserId - User not found" time="0.008">
+    </testcase>
+    <testcase classname="User routes POST /api/user/profile/bio - Update biography" name="User routes POST /api/user/profile/bio - Update biography" time="0.012">
+    </testcase>
+    <testcase classname="User routes POST /api/user/profile/availability - Update availability" name="User routes POST /api/user/profile/availability - Update availability" time="0.008">
+    </testcase>
+    <testcase classname="User routes POST /api/user/profile/profile-pic - Update profile picture" name="User routes POST /api/user/profile/profile-pic - Update profile picture" time="0.022">
+    </testcase>
+    <testcase classname="User routes POST /api/user/profile/banner-pic - Update banner picture" name="User routes POST /api/user/profile/banner-pic - Update banner picture" time="0.01">
+    </testcase>
+  </testsuite>
+  <testsuite name="ArtPublication routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:06" time="4.463" tests="3">
+    <testcase classname="ArtPublication routes POST /api/art-publication - Create a new ArtPublication (Success)" name="ArtPublication routes POST /api/art-publication - Create a new ArtPublication (Success)" time="0.029">
+    </testcase>
+    <testcase classname="ArtPublication routes POST /api/art-publication - Missing required fields" name="ArtPublication routes POST /api/art-publication - Missing required fields" time="0.007">
+    </testcase>
+    <testcase classname="ArtPublication routes POST /api/art-publication - Invalid optional fields" name="ArtPublication routes POST /api/art-publication - Invalid optional fields" time="0.015">
+    </testcase>
+  </testsuite>
+  <testsuite name="Notification routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:10" time="4.398" tests="6">
+    <testcase classname="Notification routes GET /api/notifications - Retrieve notifications (Success)" name="Notification routes GET /api/notifications - Retrieve notifications (Success)" time="0.019">
+    </testcase>
+    <testcase classname="Notification routes PUT /api/notifications/:id/read - Mark notification as read (Success)" name="Notification routes PUT /api/notifications/:id/read - Mark notification as read (Success)" time="0.015">
+    </testcase>
+    <testcase classname="Notification routes PUT /api/notifications/:id/read - Non-existent notification" name="Notification routes PUT /api/notifications/:id/read - Non-existent notification" time="0.011">
+    </testcase>
+    <testcase classname="Notification routes PUT /api/notifications/update-fcm-token - Update FCM token (Success)" name="Notification routes PUT /api/notifications/update-fcm-token - Update FCM token (Success)" time="0.018">
+    </testcase>
+    <testcase classname="Notification routes PUT /api/notifications/update-fcm-token - Missing FCM token" name="Notification routes PUT /api/notifications/update-fcm-token - Missing FCM token" time="0.011">
+    </testcase>
+    <testcase classname="Notification routes PUT /api/notifications/update-fcm-token - User not found" name="Notification routes PUT /api/notifications/update-fcm-token - User not found" time="0.013">
+    </testcase>
+  </testsuite>
+  <testsuite name="Conditions Route Tests" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:15" time="3.75" tests="1">
+    <testcase classname="Conditions Route Tests GET /api/conditions - Successfully retrieve conditions" name="Conditions Route Tests GET /api/conditions - Successfully retrieve conditions" time="0.025">
+    </testcase>
+  </testsuite>
+  <testsuite name="Conversation Routes Tests" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:19" time="4.573" tests="5">
+    <testcase classname="Conversation Routes Tests GET /api/conversation - Retrieve all conversations" name="Conversation Routes Tests GET /api/conversation - Retrieve all conversations" time="0.01">
+    </testcase>
+    <testcase classname="Conversation Routes Tests POST /api/conversation/messages - Retrieve messages of a conversation" name="Conversation Routes Tests POST /api/conversation/messages - Retrieve messages of a conversation" time="0.006">
+    </testcase>
+    <testcase classname="Conversation Routes Tests POST /api/conversation/messages/new - Add new message" name="Conversation Routes Tests POST /api/conversation/messages/new - Add new message" time="0.004">
+    </testcase>
+    <testcase classname="Conversation Routes Tests POST /api/conversation/order/infos - Retrieve order information" name="Conversation Routes Tests POST /api/conversation/order/infos - Retrieve order information" time="0.004">
+    </testcase>
+    <testcase classname="Conversation Routes Tests POST /api/conversation/order/rating - Update order rating" name="Conversation Routes Tests POST /api/conversation/order/rating - Update order rating" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="Collection Functionalities" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:23" time="4.371" tests="12">
+    <testcase classname="Collection Functionalities POST /collection - Add to Collection" name="Collection Functionalities POST /collection - Add to Collection" time="0.043">
+    </testcase>
+    <testcase classname="Collection Functionalities POST /collection - ArtPublication not found" name="Collection Functionalities POST /collection - ArtPublication not found" time="0.015">
+    </testcase>
+    <testcase classname="Collection Functionalities POST /collection - Add to existing collection" name="Collection Functionalities POST /collection - Add to existing collection" time="0.033">
+    </testcase>
+    <testcase classname="Collection Functionalities GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection" name="Collection Functionalities GET /api/collection/:collectionId/publications - Successfully retrieve ArtPublications from a collection" time="0.026">
+    </testcase>
+    <testcase classname="Collection Functionalities GET /api/collection/:collectionId/publications - Collection not found" name="Collection Functionalities GET /api/collection/:collectionId/publications - Collection not found" time="0.017">
+    </testcase>
+    <testcase classname="Collection Functionalities GET /my-collections - Get User Collections" name="Collection Functionalities GET /my-collections - Get User Collections" time="0.016">
+    </testcase>
+    <testcase classname="Collection Functionalities PATCH /:collectionId/remove - Successfully remove art publications from a collection" name="Collection Functionalities PATCH /:collectionId/remove - Successfully remove art publications from a collection" time="0.035">
+    </testcase>
+    <testcase classname="Collection Functionalities PATCH /:collectionId/remove - Collection not found" name="Collection Functionalities PATCH /:collectionId/remove - Collection not found" time="0.019">
+    </testcase>
+    <testcase classname="Collection Functionalities GET /user/:userId/collections - Get Public Collections of a User" name="Collection Functionalities GET /user/:userId/collections - Get Public Collections of a User" time="0.015">
+    </testcase>
+    <testcase classname="Collection Functionalities DELETE /:collectionId - Delete a Collection" name="Collection Functionalities DELETE /:collectionId - Delete a Collection" time="0.036">
+    </testcase>
+    <testcase classname="Collection Functionalities DELETE /:collectionId - Try to Delete a Non-Existent Collection" name="Collection Functionalities DELETE /:collectionId - Try to Delete a Non-Existent Collection" time="0.017">
+    </testcase>
+    <testcase classname="Collection Functionalities DELETE /:collectionId - User Not Found" name="Collection Functionalities DELETE /:collectionId - User Not Found" time="0.016">
+    </testcase>
+  </testsuite>
+  <testsuite name="User Availability Routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:28" time="4.38" tests="6">
+    <testcase classname="User Availability Routes GET /api/user/check-username/:username should return 400 for invalid username" name="User Availability Routes GET /api/user/check-username/:username should return 400 for invalid username" time="0.057">
+    </testcase>
+    <testcase classname="User Availability Routes GET /api/user/check-username/:username should return 409 for already taken username" name="User Availability Routes GET /api/user/check-username/:username should return 409 for already taken username" time="0.024">
+    </testcase>
+    <testcase classname="User Availability Routes GET /api/user/check-username/:username should return 200 for available username" name="User Availability Routes GET /api/user/check-username/:username should return 200 for available username" time="0.007">
+    </testcase>
+    <testcase classname="User Availability Routes GET /api/user/check-email/:email should return 400 for invalid email" name="User Availability Routes GET /api/user/check-email/:email should return 400 for invalid email" time="0.007">
+    </testcase>
+    <testcase classname="User Availability Routes GET /api/user/check-email/:email should return 409 for already taken email" name="User Availability Routes GET /api/user/check-email/:email should return 409 for already taken email" time="0.01">
+    </testcase>
+    <testcase classname="User Availability Routes GET /api/user/check-email/:email should return 200 for available email" name="User Availability Routes GET /api/user/check-email/:email should return 200 for available email" time="0.008">
+    </testcase>
+  </testsuite>
+  <testsuite name="Explorer Routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:32" time="3.894" tests="6">
+    <testcase classname="Explorer Routes GET /api/explorer/search - Search without query parameters" name="Explorer Routes GET /api/explorer/search - Search without query parameters" time="0.031">
+    </testcase>
+    <testcase classname="Explorer Routes GET /api/explorer/search - Search with specific art type" name="Explorer Routes GET /api/explorer/search - Search with specific art type" time="0.014">
+    </testcase>
+    <testcase classname="Explorer Routes GET /api/explorer/search - Search with price range" name="Explorer Routes GET /api/explorer/search - Search with price range" time="0.012">
+    </testcase>
+    <testcase classname="Explorer Routes GET /api/explorer/search - Search with isForSale status" name="Explorer Routes GET /api/explorer/search - Search with isForSale status" time="0.012">
+    </testcase>
+    <testcase classname="Explorer Routes GET /api/explorer/search - Search with invalid query parameters" name="Explorer Routes GET /api/explorer/search - Search with invalid query parameters" time="0.009">
+    </testcase>
+    <testcase classname="Explorer Routes GET /api/explorer/search - Unauthorized access" name="Explorer Routes GET /api/explorer/search - Unauthorized access" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="Quizz routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:36" time="4.508" tests="4">
+    <testcase classname="Quizz routes POST /api/quizz/submit - Successful Quizz Submission (Authenticated)" name="Quizz routes POST /api/quizz/submit - Successful Quizz Submission (Authenticated)" time="0.016">
+    </testcase>
+    <testcase classname="Quizz routes POST /api/quizz/submit - Authorization failed due to no token" name="Quizz routes POST /api/quizz/submit - Authorization failed due to no token" time="0.007">
+    </testcase>
+    <testcase classname="Quizz routes POST /api/quizz/submit - Authorization failed due to invalid token" name="Quizz routes POST /api/quizz/submit - Authorization failed due to invalid token" time="0.006">
+    </testcase>
+    <testcase classname="Quizz routes POST /api/quizz/submit - Authorization failed due to token tampering" name="Quizz routes POST /api/quizz/submit - Authorization failed due to token tampering" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="Article routes" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:41" time="3.994" tests="4">
+    <testcase classname="Article routes POST /api/article - Create a new Article (Success)" name="Article routes POST /api/article - Create a new Article (Success)" time="0.023">
+    </testcase>
+    <testcase classname="Article routes POST /api/article - Missing required fields" name="Article routes POST /api/article - Missing required fields" time="0.012">
+    </testcase>
+    <testcase classname="Article routes GET /api/article/latest - Retrieve latest articles (Success)" name="Article routes GET /api/article/latest - Retrieve latest articles (Success)" time="0.026">
+    </testcase>
+    <testcase classname="Article routes GET /api/article/latest - No articles available" name="Article routes GET /api/article/latest - No articles available" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="Latest Artists Functionalities" errors="0" failures="0" skipped="0" timestamp="2024-01-26T22:33:45" time="4.884" tests="3">
+    <testcase classname="Latest Artists Functionalities GET /artists/latest - Successfully fetch latest artists" name="Latest Artists Functionalities GET /artists/latest - Successfully fetch latest artists" time="0.02">
+    </testcase>
+    <testcase classname="Latest Artists Functionalities GET /artists/latest - Fetch with pagination (limit)" name="Latest Artists Functionalities GET /artists/latest - Fetch with pagination (limit)" time="0.015">
+    </testcase>
+    <testcase classname="Latest Artists Functionalities GET /artists/latest - No artists found" name="Latest Artists Functionalities GET /artists/latest - No artists found" time="0.015">
+    </testcase>
+  </testsuite>
+</testsuites>

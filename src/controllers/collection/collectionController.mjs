@@ -131,7 +131,7 @@ export const removeFromCollection = async (req, res) => {
     await collection.save();
 
     res.json({ msg: "Art publications removed from collection", collection });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }

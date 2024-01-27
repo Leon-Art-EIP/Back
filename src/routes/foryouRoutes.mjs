@@ -1,5 +1,6 @@
 import { authenticate } from "../middleware/authenticate.mjs";
 import { getArtPublications } from "../controllers/foryou/foryou.mjs";
+import express from 'express';
 
 const router = express.Router();
 

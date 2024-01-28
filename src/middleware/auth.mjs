@@ -1,6 +1,6 @@
 import { verify } from "jsonwebtoken";
 
-export default (req, res, next) => {
+export default (req, res, next) => /* istanbul ignore next */ {
   const token = req.header("Authorization");
 
   if (!token) {

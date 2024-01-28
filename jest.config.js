@@ -1,6 +1,6 @@
 export default {
   transform: {},
-  testPathIgnorePatterns: ["<rootDir>/src/admin/"],
+  collectCoverageFrom: ['src/**','!src/admin/*','!src/utils/*','!src/config/*'],
   globalSetup: "<rootDir>/tests/global-setup.js",
   globalTeardown: "<rootDir>/tests/global-teardown.js",
   setupFilesAfterEnv: [

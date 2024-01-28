@@ -161,7 +161,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 const admin = new AdminJS(adminOptions);
 const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-  authenticate: async (email, password) => {
+  authenticate: async (email, password) => /* istanbul ignore next */ {
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       return { email: ADMIN_EMAIL };
     }

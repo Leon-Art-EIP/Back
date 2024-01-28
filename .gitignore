@@ -5,5 +5,6 @@ coverage/
 .VSCodeCounter
 leon-art-firebase-adminsdk-5xfnu-c0814b59c8.json
 /uploads/*
+test-results/junit.xml
 !/uploads/static/
 !/uploads/static/*

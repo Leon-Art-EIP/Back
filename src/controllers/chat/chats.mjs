@@ -21,7 +21,7 @@ const router = express.Router();
  *         description: User ID to fetch conversations for
  *     responses:
  *       200:
- *         description: Successfully retrieved conversations
+ *         description: Successfully retrieved conversations :)
  *         content:
  *           application/json:
  *             schema:

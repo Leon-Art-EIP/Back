@@ -9,6 +9,7 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copiez uniquement les fichiers nécessaires
 COPY src ./src
+COPY uploads/static ./uploads/static
 COPY server.mjs ./
 # Ajoutez ici d'autres fichiers ou dossiers nécessaires
 

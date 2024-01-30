@@ -7,9 +7,8 @@ export const initializeStripe = (stripeKey) => {
   stripe = new Stripe(stripeKey);
 };
 
-const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
-
 export const createOrder = async (req, res) => {
+  const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
   try {
     const { artPublicationId } = req.body;
     const buyerId = req.user.id;
@@ -43,6 +42,8 @@ export const createOrder = async (req, res) => {
     });
     await newOrder.save();
 
+    console.log("${BASE_WEB_URL}/single/${artPublicationId}/success = " + `${BASE_WEB_URL}/single/${artPublicationId}/success`)
+
     // Créer une session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -59,8 +60,8 @@ export const createOrder = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `http://${BASE_WEB_URL}/single/${artPublicationId}/success`,
-      cancel_url: `http://${BASE_WEB_URL}/single/${artPublicationId}/canceled`,
+      success_url: `${BASE_WEB_URL}/single/${artPublicationId}/success`,
+      cancel_url: `${BASE_WEB_URL}/single/${artPublicationId}/canceled`,
     });
 
     // Enregistrer l'ID de la session de paiement dans la commande

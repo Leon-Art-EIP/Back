@@ -42,8 +42,6 @@ export const createOrder = async (req, res) => {
     });
     await newOrder.save();
 
-    console.log("${BASE_WEB_URL}/single/${artPublicationId}/success = " + `${BASE_WEB_URL}/single/${artPublicationId}/success`)
-
     // Créer une session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

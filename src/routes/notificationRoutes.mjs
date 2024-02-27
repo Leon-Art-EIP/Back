@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getNotifications, markNotificationRead, updateFcmToken } from "../controllers/notification/notificationController.mjs";
+import {
+  getNotifications,
+  markNotificationRead,
+  getUnreadNotificationCount,
+  updateFcmToken,
+} from "../controllers/notification/notificationController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
 
 const router = Router();
@@ -39,8 +44,6 @@ const router = Router();
  *               properties:
  *                 notifications:
  *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Notification'
  *                 total:
  *                   type: integer
  *                   description: Total number of notifications for the user.
@@ -48,66 +51,46 @@ const router = Router();
  *         description: Unauthorized (e.g. invalid token, expired token).
  *       500:
  *         description: Server Error.
-*/
+ */
 router.get("/", authenticate, getNotifications);
 
 /**
  * @swagger
- * /api/notifications/{notificationId}/read:
+ * /api/notifications/{id}/read:
  *   put:
- *     summary: Mark a specific notification as read
- *     description: |
- *       Mark the specified notification as read for the authenticated user.
+ *     summary: Mark a notification as read
+ *     description: Marks a specific notification as read for the authenticated user. This action updates the notification's read status to true.
  *     tags: [Notification]
  *     security:
- *       - bearerAuth: []  # Indicates this endpoint requires a Bearer token.
+ *       - bearerAuth: []  # Indicates this endpoint requires a Bearer token authentication.
  *     parameters:
  *       - in: path
- *         name: notificationId
+ *         name: id
+ *         required: true
+ *         description: The ID of the notification to mark as read.
  *         schema:
  *           type: string
- *         required: true
- *         description: The ID of the notification to be marked as read.
  *     responses:
  *       200:
- *         description: Successfully marked the notification as read.
+ *         description: Notification marked as read successfully. Returns the updated notification information.
  *         content:
  *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Success message.
- *                   example: Notification marked as read.
- *       400:
- *         description: Bad Request (e.g. invalid notification ID).
+ *             example: 
+ *               msg: 'Notification marked as read'
+ *               notification:
+ *                 _id: '60af924c8b549648489f1e2e'
+ *                 recipient: '60af91ea8b549648489f1e2d'
+ *                 type: 'like'
+ *                 content: 'User XYZ liked your post.'
+ *                 referenceId: '60af91ea8b549648489f1e2c'
+ *                 read: true
+ *                 createdAt: '2021-05-26T09:20:12.123Z'
+ *       401:
+ *         description: Unauthorized due to invalid or missing Bearer token.
  *       404:
  *         description: Notification not found.
  *       500:
  *         description: Server Error.
- * 
- * components:
- *   schemas:
- *     Notification:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *           description: The notification ID.
- *         type:
- *           type: string
- *           description: The type of the notification (e.g. "like", "follow", etc.).
- *         content:
- *           type: string
- *           description: The content or description of the notification.
- *         read:
- *           type: boolean
- *           description: Indicates if the notification has been read.
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: The date and time when the notification was created.
  */
 router.put("/:id/read", authenticate, markNotificationRead);
 
@@ -117,7 +100,7 @@ router.put("/:id/read", authenticate, markNotificationRead);
  *   put:
  *     summary: Update the FCM token for the authenticated user
  *     description: |
- *       Update the Firebase Cloud Messaging (FCM) token for the authenticated user 
+ *       Update the Firebase Cloud Messaging (FCM) token for the authenticated user
  *       to enable push notifications.
  *     tags: [Notification]
  *     security:
@@ -152,7 +135,7 @@ router.put("/:id/read", authenticate, markNotificationRead);
  *         description: Unauthorized (e.g. invalid or missing Bearer token).
  *       500:
  *         description: Server Error.
- * 
+ *
  * components:
  *   securitySchemes:
  *     bearerAuth:
@@ -160,7 +143,34 @@ router.put("/:id/read", authenticate, markNotificationRead);
  *       scheme: bearer
  *       bearerFormat: JWT
  */
-router.put('/update-fcm-token', authenticate, updateFcmToken);
+router.put("/update-fcm-token", authenticate, updateFcmToken);
 
+/**
+ * @swagger
+ * /api/notifications/count:
+ *   get:
+ *     summary: Get the count of unread notifications
+ *     description: Retrieves the total count of unread notifications for the authenticated user.
+ *     tags: [Notification]
+ *     security:
+ *       - bearerAuth: []  # Indicates this endpoint requires a Bearer token.
+ *     responses:
+ *       200:
+ *         description: The count of unread notifications.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 unreadCount:
+ *                   type: integer
+ *                   description: The total number of unread notifications.
+ *                   example: 5
+ *       401:
+ *         description: Unauthorized (e.g., invalid or missing Bearer token).
+ *       500:
+ *         description: Server Error.
+ */
+router.get("/count", authenticate, getUnreadNotificationCount);
 
 export default router;

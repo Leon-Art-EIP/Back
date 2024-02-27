@@ -1,5 +1,6 @@
-import { ArtPublication } from '../../models/artPublicationModel.mjs';
-import { Comment } from '../../models/commentModel.mjs';
+import { ArtPublication } from "../../models/artPublicationModel.mjs";
+import { Comment } from "../../models/commentModel.mjs";
+import { createAndSendNotification } from "../notification/notificationController.mjs";
 
 export const addComment = async (req, res) => {
   try {
@@ -15,6 +16,18 @@ export const addComment = async (req, res) => {
 
     artPublication.comments.push(newComment._id);
     await artPublication.save();
+
+        // Send notification to the art publication owner
+    if (artPublication.userId.toString() !== userId) {
+      // Don't notify if the user comments on their own publication
+      createAndSendNotification({
+        recipientId: artPublication.userId,
+        type: "comment",
+        content: `A new comment has been added to your publication.`,
+        referenceId: artPublicationId,
+        sendPush: true,
+      });
+    }
 
     res.json({ 
         msg: 'Comment added',

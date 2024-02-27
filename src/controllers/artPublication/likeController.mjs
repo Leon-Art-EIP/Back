@@ -1,6 +1,7 @@
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { Notification } from "../../models/notificationModel.mjs";
 import { User } from "../../models/userModel.mjs";
+import { createAndSendNotification } from "../notification/notificationController.mjs";
 
 export const likeArtPublication = async (req, res) => {
   try {
@@ -23,26 +24,13 @@ export const likeArtPublication = async (req, res) => {
       artPublication.likes.push(userId);
       // Add liked publication to User
       user.likedPublications.push(artPublicationId);
-    }
-
-    // Send notification if the publication is liked
-    if (!artPublication.likes.includes(userId)) {
-      const recipient = await User.findById(artPublication.userId);
-      const notification = new Notification({
-        recipient: recipient._id,
+      createAndSendNotification({
+        recipientId: artPublication.userId,
+        type: 'like',
         content: `${user.username} liked your publication`,
-        type: "like",
+        referenceId: artPublicationId,
+        sendPush: true,
       });
-      await notification.save();
-
-      // Send push notification if recipient has FCM token
-      if (recipient.fcmToken) /* istanbul ignore next */ {
-        sendFCMMessage(
-          recipient.fcmToken,
-          "New Like",
-          `${user.username} liked your publication`
-        );
-      }
     }
 
     await artPublication.save();

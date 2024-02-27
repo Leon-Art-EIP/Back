@@ -1,5 +1,6 @@
 import { Order } from "../../models/orderModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
+import { createAndSendNotification } from "../notification/notificationController.mjs";
 import Stripe from "stripe";
 let stripe;
 
@@ -26,8 +27,10 @@ export const createOrder = async (req, res) => {
       paymentStatus: "paid",
     });
 
-    if (existingOrder) /* istanbul ignore next */ {
-      return res.status(400).json({ msg: "This art has already been sold" });
+    if (existingOrder) {
+      /* istanbul ignore next */ return res
+        .status(400)
+        .json({ msg: "This art has already been sold" });
     }
 
     const sellerId = artPublication.userId;
@@ -77,7 +80,10 @@ export const createOrder = async (req, res) => {
   }
 };
 
-export const handleStripeWebhook = async (req, res) => /* istanbul ignore next */ {
+export const handleStripeWebhook = async (
+  req,
+  res
+) => /* istanbul ignore next */ {
   const sig = req.headers["stripe-signature"];
   let event;
 
@@ -91,7 +97,6 @@ export const handleStripeWebhook = async (req, res) => /* istanbul ignore next *
   }
   // Handle the checkout.session.completed event
   if (event.type === "checkout.session.completed") {
-    console.log("checkout.session.completed TRIGGERED");
     const session = event.data.object;
 
     // Find the order by the Stripe session ID
@@ -126,9 +131,25 @@ export const handleStripeWebhook = async (req, res) => /* istanbul ignore next *
     // Update the order status
     order.paymentStatus = "paid";
     order.orderState = "paid";
-    console.log("TRANSACTION PAID !!!!");
     await order.save();
 
+    // Notify the buyer about payment success
+    createAndSendNotification({
+      recipientId: order.buyerId,
+      type: "payment_success",
+      content: `Your payment for order ${order._id} has been successfully processed.`,
+      referenceId: order._id,
+      sendPush: true,
+    });
+
+    // Optionally, notify the seller that the payment has been received and the order is now being processed
+    createAndSendNotification({
+      recipientId: order.sellerId,
+      type: "order_processing",
+      content: `Payment for order ${order._id} has been received. The order is now being processed.`,
+      referenceId: order._id,
+      sendPush: true,
+    });
     res.status(200).json({ received: true });
   } else {
     // Handle other event types
@@ -153,14 +174,23 @@ export const updateOrderToShipping = async (req, res) => {
         .json({ msg: "Unauthorized: Only the seller can update the order" });
     }
 
-    if (order.orderState !== "paid") /* istanbul ignore next */ {
-      return res
+    if (order.orderState !== "paid") {
+      /* istanbul ignore next */ return res
         .status(400)
         .json({ msg: "Order must be in paid state to mark as shipping" });
     }
 
     order.orderState = "shipping";
     await order.save();
+
+    // Send notification to the buyer about the order shipping status
+    createAndSendNotification({
+      recipientId: order.buyerId,
+      type: "order_shipping",
+      content: `Your order ${orderId} is now being shipped.`,
+      referenceId: order._id,
+      sendPush: true,
+    });
 
     res.json({ msg: "Order updated to shipping state", order });
   } catch (err) /* istanbul ignore next */ {
@@ -178,12 +208,12 @@ export const getLatestBuyOrders = async (req, res) => {
 
     const buyOrders = await Order.find({
       buyerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] }
+      paymentStatus: { $in: ["paid", "refunded"] },
     })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .populate("artPublicationId", "name description price image");
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("artPublicationId", "name description price image");
 
     const formattedOrders = buyOrders.map((order) => ({
       orderId: order._id,
@@ -202,7 +232,10 @@ export const getLatestBuyOrders = async (req, res) => {
   }
 };
 
-export const getLatestSellOrders = async (req, res) => /* istanbul ignore next */ {
+export const getLatestSellOrders = async (
+  req,
+  res
+) => /* istanbul ignore next */ {
   try {
     const userId = req.user.id;
     const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
@@ -211,7 +244,7 @@ export const getLatestSellOrders = async (req, res) => /* istanbul ignore next *
 
     const sellOrders = await Order.find({
       sellerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] }
+      paymentStatus: { $in: ["paid", "refunded"] },
     })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -243,13 +276,15 @@ export const getBuyOrderById = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       buyerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] }
+      paymentStatus: { $in: ["paid", "refunded"] },
     })
       .populate("artPublicationId", "name description price image")
       .populate("sellerId", "username");
 
-    if (!order) /* istanbul ignore next */ {
-      return res.status(404).json({ msg: "Order not found" });
+    if (!order) {
+      /* istanbul ignore next */ return res
+        .status(404)
+        .json({ msg: "Order not found" });
     }
 
     const formattedOrder = {
@@ -281,7 +316,7 @@ export const getSellOrderById = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       sellerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] }
+      paymentStatus: { $in: ["paid", "refunded"] },
     })
       .populate("artPublicationId", "name description price image")
       .populate("buyerId", "username");
@@ -303,7 +338,7 @@ export const getSellOrderById = async (req, res) => {
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
-    /* istanbul ignore next */ 
+    /* istanbul ignore next */
     res.json(formattedOrder);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -353,6 +388,24 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
       }
     }
 
+    // Notify the seller (current user)
+    createAndSendNotification({
+      recipientId: order.sellerId,
+      type: "order_cancelled",
+      content: `Your order ${order._id} has been cancelled.`,
+      referenceId: order._id,
+      sendPush: true,
+    });
+
+    // Notify the buyer
+    createAndSendNotification({
+      recipientId: order.buyerId,
+      type: "order_cancelled",
+      content: `Your order ${order._id} has been cancelled.`,
+      referenceId: order._id,
+      sendPush: true,
+    });
+
     res.json({ msg: "Order cancelled successfully", order });
   } catch (err) {
     console.error(err.message);
@@ -365,7 +418,9 @@ async function refundOrder(orderId) /* istanbul ignore next */ {
   if (!order) throw new Error("Order not found");
 
   // Retrieve the Stripe Checkout session to get the payment intent
-  const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
+  const session = await stripe.checkout.sessions.retrieve(
+    order.stripeSessionId
+  );
   if (!session || !session.payment_intent) {
     throw new Error("No payment intent found for this order");
   }
@@ -375,12 +430,11 @@ async function refundOrder(orderId) /* istanbul ignore next */ {
     payment_intent: session.payment_intent,
   });
 
-  order.paymentStatus = 'refunded';
+  order.paymentStatus = "refunded";
   await order.save();
 
   return order;
 }
-
 
 export const confirmDeliveryAndRateOrder = async (req, res) => {
   try {
@@ -397,6 +451,17 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
     order.orderState = "completed";
     order.orderRating = rating;
     await order.save();
+
+    // Notify the seller
+    createAndSendNotification({
+      recipientId: order.sellerId,
+      type: "order_completed",
+      content: `Your order ${order._id} has been marked as completed${
+        rating ? ` with a rating of ${rating}/5` : ""
+      }.`,
+      referenceId: order._id,
+      sendPush: true,
+    });
 
     res.json({ msg: "Order completed and rated successfully", order });
   } catch (err) /* istanbul ignore next */ {

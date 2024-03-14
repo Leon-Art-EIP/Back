@@ -54,31 +54,30 @@ pipeline {
             when {
                 branch 'dev'
             }
+            agent any
             steps {
-                script {
-                     node {
-                        try {
-                            echo "Pushing to DockerHub..."
-                            sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER} ."
-                            sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                            sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                            sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER}"
+                script 
+                    try {
+                        echo "Pushing to DockerHub..."
+                        sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER} ."
+                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
+                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER}"
 
-                            echo "Pushed to DockerHub successfully."
-                            echo "Cleaning workspace..."
-                            sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                            sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER}"
-                            
-                            cleanWs(cleanWhenNotBuilt: false,
-                                deleteDirs: true,
-                                disableDeferredWipeout: true,
-                                notFailBuild: true,
-                                patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
-                                        [pattern: '.propsfile', type: 'EXCLUDE']])
-                        } catch(Exception e) {
-                            echo "Stage failed due to exception: ${e}"
-                            error("Failed to push to DockerHub.")
-                        }
+                        echo "Pushed to DockerHub successfully."
+                        echo "Cleaning workspace..."
+                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
+                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER}"
+                        
+                        cleanWs(cleanWhenNotBuilt: false,
+                            deleteDirs: true,
+                            disableDeferredWipeout: true,
+                            notFailBuild: true,
+                            patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                                    [pattern: '.propsfile', type: 'EXCLUDE']])
+                    } catch(Exception e) {
+                        echo "Stage failed due to exception: ${e}"
+                        error("Failed to push to DockerHub.")
                     }
                 }
             }

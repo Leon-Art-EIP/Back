@@ -4,8 +4,6 @@ coverage/
 .env
 .VSCodeCounter
 leon-art-firebase-adminsdk-5xfnu-c0814b59c8.json
-/uploads/*
+/uploads/*.jpg
 test-results/junit.xml
-!/uploads/static/
-!/uploads/static/*
 test-results/

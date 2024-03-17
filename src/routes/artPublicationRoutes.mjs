@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
+import { createArtPublication, deleteArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
 import { likeArtPublication, getPublicationLikeCount, getUsersWhoLikedPublication } from '../controllers/artPublication/likeController.mjs';
 import { addComment, deleteComment, getCommentsByArtPublicationId } from '../controllers/artPublication/commentController.mjs';
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
@@ -81,6 +81,8 @@ import {
  *         description: Server Error.
  */
 router.post('/', authenticate, uploadArtImage, validateArtPublication, createArtPublication);
+
+router.delete('/:id', authenticate, validateArtPublicationId, deleteArtPublication);
 
 /**
  * @swagger

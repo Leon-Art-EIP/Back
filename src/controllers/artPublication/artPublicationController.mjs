@@ -1,4 +1,5 @@
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
+import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
 
 export const createArtPublication = async (req, res) => {
@@ -54,6 +55,34 @@ export const createArtPublication = async (req, res) => {
     }
     console.error(err.message);
     return res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
+export const deleteArtPublication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const artPublication = await ArtPublication.findById(id);
+    
+    if (!artPublication) {
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
+    
+    if (artPublication.userId.toString() !== req.user.id) /* istanbul ignore next */ {
+      return res.status(403).json({ msg: 'User not authorized to delete this publication' });
+    }
+
+    const pendingOrder = await Order.findOne({ artPublicationId: id, orderState: { $ne: 'completed' } });
+
+    if (pendingOrder) {
+      return res.status(400).json({ msg: 'Cannot delete publication with unfinished orders' });
+    }
+
+    await ArtPublication.deleteOne({ _id: id });
+    
+    res.json({ msg: 'Art publication deleted successfully' });
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 

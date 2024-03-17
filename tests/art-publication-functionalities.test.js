@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import app from '../src/app';
 import { User } from '../src/models/userModel.mjs';
 import { ArtPublication } from '../src/models/artPublicationModel.mjs';
+import { Order } from '../src/models/orderModel.mjs';
 import { Comment } from '../src/models/commentModel.mjs';
 import Collection  from '../src/models/collectionModel.mjs';
 
@@ -33,6 +34,8 @@ beforeEach(async () => {
 });
 
 describe('ArtPublication Functionalities', () => {
+  let order;
+
   beforeEach(async () => {
     // Create a sample artPublication
     const artPublication = new ArtPublication({
@@ -57,6 +60,16 @@ describe('ArtPublication Functionalities', () => {
     });
     await comment.save();
     commentId = comment._id.toString();
+        // Create an order to test the prevention of deletion if there's an unfinished order
+        order = await Order.create({
+          artPublicationId: artPublicationId,
+          buyerId: userId,
+          sellerId: userId,
+          orderState: 'pending',
+          paymentStatus: 'pending',
+          orderPrice: 200,
+        });
+    
     
   });
 
@@ -377,5 +390,37 @@ describe('ArtPublication Functionalities', () => {
 
     expect(response.status).toBe(404);
     expect(response.body.msg).toBe('Collection not found');
+  });
+
+  it('DELETE /api/art-publication/:id - Successfully delete an ArtPublication without orders', async () => {
+    // First, make sure no orders exist for this publication
+    await Order.deleteMany({ artPublicationId: artPublicationId });
+
+    const response = await request(app)
+      .delete(`/api/art-publication/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe('Art publication deleted successfully');
+  });
+
+  it('DELETE /api/art-publication/:id - Fail to delete ArtPublication with unfinished orders', async () => {
+    // The setup in beforeEach should ensure an order exists
+    const response = await request(app)
+      .delete(`/api/art-publication/${artPublicationId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe('Cannot delete publication with unfinished orders');
+  });
+
+  it('DELETE /api/art-publication/:id - ArtPublication not found', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const response = await request(app)
+      .delete(`/api/art-publication/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.msg).toBe('Art publication not found');
   });
 });

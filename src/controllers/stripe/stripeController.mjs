@@ -75,9 +75,71 @@ export const handleStripeWebhook = async (
       sendPush: true,
     });
     res.status(200).json({ received: true });
-  } else {
+  } 
+  
+  // Handle the account.updated event
+  else if (event.type === 'account.updated') {
+    const account = event.data.object;
+
+    // Find the user associated with the Stripe account
+    const user = await User.findOne({ 'metadata.userId': account.metadata.userId });
+
+    if (user) {
+      // Update the user with the Stripe account ID
+      user.stripeAccountId = account.id;
+      await user.save();
+      console.log(`User ${user.username} linked Stripe account ${account.id}`);
+    } else {
+      console.log('User not found for the Stripe account');
+    }
+  }
+  
+  else {
     // Handle other event types
     console.log(`Unhandled event type ${event.type}`);
     res.status(200).json({ received: true });
+  }
+};
+
+export const createStripeAccountLink = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    // Check if the user already has a Stripe account ID
+    if (user.stripeAccountId) {
+      return res.status(400).json({ msg: 'User already has a Stripe account linked' });
+    }
+
+    const account = await stripe.accounts.create({
+      type: 'express',
+      metadata: {
+        userId: userId.toString(),
+      },
+      business_type: 'individual',
+      capabilities: {
+        card_payments: {
+          requested: true,
+        },
+        transfers: { requested: true },
+      },
+    });
+
+    // Update the user with the Stripe account ID
+    user.stripeAccountId = account.id;
+    await user.save();
+
+    // Create an account link for the onboarding process
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `${process.env.BASE_WEB_URL}/account/stripe/reauth`,
+      return_url: `${process.env.BASE_WEB_URL}/account/stripe/return`,
+      type: 'account_onboarding',
+    });
+
+    res.json({ url: accountLink.url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
   }
 };

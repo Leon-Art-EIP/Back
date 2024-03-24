@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+console.log(process.env);
+
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';

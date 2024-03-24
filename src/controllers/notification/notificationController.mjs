@@ -44,10 +44,8 @@ async function createAndSendNotification({ recipientId, type, content, reference
   console.log("created notification : " + notification);
 
   if (sendPush) {
-    console.log("Initiating sendPush type notification to userid = " + recipientId);
     const recipient = await User.findById(recipientId);
     if (recipient.fcmToken) {
-      console.log("recipient fcm token found");
       await sendPushNotification(recipient.fcmToken, "New Notification", description);
     }
   }
@@ -58,7 +56,6 @@ export const getNotifications = async (req, res) => {
     const userId = req.user.id;
     const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
     const page = Number(req.query.page) || 1;
-    console.log("recipient: userId = " + userId);
     const notifications = await Notification.find({ recipient: userId })
       .sort('-createdAt')
       .limit(limit)
@@ -108,7 +105,6 @@ export const updateFcmToken = async (req, res) => {
         return res.status(400).json({ msg: "FCM token is required" });
       }
       user.fcmToken = fcmToken;
-      console.log("fcm token saved " + fcmToken);
       await user.save();
   
       res.json({ msg: "FCM token updated successfully" });

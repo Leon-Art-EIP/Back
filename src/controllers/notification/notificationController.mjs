@@ -1,6 +1,17 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { Notification } from '../../models/notificationModel.mjs';
 import { User } from "../../models/userModel.mjs";
 import admin from 'firebase-admin';
+import fs from 'fs';
+
+// Initialize the FCM SDK
+const serviceAccount = JSON.parse(fs.readFileSync(process.env.SERVICE_ACCOUNT_KEY_PATH, 'utf8'));
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://leon-art.firebaseio.com"
+});
 
 // Utility function to send push notifications
 async function sendPushNotification(fcmToken, title, body) {

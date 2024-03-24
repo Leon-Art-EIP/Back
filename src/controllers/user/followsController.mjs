@@ -46,8 +46,9 @@ export const followUser = async (req, res) => {
       createAndSendNotification({
         recipientId: targetUserId,
         type: "follow",
-        content: `${user.username} is now following you.`,
+        content: `${user.username}`,
         referenceId: userId, // Optional: use the follower's ID as reference
+        description: `Someone just followed your profile`,
         sendPush: true,
       });
 

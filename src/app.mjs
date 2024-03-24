@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
-import { initializeStripe } from "./controllers/order/orderController.mjs";
-
 dotenv.config();
 
+import { initializeStripe } from "./controllers/order/orderController.mjs";
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
@@ -35,6 +34,7 @@ import foryouRoutes from './routes/foryouRoutes.mjs';
 
 
 initializeStripe(process.env.STRIPE_SECRET_KEY);
+
 
 const app = express();
 const httpServer = http.createServer(app);

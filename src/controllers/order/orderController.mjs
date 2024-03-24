@@ -137,8 +137,9 @@ export const handleStripeWebhook = async (
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "payment_success",
-      content: `Your payment for order ${order._id} has been successfully processed.`,
+      content: ``,
       referenceId: order._id,
+      description: `Someone just bought one of your publication !`,
       sendPush: true,
     });
 
@@ -146,8 +147,9 @@ export const handleStripeWebhook = async (
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_processing",
-      content: `Payment for order ${order._id} has been received. The order is now being processed.`,
+      content: ``,
       referenceId: order._id,
+      description: `Your Payment has been received, The seller will proceed with the next steps.`,
       sendPush: true,
     });
     res.status(200).json({ received: true });
@@ -187,8 +189,9 @@ export const updateOrderToShipping = async (req, res) => {
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_shipping",
-      content: `Your order ${orderId} is now being shipped.`,
+      content: ``,
       referenceId: order._id,
+      description: `The seller marked your order as currently in shipping`,
       sendPush: true,
     });
 
@@ -392,8 +395,9 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_cancelled",
-      content: `Your order ${order._id} has been cancelled.`,
+      content: ``,
       referenceId: order._id,
+      description: `You just cancelled an order`,
       sendPush: true,
     });
 
@@ -401,8 +405,9 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_cancelled",
-      content: `Your order ${order._id} has been cancelled.`,
+      content: ``,
       referenceId: order._id,
+      description: `One of your order was cancelled`,
       sendPush: true,
     });
 
@@ -456,10 +461,9 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_completed",
-      content: `Your order ${order._id} has been marked as completed${
-        rating ? ` with a rating of ${rating}/5` : ""
-      }.`,
+      content: `${rating}`,
       referenceId: order._id,
+      description: `One of your Order is completed ! You got a rating of ${rating} stars !`,
       sendPush: true,
     });
 

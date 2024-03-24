@@ -1,6 +1,17 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { Notification } from '../../models/notificationModel.mjs';
 import { User } from "../../models/userModel.mjs";
 import admin from 'firebase-admin';
+import fs from 'fs';
+
+// Initialize the FCM SDK
+const serviceAccount = JSON.parse(fs.readFileSync(process.env.SERVICE_ACCOUNT_KEY_PATH, 'utf8'));
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://leon-art.firebaseio.com"
+});
 
 // Utility function to send push notifications
 async function sendPushNotification(fcmToken, title, body) {
@@ -13,15 +24,14 @@ async function sendPushNotification(fcmToken, title, body) {
   };
 
   try {
-    await admin.messaging().send(message);
-    console.log('Push notification sent successfully');
+    await admin.messaging().send(message).then((response) => {console.log('Push notification sent successfully !');}).catch((error) => {console.log('Error sending push notif : ' + error);});
   } catch (error) {
     console.error('Error sending push notification:', error);
   }
 }
 
 // Function to create and optionally send a push notification
-async function createAndSendNotification({ recipientId, type, content, referenceId, sendPush = false }) {
+async function createAndSendNotification({ recipientId, type, content, referenceId, description, sendPush = false }) {
   const notification = new Notification({
     recipient: recipientId,
     type,
@@ -36,7 +46,7 @@ async function createAndSendNotification({ recipientId, type, content, reference
   if (sendPush) {
     const recipient = await User.findById(recipientId);
     if (recipient.fcmToken) {
-      await sendPushNotification(recipient.fcmToken, "New Notification", content);
+      await sendPushNotification(recipient.fcmToken, "New Notification", description);
     }
   }
 }
@@ -46,7 +56,6 @@ export const getNotifications = async (req, res) => {
     const userId = req.user.id;
     const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
     const page = Number(req.query.page) || 1;
-    console.log("recipient: userId = " + userId);
     const notifications = await Notification.find({ recipient: userId })
       .sort('-createdAt')
       .limit(limit)
@@ -96,7 +105,6 @@ export const updateFcmToken = async (req, res) => {
         return res.status(400).json({ msg: "FCM token is required" });
       }
       user.fcmToken = fcmToken;
-
       await user.save();
   
       res.json({ msg: "FCM token updated successfully" });

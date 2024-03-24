@@ -24,15 +24,14 @@ async function sendPushNotification(fcmToken, title, body) {
   };
 
   try {
-    await admin.messaging().send(message);
-    console.log('Push notification sent successfully');
+    await admin.messaging().send(message).then((response) => {console.log('Push notification sent successfully !');}).catch((error) => {console.log('Error sending push notif : ' + error);});
   } catch (error) {
     console.error('Error sending push notification:', error);
   }
 }
 
 // Function to create and optionally send a push notification
-async function createAndSendNotification({ recipientId, type, content, referenceId, sendPush = false }) {
+async function createAndSendNotification({ recipientId, type, content, referenceId, description, sendPush = false }) {
   const notification = new Notification({
     recipient: recipientId,
     type,
@@ -45,9 +44,11 @@ async function createAndSendNotification({ recipientId, type, content, reference
   console.log("created notification : " + notification);
 
   if (sendPush) {
+    console.log("Initiating sendPush type notification to userid = " + recipientId);
     const recipient = await User.findById(recipientId);
     if (recipient.fcmToken) {
-      await sendPushNotification(recipient.fcmToken, "New Notification", content);
+      console.log("recipient fcm token found");
+      await sendPushNotification(recipient.fcmToken, "New Notification", description);
     }
   }
 }
@@ -107,7 +108,7 @@ export const updateFcmToken = async (req, res) => {
         return res.status(400).json({ msg: "FCM token is required" });
       }
       user.fcmToken = fcmToken;
-
+      console.log("fcm token saved " + fcmToken);
       await user.save();
   
       res.json({ msg: "FCM token updated successfully" });

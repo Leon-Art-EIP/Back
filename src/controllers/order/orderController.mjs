@@ -97,6 +97,7 @@ export const handleStripeWebhook = async (
   }
   // Handle the checkout.session.completed event
   if (event.type === "checkout.session.completed") {
+    console.log("checkout.session.completed event detected");
     const session = event.data.object;
 
     // Find the order by the Stripe session ID
@@ -137,7 +138,7 @@ export const handleStripeWebhook = async (
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "payment_success",
-      content: ``,
+      content: ` `,
       referenceId: order._id,
       description: `Someone just bought one of your publication !`,
       sendPush: true,
@@ -147,7 +148,7 @@ export const handleStripeWebhook = async (
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_processing",
-      content: ``,
+      content: ` `,
       referenceId: order._id,
       description: `Your Payment has been received, The seller will proceed with the next steps.`,
       sendPush: true,
@@ -189,7 +190,7 @@ export const updateOrderToShipping = async (req, res) => {
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_shipping",
-      content: ``,
+      content: ` `,
       referenceId: order._id,
       description: `The seller marked your order as currently in shipping`,
       sendPush: true,
@@ -395,7 +396,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_cancelled",
-      content: ``,
+      content: ` `,
       referenceId: order._id,
       description: `You just cancelled an order`,
       sendPush: true,
@@ -405,7 +406,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_cancelled",
-      content: ``,
+      content: ` `,
       referenceId: order._id,
       description: `One of your order was cancelled`,
       sendPush: true,

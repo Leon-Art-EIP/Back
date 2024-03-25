@@ -23,7 +23,7 @@ export const addComment = async (req, res) => {
       createAndSendNotification({
         recipientId: artPublication.userId,
         type: "comment",
-        content: ``,
+        content: ` `,
         referenceId: artPublicationId,
         description: `A new comment has been added to your publication.`,
         sendPush: true,

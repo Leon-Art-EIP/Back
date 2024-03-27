@@ -75,8 +75,6 @@ export const createOrder = async (req, res) => {
   }
 };
 
-
-
 export const updateOrderToShipping = async (req, res) => {
   try {
     const { orderId } = req.body; // Get orderId from request body
@@ -106,8 +104,9 @@ export const updateOrderToShipping = async (req, res) => {
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_shipping",
-      content: `Your order ${orderId} is now being shipped.`,
+      content: ` `,
       referenceId: order._id,
+      description: `The seller marked your order as currently in shipping`,
       sendPush: true,
     });
 
@@ -311,8 +310,9 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_cancelled",
-      content: `Your order ${order._id} has been cancelled.`,
+      content: ` `,
       referenceId: order._id,
+      description: `You just cancelled an order`,
       sendPush: true,
     });
 
@@ -320,8 +320,9 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_cancelled",
-      content: `Your order ${order._id} has been cancelled.`,
+      content: ` `,
       referenceId: order._id,
+      description: `One of your order was cancelled`,
       sendPush: true,
     });
 
@@ -375,10 +376,9 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_completed",
-      content: `Your order ${order._id} has been marked as completed${
-        rating ? ` with a rating of ${rating}/5` : ""
-      }.`,
+      content: `${rating}`,
       referenceId: order._id,
+      description: `One of your Order is completed ! You got a rating of ${rating} stars !`,
       sendPush: true,
     });
 

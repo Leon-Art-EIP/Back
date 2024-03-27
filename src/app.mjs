@@ -1,8 +1,5 @@
 import dotenv from "dotenv";
-
 dotenv.config();
-
-console.log(process.env);
 
 import express from "express";
 import http from 'http';
@@ -33,6 +30,7 @@ import conditionRoute from "./routes/conditionsRoutes.mjs";
 import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
+
 
 const app = express();
 const httpServer = http.createServer(app);

@@ -27,7 +27,8 @@ export const likeArtPublication = async (req, res) => {
       createAndSendNotification({
         recipientId: artPublication.userId,
         type: 'like',
-        content: `${user.username} liked your publication`,
+        content: `${user.username}`,
+        description: `someone liked your publication.`,
         referenceId: artPublicationId,
         sendPush: true,
       });

@@ -21,6 +21,7 @@ export const handleStripeWebhook = async (
   }
   // Handle the checkout.session.completed event
   if (event.type === "checkout.session.completed") {
+    console.log("checkout.session.completed event detected");
     const session = event.data.object;
 
     // Find the order by the Stripe session ID
@@ -61,8 +62,9 @@ export const handleStripeWebhook = async (
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "payment_success",
-      content: `Your payment for order ${order._id} has been successfully processed.`,
+      content: ` `,
       referenceId: order._id,
+      description: `Someone just bought one of your publication !`,
       sendPush: true,
     });
 
@@ -70,12 +72,13 @@ export const handleStripeWebhook = async (
     createAndSendNotification({
       recipientId: order.sellerId,
       type: "order_processing",
-      content: `Payment for order ${order._id} has been received. The order is now being processed.`,
+      content: ` `,
       referenceId: order._id,
+      description: `Your Payment has been received, The seller will proceed with the next steps.`,
       sendPush: true,
     });
     res.status(200).json({ received: true });
-  } 
+  }
   
   // Handle the account.updated event
   else if (event.type === 'account.updated') {

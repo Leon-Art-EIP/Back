@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { initializeStripe } from "./controllers/order/orderController.mjs";
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
@@ -28,12 +27,9 @@ import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
-import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
+import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
-
-
-initializeStripe(process.env.STRIPE_SECRET_KEY);
 
 
 const app = express();

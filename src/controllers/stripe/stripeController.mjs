@@ -109,12 +109,28 @@ export const createStripeAccountLink = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
 
+    let account;
+    let accountLink;
+
     // Check if the user already has a Stripe account ID
     if (user.stripeAccountId) {
-      return res.status(400).json({ msg: 'User already has a Stripe account linked' });
+      // Retrieve the account details from Stripe
+      account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+      // Check if the account is fully set up
+      if (account.details_submitted) {
+        // The account is fully set up, return an error
+        return res.status(400).json({ msg: 'User already has a Stripe account linked' });
+      } else {
+        // The account is incomplete, delete it and create a new one
+        await stripe.accounts.del(user.stripeAccountId);
+        user.stripeAccountId = null;
+        await user.save();
+      }
     }
 
-    const account = await stripe.accounts.create({
+    // Create a new Stripe account
+    account = await stripe.accounts.create({
       type: 'express',
       metadata: {
         userId: userId.toString(),
@@ -128,12 +144,12 @@ export const createStripeAccountLink = async (req, res) => {
       },
     });
 
-    // Update the user with the Stripe account ID
+    // Update the user with the new Stripe account ID
     user.stripeAccountId = account.id;
     await user.save();
 
     // Create an account link for the onboarding process
-    const accountLink = await stripe.accountLinks.create({
+    accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: `${process.env.BASE_WEB_URL}/account/stripe/reauth`,
       return_url: `${process.env.BASE_WEB_URL}/account/stripe/return`,

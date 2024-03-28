@@ -162,3 +162,27 @@ export const createStripeAccountLink = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
+export const checkStripeAccountLink = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user.stripeAccountId) {
+      return res.status(404).json({ msg: 'User has not linked a Stripe account' });
+    }
+
+    // Retrieve the account details from Stripe
+    const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+    // Check if the account is fully set up
+    if (account.details_submitted) {
+      return res.status(200).json({ linked: true });
+    } else {
+      return res.status(200).json({ linked: false });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};

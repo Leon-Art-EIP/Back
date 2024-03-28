@@ -1,5 +1,5 @@
 import express from 'express';
-import { createStripeAccountLink } from '../controllers/stripe/stripeController.mjs';
+import { createStripeAccountLink, checkStripeAccountLink } from '../controllers/stripe/stripeController.mjs';
 import { authenticate } from "../middleware/authenticate.mjs";
 
 const router = express.Router();
@@ -27,5 +27,31 @@ const router = express.Router();
  *         description: Server error.
  */
 router.post('/account-link', authenticate, createStripeAccountLink);
+
+/**
+ * @swagger
+ * /api/stripe/account-link-status:
+ *   get:
+ *     summary: Check if the user has a linked Stripe account
+ *     tags: [Stripe]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Stripe account link status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 linked:
+ *                   type: boolean
+ *                   description: Indicates whether the user has a completely linked Stripe account or not
+ *       '404':
+ *         description: User has not linked a Stripe account
+ *       '500':
+ *         description: Server error
+ */
+router.get('/account-link-status', authenticate, checkStripeAccountLink);
 
 export default router;

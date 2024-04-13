@@ -2,21 +2,22 @@ import { Article } from "../../models/articleModel.mjs";
 
 export const postArticle = async (req, res) => {
   try {
-    const { title, mainImage, content } = req.body;
+    const { title, content } = req.body;
     const userId = req.user.id;
+    const mainImage = req.file ? req.file.path : null; // Get the path of the uploaded image
 
     const article = new Article({
       title,
       mainImage,
       content,
-      author: userId
+      author: userId,
     });
 
     await article.save();
     res.status(201).json(article);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };
 

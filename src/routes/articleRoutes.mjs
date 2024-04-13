@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/authenticate.mjs';
 import { checkArticleAuthorization } from '../middleware/checkArticleAuthorization.mjs';
 import { postArticle, getLatestArticles } from '../controllers/article/articleController.mjs';
 import { validateArticle } from '../middleware/validation/articleValidation.mjs';
+import { uploadArticleImage } from "../middleware/uploadMiddleware.mjs";
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -27,12 +28,13 @@ const router = express.Router();
  *                 description: Title of the article.
  *               mainImage:
  *                 type: string
- *                 description: Main image URL for the article.
+ *                 format: binary
+ *                 description: Main image file for the article.
  *               content:
  *                 type: string
  *                 description: Rich-text content of the article (HTML).
  *     responses:
- *       201:
+ *       '201':
  *         description: Article posted successfully.
  *         content:
  *           application/json:
@@ -48,15 +50,23 @@ const router = express.Router();
  *                 author:
  *                   type: string
  *                 createdAt:
- *                   type: date
- *       401:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
  *         description: Unauthorized.
- *       403:
+ *       '403':
  *         description: User not authorized to post articles.
- *       500:
+ *       '500':
  *         description: Server error.
  */
-router.post('/', authenticate, checkArticleAuthorization, validateArticle, postArticle);
+router.post(
+    '/',
+    authenticate,
+    uploadArticleImage,
+    checkArticleAuthorization,
+    validateArticle,
+    postArticle
+  );
 
 /**
  * @swagger

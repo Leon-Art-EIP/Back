@@ -3,7 +3,7 @@ import * as AdminJSMongoose from '@adminjs/mongoose';
 import bcrypt from 'bcrypt';
 
 // Importez vos modèles ici
-import { User } from '../models/userModel.mjs';
+import { User } from '../models/userModel.js';
 import { ArtPublication } from '../models/artPublicationModel.mjs';
 import { Comment } from '../models/commentModel.mjs';
 import { Quizz } from '../models/quizzModel.mjs';

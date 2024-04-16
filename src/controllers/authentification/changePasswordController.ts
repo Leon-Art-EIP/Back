@@ -1,4 +1,4 @@
-import { User } from "../../models/userModel.mjs";
+import User from "../../models/userModel.js";
 import bcrypt from "bcrypt";
 
 export const changePassword = async (req, res) => {

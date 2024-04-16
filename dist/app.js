@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
+import { initializeStripe } from "./controllers/order/orderController.mjs";
 dotenv.config();
-
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
@@ -27,30 +27,28 @@ import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
 import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
-import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
+import { handleStripeWebhook } from "./controllers/order/orderController.mjs";
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
-
-
+import googleRoutes from "./routes/googleRoutes.mjs";
+initializeStripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const httpServer = http.createServer(app);
 
 // Configuration de socket.io
 const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
-
 global.onlineUsers = new Map();
-io.on("connection", (socket) => /* istanbul ignore next */ {
+io.on("connection", socket => /* istanbul ignore next */{
   global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
+  socket.on("add-user", userId => {
     onlineUsers.set(userId, socket.id);
   });
-
-  socket.on("send-msg", (data) => {
+  socket.on("send-msg", data => {
     const sendUserSocket = onlineUsers.get(data.to);
     if (sendUserSocket) {
       const message = new Message({
@@ -59,12 +57,11 @@ io.on("connection", (socket) => /* istanbul ignore next */ {
         contentType: "text",
         content: data.msg,
         dateTime: new Date().toISOString()
-    });
+      });
       socket.to(sendUserSocket).emit("msg-recieve", message);
     }
   });
 });
-
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
@@ -74,37 +71,30 @@ const swaggerOptions = {
       description: "API documentation for the LeonArt project",
       contact: {
         name: "LeonArt Team",
-        email: "leonarteip@epitechfr.onmicrosoft.com",
+        email: "leonarteip@epitechfr.onmicrosoft.com"
       },
-      servers: [
-        {
-          url: "http://localhost:5000/api",
-          description: "Development server",
-        },
-      ],
+      servers: [{
+        url: "http://localhost:5000/api",
+        description: "Development server"
+      }]
     },
     components: {
       securitySchemes: {
         bearerAuth: {
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT",
-        },
-      },
-    },
+          bearerFormat: "JWT"
+        }
+      }
+    }
   },
-  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"], // Changed the file extension to .mjs
+  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"] // Changed the file extension to .mjs
 };
-
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
 app.use(cors());
-
-app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { explorer: true })
-);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true
+}));
 
 // webhooks :
 
@@ -127,13 +117,16 @@ app.use(
  *       500:
  *         description: Server error.
  */
-app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
+app.post('/webhooks/stripe', bodyParser.raw({
+  type: 'application/json'
+}), handleStripeWebhook);
 
 // Init Middleware
-app.use(express.json({ extended: false }));
+app.use(express.json({
+  extended: false
+}));
 
 // Define Routes
-
 
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
@@ -152,37 +145,29 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/foryou', foryouRoutes);
+app.use('/', googleRoutes);
 
 // AdminJS CONFIG
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-
 const admin = new AdminJS(adminOptions);
 const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-  authenticate: async (email, password) => /* istanbul ignore next */ {
+  authenticate: async (email, password) => /* istanbul ignore next */{
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      return { email: ADMIN_EMAIL };
+      return {
+        email: ADMIN_EMAIL
+      };
     }
     return false;
   },
   cookieName: 'adminjs',
-  cookiePassword: 'super-secret-and-long-cookie-password',
+  cookiePassword: 'super-secret-and-long-cookie-password'
 });
-
-app.use(
-  expressSession({
-    secret: "some-secret",
-    resave: true,
-    saveUninitialized: true,
-  })
-);
-
+app.use(expressSession({
+  secret: "some-secret",
+  resave: true,
+  saveUninitialized: true
+}));
 app.use(admin.options.rootPath, adminRouter);
-
-
-
-
-
-
 export default app; // Export app
 export { httpServer }; // Exportez httpServer pour le démarrage

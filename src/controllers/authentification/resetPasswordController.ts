@@ -1,10 +1,11 @@
-import { User } from "../../models/userModel.mjs";
+import User from "../../models/userModel.js";
 import { ResetToken } from "../../models/resetPasswordTokenModel.mjs";
 import { isTokenValid } from "../../utils/tokenValidation.mjs";
 import { createTransport } from "nodemailer";
 import { genSalt, hash } from "bcrypt";
 import { randomBytes } from "crypto";
 import jwt from "jsonwebtoken";
+
 
 export async function requestReset(req, res) {
   const { email } = req.body;

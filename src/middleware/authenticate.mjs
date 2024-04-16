@@ -1,4 +1,5 @@
-import { verify } from "jsonwebtoken";
+import pkg from "jsonwebtoken";
+const { verify } = pkg;
 
 export function authenticate(req, res, next) /* istanbul ignore next */ {
   let token = req.header("Authorization");

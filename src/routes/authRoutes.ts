@@ -1,18 +1,20 @@
 import { Router } from "express";
 const router = Router();
-import { login } from "../controllers/authentification/loginController.mjs";
-import { validateLogin } from "../middleware/validation/loginValidation.mjs";
-import { signup } from "../controllers/authentification/signupController.mjs";
-import { validateSignup } from "../middleware/validation/signupValidation.mjs";
+
+// Import des controllers et middlewares avec des chemins mis à jour pour TypeScript
+import { login } from "../controllers/authentification/loginController";
+import { validateLogin } from "../middleware/validation/loginValidation";
+import { signup } from "../controllers/authentification/signupController";
+import { validateSignup } from "../middleware/validation/signupValidation";
 import {
   requestReset,
   validateResetToken,
   resetPassword,
-} from "../controllers/authentification/resetPasswordController.mjs";
-import { validateResetPassword } from "../middleware/validation/resetPasswordValidation.mjs";
-import { changePassword } from "../controllers/authentification/changePasswordController.mjs";
-import { validateChangePassword } from "../middleware/validation/changePasswordValidation.mjs";
-import { authenticate } from "../middleware/authenticate.mjs";
+} from "../controllers/authentification/resetPasswordController";
+import { validateResetPassword } from "../middleware/validation/resetPasswordValidation";
+import { changePassword } from "../controllers/authentification/changePasswordController";
+import { validateChangePassword } from "../middleware/validation/changePasswordValidation";
+import { authenticate } from "../middleware/authenticate";
 
 
 /**

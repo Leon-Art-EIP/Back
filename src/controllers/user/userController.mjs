@@ -1,27 +1,26 @@
-import { User } from "../../models/userModel.mjs";
+import { getRepository } from "fireorm";
+import User from "../../models/userModel.js";
+import "../../config/firebaseInitialization.js";
+
+const userRepository = getRepository(User);
 
 export const checkUsernameAvailability = async (req, res) => {
   const username = req.params.username;
 
   try {
     // Sanitize and Validate username input
-    if (
-      !username ||
-      username.length < 3 ||
-      username.length > 20 ||
-      !/^\w+$/.test(username)
-    ) {
+    if (!username || username.length < 3 || username.length > 20 || !/^\w+$/.test(username)) {
       return res.status(400).json({ msg: "Invalid username format" });
     }
 
     // Check username against the database
-    const user = await User.findOne({ username });
-    if (user) {
+    const users = await userRepository.whereEqualTo('username', username).find();
+    if (users.length > 0) {
       return res.status(409).json({ msg: "Username is already in use" });
     }
 
     return res.json({ msg: "Username is available" });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: "Server Error" });
   }
@@ -38,13 +37,13 @@ export const checkEmailAvailability = async (req, res) => {
     }
 
     // Check email against the database
-    const user = await User.findOne({ email });
-    if (user) {
+    const users = await userRepository.whereEqualTo('email', email).find();
+    if (users.length > 0) {
       return res.status(409).json({ msg: "Email is already in use" });
     }
 
     return res.json({ msg: "Email is available" });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: "Server Error" });
   }

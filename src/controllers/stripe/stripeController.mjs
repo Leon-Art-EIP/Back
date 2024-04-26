@@ -19,15 +19,26 @@ export const handleStripeWebhook = async (
     console.log("err.message = " + err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+
   // Handle the checkout.session.completed event
   if (event.type === "checkout.session.completed") {
     console.log("checkout.session.completed event detected");
     const session = event.data.object;
 
-    // Find the order by the Stripe session ID
-    const order = await Order.findOne({ stripeSessionId: session.id });
+    // Use the Stripe session ID to find the order
+    const order = await Order.findOne({
+      stripeSessionId: session.id,
+      paymentStatus: "pending",
+    });
     if (!order) {
+      console.log("Order not found for Stripe Session ID: " + session.id);
       return res.status(404).send("Order not found");
+    }
+
+    // If the order is already marked as paid elsewhere, handle this gracefully
+    if (order.paymentStatus === "paid") {
+      console.log("Order already processed as paid");
+      return res.status(200).json({ received: true });
     }
 
     // Check for existing paid orders for the same art publication
@@ -40,22 +51,26 @@ export const handleStripeWebhook = async (
     if (existingPaidOrder) {
       console.log("already existingPaidOrder");
       // Refund the order as the art publication has already been sold
-      await refundOrder(order._id);
       return res.status(200).json({ received: true, action: "refunded" });
     }
 
-    // Mark the art publication as sold
+    // Check if the art has been marked as sold by another order (which shouldn't generally happen if concurrency is handled correctly)
     const artPublication = await ArtPublication.findById(
       order.artPublicationId
     );
-    if (artPublication && !artPublication.isSold) {
-      artPublication.isSold = true;
-      await artPublication.save();
+    if (artPublication.isSold) {
+      console.log("Art publication already sold");
+      return res.status(200).json({ received: true, action: "already_sold" });
     }
 
-    // Update the order status
-    order.paymentStatus = "paid";
-    order.orderState = "paid";
+
+    // Update art publication status
+    artPublication.isSold = true;
+    await artPublication.save();
+
+    // Update order status to reflect that payment is authorized
+    order.paymentStatus = "authorized";
+    order.orderState = "claimed";
     await order.save();
 
     // Notify the buyer about payment success
@@ -79,6 +94,7 @@ export const handleStripeWebhook = async (
     });
     res.status(200).json({ received: true });
   }
+  
   
   // Handle the account.updated event
   else if (event.type === 'account.updated') {

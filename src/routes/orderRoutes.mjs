@@ -100,7 +100,7 @@ router.post('/create', authenticate, createOrder);
  *       403:
  *         description: Unauthorized, only the seller can confirm the shipment.
  *       400:
- *         description: Bad request, order must be in paid state to be marked as shipping.
+ *         description: Bad request, order must be in claimed state to be marked as shipping.
  *       500:
  *         description: Server error.
  */
@@ -228,7 +228,7 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  *   post:
  *     summary: Cancel an order
  *     description: >
- *       Allows the seller to cancel an order. If the order is already paid,
+ *       Allows the seller to cancel an order. If the order is already claimed,
  *       this will initiate a refund process through Stripe and mark the order as refunded.
  *       Additionally, if the art publication is not sold to another buyer, it will be set as unsold.
  *     tags: [Order]
@@ -244,7 +244,7 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  *     responses:
  *       200:
  *         description: >
- *           Order cancelled successfully. If already paid, the order is refunded
+ *           Order cancelled successfully. If already claimed, the order is refunded
  *           and the art publication status is updated if necessary.
  *       404:
  *         description: Order not found.

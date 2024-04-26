@@ -1,10 +1,10 @@
 import { Order } from "../../models/orderModel.mjs";
+import { User } from "../../models/userModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
 
 export const createOrder = async (req, res) => {
-  const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
   try {
     const { artPublicationId } = req.body;
     const buyerId = req.user.id;
@@ -19,7 +19,7 @@ export const createOrder = async (req, res) => {
     // Vérifier si une commande payée existe déjà pour cette publication
     const existingOrder = await Order.findOne({
       artPublicationId: artPublication._id,
-      paymentStatus: "paid",
+      paymentStatus: "claimed",
     });
 
     if (existingOrder) {
@@ -29,6 +29,7 @@ export const createOrder = async (req, res) => {
     }
 
     const sellerId = artPublication.userId;
+    const seller = await User.findById(sellerId);
 
     // Créer d'abord l'objet newOrder
     const newOrder = new Order({
@@ -43,21 +44,29 @@ export const createOrder = async (req, res) => {
     // Créer une session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: artPublication.name, // ou autre nom de produit
-            },
-            unit_amount: artPublication.price * 100,
+      line_items: [{
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: artPublication.name,
           },
-          quantity: 1,
+          unit_amount: artPublication.price * 100,
         },
-      ],
+        quantity: 1,
+      }],
       mode: "payment",
-      success_url: `${BASE_WEB_URL}/single/${artPublicationId}/success`,
-      cancel_url: `${BASE_WEB_URL}/single/${artPublicationId}/canceled`,
+      payment_intent_data: {
+        capture_method: "manual",  // Set capture method to manual
+        application_fee_amount: 0,  // Optionally, you can take a cut here by specifying a fee
+        transfer_data: {
+          destination: seller.stripeAccountId,
+        },
+      },
+      success_url: `${process.env.BASE_WEB_URL}/single/${artPublicationId}/success`,
+      cancel_url: `${process.env.BASE_WEB_URL}/single/${artPublicationId}/canceled`,
+      metadata: {
+        artPublicationId: artPublicationId.toString(),
+      },
     });
 
     // Enregistrer l'ID de la session de paiement dans la commande
@@ -91,10 +100,10 @@ export const updateOrderToShipping = async (req, res) => {
         .json({ msg: "Unauthorized: Only the seller can update the order" });
     }
 
-    if (order.orderState !== "paid") {
+    if (order.orderState !== "claimed") {
       /* istanbul ignore next */ return res
         .status(400)
-        .json({ msg: "Order must be in paid state to mark as shipping" });
+        .json({ msg: "Order must be in claimed state to mark as shipping" });
     }
 
     order.orderState = "shipping";
@@ -126,7 +135,7 @@ export const getLatestBuyOrders = async (req, res) => {
 
     const buyOrders = await Order.find({
       buyerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
+      paymentStatus: { $in: ["authorized", "paid", "refunded"] },
     })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -162,7 +171,7 @@ export const getLatestSellOrders = async (
 
     const sellOrders = await Order.find({
       sellerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
+      paymentStatus: { $in: ["authorized", "paid", "refunded"] },
     })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -194,7 +203,7 @@ export const getBuyOrderById = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       buyerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
+      paymentStatus: { $in: ["authorized","paid", "refunded"] },
     })
       .populate("artPublicationId", "name description price image")
       .populate("sellerId", "username");
@@ -234,7 +243,7 @@ export const getSellOrderById = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       sellerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
+      paymentStatus: { $in: ["authorized", "paid", "refunded"] },
     })
       .populate("artPublicationId", "name description price image")
       .populate("buyerId", "username");
@@ -277,16 +286,18 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
       return res.status(403).json({ msg: "Unauthorized" });
     }
 
-    // If the order is already paid, initiate a refund
-    if (order.paymentStatus === "paid") {
+    // If the order is already authorized, initiate a refund
+    if (order.paymentStatus === "authorized") {
       // Refund through Stripe
       await refundOrder(order._id);
+    } else {
+      return res.status(403).json({ msg: "order not refundable at this point" });
     }
 
     // Cancel the order in the database
     order.orderState = "cancelled";
     order.paymentStatus =
-      order.paymentStatus === "paid" ? "refunded" : "pending";
+      order.paymentStatus === "authorized" ? "refunded" : "pending";
     await order.save();
 
     // If the artPublication is not sold to someone else, set it as unsold
@@ -296,7 +307,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     if (artPublication && artPublication.isSold) {
       const otherPaidOrder = await Order.findOne({
         artPublicationId: order.artPublicationId,
-        paymentStatus: "paid",
+        paymentStatus: "authorized",
         _id: { $ne: orderId },
       });
 
@@ -367,7 +378,25 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
     if (order.buyerId.toString() !== req.user.id) {
       return res.status(403).json({ msg: "Unauthorized" });
     }
+    // Ensure the order is in the right state and the user calling this function has the right to do so
+    if (order.orderState !== "shipping") {
+      return res.status(403).json({ msg: "invalid order state" });
+    }
 
+    // Retrieve the Stripe session to get the payment intent
+    const session = await stripe.checkout.sessions.retrieve(
+      order.stripeSessionId
+    );
+
+    if (!session || !session.payment_intent) {
+      return res.status(400).json({ msg: "No payment intent found" });
+    }
+
+    // Capture the payment meaning it is transfered
+    const capture = await stripe.paymentIntents.capture(session.payment_intent);
+
+    // Update order status
+    order.paymentStatus = "paid";
     order.orderState = "completed";
     order.orderRating = rating;
     await order.save();

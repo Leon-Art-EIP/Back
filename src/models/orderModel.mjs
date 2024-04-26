@@ -19,13 +19,13 @@ const OrderSchema = new Schema({
   },
   orderState: {
     type: String,
-    enum: ["pending", "paid", "cancelled", "shipping", "completed"],
+    enum: ["pending", "claimed", "paid", "cancelled", "shipping", "completed"],
     default: "pending",
     required: true
   },
   paymentStatus: {
     type: String,
-    enum: ["pending", "paid", "refunded"],
+    enum: ["pending", "authorized", "paid", "refunded"],
     default: "pending"
   },
   orderRating: {

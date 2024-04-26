@@ -1,3 +1,4 @@
+import { checkStripeAccountLink } from '../stripe/stripeController.mjs';
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
@@ -6,6 +7,15 @@ export const createArtPublication = async (req, res) => {
   try {
     const userId = req.user.id; // From the token
     const user = await User.findById(userId);
+
+
+    // If the art is for sale and the user doesn't have a linked Stripe account, return an error
+    if (req.body.isForSale && !user.stripeAccountId) {
+      return res
+        .status(400)
+        .json({ msg: "You must link a Stripe account to sell art" });
+    }
+
     const {
       image = req.file?.path,
       artType,
@@ -14,7 +24,7 @@ export const createArtPublication = async (req, res) => {
       dimension,
       isForSale,
       price,
-      location
+      location,
     } = req.body;
 
     const newPublication = new ArtPublication({

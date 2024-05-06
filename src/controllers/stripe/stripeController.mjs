@@ -107,6 +107,7 @@ export const handleStripeWebhook = async (
 export const createStripeAccountLink = async (req, res) => {
   try {
     const userId = req.user.id;
+    const source = req.body.source;
     const user = await User.findById(userId);
 
     let account;
@@ -137,9 +138,7 @@ export const createStripeAccountLink = async (req, res) => {
       },
       business_type: 'individual',
       capabilities: {
-        card_payments: {
-          requested: true,
-        },
+        card_payments: { requested: true },
         transfers: { requested: true },
       },
     });
@@ -148,11 +147,19 @@ export const createStripeAccountLink = async (req, res) => {
     user.stripeAccountId = account.id;
     await user.save();
 
+    // Define the redirect URLs dynamically based on the source
+    const refreshUrl = source === 'web'
+      ? `${process.env.BASE_WEB_URL}/settings/me`
+      : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
+    const returnUrl = source === 'web'
+      ? `${process.env.BASE_WEB_URL}/settings/me`
+      : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
+
     // Create an account link for the onboarding process
     accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.BASE_WEB_URL}/account/stripe/reauth`,
-      return_url: `${process.env.BASE_WEB_URL}/account/stripe/return`,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
       type: 'account_onboarding',
     });
 

@@ -12,6 +12,16 @@ const router = express.Router();
  *     tags: [Stripe]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               source:
+ *                 type: string
+ *                 description: Source of the request ('web' or 'mobile').
  *     responses:
  *       200:
  *         description: Stripe account link created successfully.
@@ -23,6 +33,8 @@ const router = express.Router();
  *                 url:
  *                   type: string
  *                   description: URL to open in the webview to link the Stripe account.
+ *       400:
+ *         description: User already has a linked Stripe account.
  *       500:
  *         description: Server error.
  */

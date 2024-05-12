@@ -3,6 +3,7 @@ import { Order } from "../../models/orderModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
+import { socketManager } from '../../app.mjs';
 
 export const handleStripeWebhook = async (
   req,
@@ -60,7 +61,7 @@ export const handleStripeWebhook = async (
 
     // Notify the buyer about payment success
     createAndSendNotification({
-      recipientId: order.buyerId,
+      recipientId: order.sellerId,
       type: "payment_success",
       content: ` `,
       referenceId: order._id,
@@ -70,13 +71,17 @@ export const handleStripeWebhook = async (
 
     // Optionally, notify the seller that the payment has been received and the order is now being processed
     createAndSendNotification({
-      recipientId: order.sellerId,
+      recipientId: order.buyerId,
       type: "order_processing",
       content: ` `,
       referenceId: order._id,
       description: `Your Payment has been received, The seller will proceed with the next steps.`,
       sendPush: true,
     });
+
+    // Notifier le front-end de rafraîchir les données
+    socketManager.handleRefreshOrders(order.sellerId);
+
     res.status(200).json({ received: true });
   }
   

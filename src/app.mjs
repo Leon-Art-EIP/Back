@@ -4,7 +4,6 @@ dotenv.config();
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
-import { Server } from 'socket.io';
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 import collectionRoutes from "./routes/collectionRoutes.mjs";
@@ -25,45 +24,17 @@ import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
-import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
 import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
+import SocketManager from "./utils/socketManager.mjs";
 
 
 const app = express();
 const httpServer = http.createServer(app);
 
-// Configuration de socket.io
-const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
-
-global.onlineUsers = new Map();
-io.on("connection", (socket) => /* istanbul ignore next */ {
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
-  });
-
-  socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
-    if (sendUserSocket) {
-      const message = new Message({
-        id: data.convId,
-        senderId: data.from,
-        contentType: "text",
-        content: data.msg,
-        dateTime: new Date().toISOString()
-    });
-      socket.to(sendUserSocket).emit("msg-recieve", message);
-    }
-  });
-});
+export const socketManager = new SocketManager(httpServer);
 
 const swaggerOptions = {
   swaggerDefinition: {

@@ -256,8 +256,8 @@ router.get('/messages/:chatId', async (req, res) => {
     try {
         const messages = await Message.find({ id: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
-        const conversation = await Conversation.findOne({ _id: chatId });
-        conversation.unreadMessages = false;
+        await Conversation.updateOne({ _id: chatId }, { $set: { unreadMessages: false } });
+        
         res.json({ messages: messages });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);

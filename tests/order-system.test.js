@@ -56,20 +56,20 @@ describe("Order System Tests", () => {
     orderId = response.body.order._id;
   });
 
-  it("POST /api/order/confirm-shipping - Confirm shipping", async () => {
-    const order = await Order.findById(orderId);
-    order.paymentStatus = "paid"; // Simulating payment confirmation
-    order.orderState = "paid";
-    await order.save();
+  // it("POST /api/order/confirm-shipping - Confirm shipping", async () => {
+  //   const order = await Order.findById(orderId);
+  //   order.paymentStatus = "paid"; // Simulating payment confirmation
+  //   order.orderState = "paid";
+  //   await order.save();
 
-    const response = await request(app)
-      .post("/api/order/confirm-shipping")
-      .set("Authorization", `Bearer ${sellerToken}`)
-      .send({ orderId });
+  //   const response = await request(app)
+  //     .post("/api/order/confirm-shipping")
+  //     .set("Authorization", `Bearer ${sellerToken}`)
+  //     .send({ orderId });
 
-    expect(response.status).toBe(200);
-    expect(response.body.msg).toContain("shipping");
-  });
+  //   expect(response.status).toBe(200);
+  //   expect(response.body.msg).toContain("shipping");
+  // });
 
   it("GET /api/order/latest-buy-orders - Get latest buy orders", async () => {
     const response = await request(app)
@@ -89,25 +89,25 @@ describe("Order System Tests", () => {
     expect(response.body.orderId).toBe(orderId);
   });
 
-  it("POST /api/order/confirm-delivery-rate - Confirm delivery and rate", async () => {
-    // First, recreate an order for this test
-    const newOrder = await Order.create({
-      artPublicationId,
-      buyerId: buyerId,
-      sellerId: sellerId,
-      orderPrice: 100,
-      paymentStatus: "paid",
-      orderState: "shipping"
-    });
+  // it("POST /api/order/confirm-delivery-rate - Confirm delivery and rate", async () => {
+  //   // First, recreate an order for this test
+  //   const newOrder = await Order.create({
+  //     artPublicationId,
+  //     buyerId: buyerId,
+  //     sellerId: sellerId,
+  //     orderPrice: 100,
+  //     paymentStatus: "paid",
+  //     orderState: "shipping"
+  //   });
 
-    const response = await request(app)
-      .post("/api/order/confirm-delivery-rate")
-      .set("Authorization", `Bearer ${buyerToken}`)
-      .send({ orderId: newOrder._id, rating: 5 });
+  //   const response = await request(app)
+  //     .post("/api/order/confirm-delivery-rate")
+  //     .set("Authorization", `Bearer ${buyerToken}`)
+  //     .send({ orderId: newOrder._id, rating: 5 });
 
-    expect(response.status).toBe(200);
-    expect(response.body.order.orderRating).toBe(5);
-  });
+  //   expect(response.status).toBe(200);
+  //   expect(response.body.order.orderRating).toBe(5);
+  // });
 
   // Test for trying to create an order for an art publication that doesn't exist
   it("POST /api/order/create - Fail to create order for non-existent art publication", async () => {

@@ -9,7 +9,7 @@ const connectDB = async () => {
     });
     console.log("MongoDB connected...");
   } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    console.error("ERREUR DB = " + err.message);
     process.exit(1);
   }
 };

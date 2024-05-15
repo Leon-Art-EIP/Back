@@ -20,6 +20,14 @@ const userSchema = new Schema({
   profilePicture: { type: String, default: 'uploads/static/default-profile-pic.png' },
   bannerPicture: { type: String, default: 'uploads/static/default-banner-pic.png' },
   stripeAccountId: { type: String },
+  quizz: { type: Schema.Types.ObjectId, ref: 'Quizz' },
+  location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: {
+      type: [Number],
+      index: '2dsphere'
+    },
+  },
 });
 
 export const User = mongoose.model("User", userSchema);

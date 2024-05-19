@@ -19,6 +19,8 @@ import expressSession from "express-session";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
+import locationRoutes from "./routes/locationRoutes.mjs";
+import mapRoutes from "./routes/mapRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
@@ -29,6 +31,8 @@ import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
 import SocketManager from "./utils/socketManager.mjs";
+
+
 
 
 const app = express();
@@ -123,6 +127,9 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/foryou', foryouRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/map", mapRoutes);
+
 
 // AdminJS CONFIG
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;

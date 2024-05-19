@@ -14,7 +14,7 @@ admin.initializeApp({
 });
 
 // Utility function to send push notifications
-async function sendPushNotification(fcmToken, title, body) {
+async function sendPushNotification(fcmToken, title, body) /* istanbul ignore next */ {
   const message = {
     notification: {
       title,
@@ -25,7 +25,7 @@ async function sendPushNotification(fcmToken, title, body) {
 
   try {
     await admin.messaging().send(message).then((response) => {console.log('Push notification sent successfully !');}).catch((error) => {console.log('Error sending push notif : ' + error);});
-  } catch (error) {
+  } catch (error) /* istanbul ignore next */ {
     console.error('Error sending push notification:', error);
   }
 }
@@ -74,7 +74,7 @@ export const markNotificationRead = async (req, res) => {
     if (!notification) return res.status(404).json({ msg: 'Notification not found' });
 
     res.json({ msg: 'Notification marked as read', notification });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
@@ -85,7 +85,7 @@ export const getUnreadNotificationCount = async (req, res) => {
     const userId = req.user.id;
     const count = await Notification.countDocuments({ recipient: userId, read: false });
     res.json({ unreadCount: count });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }

@@ -25,18 +25,20 @@ describe('Article routes', () => {
   it('POST /api/article - Create a new Article (Success)', async () => {
     const payload = {
       title: 'Artistic Innovations of 2023',
-      mainImage: 'mainImage.jpg',
       content: '<p>This is the article content.</p>'
     };
-
+  
     const response = await request(app)
       .post('/api/article')
       .set('Authorization', `Bearer ${token}`)
-      .send(payload);
-
+      .field('title', payload.title)
+      .field('content', payload.content)
+      .attach('mainImage', 'test-files/sample-banner.jpg');
+  
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('title', payload.title);
   });
+  
 
   it('POST /api/article - Missing required fields', async () => {
     const payload = {

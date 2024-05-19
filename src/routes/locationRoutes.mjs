@@ -41,10 +41,34 @@ import { validateLocation } from "../middleware/validation/locationValidation.mj
  *                   description: Message indicating the success of the location update.
  *       400:
  *         description: Missing or invalid location data.
- *       422:
- *         description: Validation error (e.g. invalid latitude or longitude).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message.
  *       500:
  *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message.
  */
 router.post("/update", authenticate, validateLocation, updateUserLocation);
 

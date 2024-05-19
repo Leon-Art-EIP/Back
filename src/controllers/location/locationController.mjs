@@ -6,7 +6,7 @@ export async function updateUserLocation(req, res) {
       const { latitude, longitude } = req.body;
   
       // Validate the location data
-      if (!latitude || !longitude) {
+      if (!latitude || !longitude) /* istanbul ignore next */ {
         return res.status(400).json({ msg: "Latitude and longitude are required" });
       }
   

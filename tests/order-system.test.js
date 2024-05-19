@@ -52,24 +52,26 @@ describe("Order System Tests", () => {
       .send({ artPublicationId });
 
     expect(response.status).toBe(201);
-    expect(response.body.msg).toBe("Order created and Stripe Checkout session initiated");
+    expect(response.body.msg).toBe(
+      "Order created and Stripe Checkout session initiated"
+    );
     orderId = response.body.order._id;
   });
 
-  // it("POST /api/order/confirm-shipping - Confirm shipping", async () => {
-  //   const order = await Order.findById(orderId);
-  //   order.paymentStatus = "paid"; // Simulating payment confirmation
-  //   order.orderState = "paid";
-  //   await order.save();
+  it("POST /api/order/confirm-shipping - Confirm shipping", async () => {
+    const order = await Order.findById(orderId);
+    order.paymentStatus = "paid"; // Simulating payment confirmation
+    order.orderState = "paid";
+    await order.save();
 
-  //   const response = await request(app)
-  //     .post("/api/order/confirm-shipping")
-  //     .set("Authorization", `Bearer ${sellerToken}`)
-  //     .send({ orderId });
+    const response = await request(app)
+      .post("/api/order/confirm-shipping")
+      .set("Authorization", `Bearer ${sellerToken}`)
+      .send({ orderId });
 
-  //   expect(response.status).toBe(200);
-  //   expect(response.body.msg).toContain("shipping");
-  // });
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toContain("shipping");
+  });
 
   it("GET /api/order/latest-buy-orders - Get latest buy orders", async () => {
     const response = await request(app)

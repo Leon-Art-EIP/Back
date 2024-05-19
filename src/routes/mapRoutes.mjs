@@ -41,24 +41,42 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *               items:
  *                 type: object
  *                 properties:
+ *                   _id:
+ *                     type: string
  *                   username:
  *                     type: string
  *                   profilePicture:
  *                     type: string
- *                   location:
- *                     type: object
- *                     properties:
- *                       type:
- *                         type: string
- *                         enum: [Point]
- *                       coordinates:
- *                         type: array
- *                         items:
- *                           type: number
  *       400:
  *         description: Missing or invalid query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message.
  *       500:
- *         description: Server Error
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message.
  */
 router.get("/nearby-art", authenticate, getUsersWithArtNearLocation);
 

@@ -1,4 +1,5 @@
 import { Article } from "../../models/articleModel.mjs";
+import mongoose from 'mongoose';
 
 export const postArticle = async (req, res) => {
   try {
@@ -15,11 +16,33 @@ export const postArticle = async (req, res) => {
 
     await article.save();
     res.status(201).json(article);
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
+export const getArticleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: 'Invalid article ID' });
+    }
+
+    const article = await Article.findById(id).populate('author', 'username');
+
+    if (!article) {
+      return res.status(404).json({ msg: 'Article not found' });
+    }
+
+    res.json(article);
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
 
 export const getLatestArticles = async (req, res) => {
   try {

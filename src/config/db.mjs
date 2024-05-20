@@ -1,17 +1,12 @@
-import mongoose from "mongoose";
+import admin from 'firebase-admin';
+import serviceAccountJson from '../../leon-art-d8942-firebase-adminsdk-zkdcu-115fd03559.json' assert { type: 'json' };
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      dbName: "leonart",
-    });
-    console.log("MongoDB connected...");
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
-    process.exit(1);
-  }
-};
+// Initialise Firebase Admin directement sans utiliser une fonction
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccountJson)
+});
 
-export default connectDB;
+console.log("Firebase connected...");
+const db = admin.firestore();
+
+export default db;

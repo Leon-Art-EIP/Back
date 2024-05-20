@@ -1,7 +1,6 @@
 export default {
   transform: {},
-  collectCoverageFrom: ['src/**','!src/admin/*','!src/utils/*','!src/config/*'],
-  globalSetup: "<rootDir>/tests/global-setup.js",
+  collectCoverageFrom: ['src/**', '!src/admin/*', '!src/utils/*', '!src/config/*'],
   globalTeardown: "<rootDir>/tests/global-teardown.js",
   setupFilesAfterEnv: [
     "<rootDir>/tests/setupFile.js"

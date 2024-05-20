@@ -1,19 +1,42 @@
-import mongoose, { model } from "mongoose";
-const { Schema } = mongoose;
+import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour votre instance Firestore
 
-const quizzSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User" }, // Referring to the User model to associate a quiz to a user
-  objective: {
-    type: String,
-    enum: ["sell", "discover", "both"],
-    required: true,
-  }, // sell, discover or both
-  artInterestType: [{ type: String }], // Array of art types the user is interested in
-  artSellingType: [{ type: String }], // Array of art types the user is interested to sell
-  location: { type: String, default: "" }, // Can be an address or coordinates
-  customCommands: String, // Yes, No, Maybe
-  budget: String, // 0-100, 100-500 etc.
-  discoveryMethod: String, // How they discovered the app
-});
+class Quizz {
+  constructor(data) {
+    this.userId = data.userId; // Stocker l'identifiant de l'utilisateur
+    this.objective = data.objective;
+    this.artInterestType = data.artInterestType || [];
+    this.artSellingType = data.artSellingType || [];
+    this.location = data.location || "";
+    this.customCommands = data.customCommands || "";
+    this.budget = data.budget || "";
+    this.discoveryMethod = data.discoveryMethod || "";
+  }
 
-export const Quizz = model("Quizz", quizzSchema);
+  // Sauvegarder le quizz dans Firestore
+  async save() {
+    const quizzRef = db.collection('Quizzes').doc(); // Génère un nouveau document avec un ID unique
+    await quizzRef.set({
+      userId: this.userId,
+      objective: this.objective,
+      artInterestType: this.artInterestType,
+      artSellingType: this.artSellingType,
+      location: this.location,
+      customCommands: this.customCommands,
+      budget: this.budget,
+      discoveryMethod: this.discoveryMethod
+    });
+    return quizzRef.id; // Retourner l'ID du nouveau quizz
+  }
+
+  // Trouver un quizz par ID
+  static async findById(quizzId) {
+    const quizzRef = db.collection('Quizzes').doc(quizzId);
+    const doc = await quizzRef.get();
+    if (!doc.exists) {
+      throw new Error('Quizz not found');
+    }
+    return new Quizz(doc.data());
+  }
+}
+
+export { Quizz };

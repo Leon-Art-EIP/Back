@@ -4,7 +4,6 @@ dotenv.config();
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
-import { Server } from 'socket.io';
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 import collectionRoutes from "./routes/collectionRoutes.mjs";
@@ -20,51 +19,25 @@ import expressSession from "express-session";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
+import locationRoutes from "./routes/locationRoutes.mjs";
+import mapRoutes from "./routes/mapRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
-import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
 import { handleStripeWebhook } from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
 import convertImageRoutes from './routes/convertImageRoutes.mjs';
+import SocketManager from "./utils/socketManager.mjs";
 
 
 const app = express();
 const httpServer = http.createServer(app);
 
-// Configuration de socket.io
-const io = new Server(httpServer, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-
-global.onlineUsers = new Map();
-io.on("connection", (socket) => /* istanbul ignore next */ {
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
-  });
-
-  socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
-    if (sendUserSocket) {
-      const message = new Message({
-        id: data.convId,
-        senderId: data.from,
-        contentType: "text",
-        content: data.msg,
-        dateTime: new Date().toISOString()
-      });
-      socket.to(sendUserSocket).emit("msg-recieve", message);
-    }
-  });
-});
+export const socketManager = new SocketManager(httpServer);
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -154,6 +127,8 @@ app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/foryou', foryouRoutes);
 app.use('/api/', convertImageRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/map", mapRoutes);
 
 // AdminJS CONFIG
 // const ADMIN_EMAIL = process.env.ADMIN_EMAIL;

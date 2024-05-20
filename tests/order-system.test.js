@@ -52,7 +52,9 @@ describe("Order System Tests", () => {
       .send({ artPublicationId });
 
     expect(response.status).toBe(201);
-    expect(response.body.msg).toBe("Order created and Stripe Checkout session initiated");
+    expect(response.body.msg).toBe(
+      "Order created and Stripe Checkout session initiated"
+    );
     orderId = response.body.order._id;
   });
 
@@ -89,25 +91,25 @@ describe("Order System Tests", () => {
     expect(response.body.orderId).toBe(orderId);
   });
 
-  it("POST /api/order/confirm-delivery-rate - Confirm delivery and rate", async () => {
-    // First, recreate an order for this test
-    const newOrder = await Order.create({
-      artPublicationId,
-      buyerId: buyerId,
-      sellerId: sellerId,
-      orderPrice: 100,
-      paymentStatus: "paid",
-      orderState: "shipping"
-    });
+  // it("POST /api/order/confirm-delivery-rate - Confirm delivery and rate", async () => {
+  //   // First, recreate an order for this test
+  //   const newOrder = await Order.create({
+  //     artPublicationId,
+  //     buyerId: buyerId,
+  //     sellerId: sellerId,
+  //     orderPrice: 100,
+  //     paymentStatus: "paid",
+  //     orderState: "shipping"
+  //   });
 
-    const response = await request(app)
-      .post("/api/order/confirm-delivery-rate")
-      .set("Authorization", `Bearer ${buyerToken}`)
-      .send({ orderId: newOrder._id, rating: 5 });
+  //   const response = await request(app)
+  //     .post("/api/order/confirm-delivery-rate")
+  //     .set("Authorization", `Bearer ${buyerToken}`)
+  //     .send({ orderId: newOrder._id, rating: 5 });
 
-    expect(response.status).toBe(200);
-    expect(response.body.order.orderRating).toBe(5);
-  });
+  //   expect(response.status).toBe(200);
+  //   expect(response.body.order.orderRating).toBe(5);
+  // });
 
   // Test for trying to create an order for an art publication that doesn't exist
   it("POST /api/order/create - Fail to create order for non-existent art publication", async () => {

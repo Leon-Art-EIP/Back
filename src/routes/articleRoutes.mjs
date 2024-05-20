@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.mjs';
 import { checkArticleAuthorization } from '../middleware/checkArticleAuthorization.mjs';
-import { postArticle, getLatestArticles } from '../controllers/article/articleController.mjs';
+import { postArticle, getLatestArticles, getArticleById } from '../controllers/article/articleController.mjs';
 import { validateArticle } from '../middleware/validation/articleValidation.mjs';
 import { uploadArticleImage } from "../middleware/uploadMiddleware.mjs";
 
@@ -60,13 +60,13 @@ const router = express.Router();
  *         description: Server error.
  */
 router.post(
-    '/',
-    authenticate,
-    uploadArticleImage,
-    checkArticleAuthorization,
-    validateArticle,
-    postArticle
-  );
+  '/',
+  authenticate,
+  uploadArticleImage,
+  checkArticleAuthorization,
+  validateArticle,
+  postArticle
+);
 
 /**
  * @swagger
@@ -102,8 +102,6 @@ router.post(
  *                     type: string
  *                   mainImage:
  *                     type: string
- *                   content:
- *                     type: string
  *                   author:
  *                     type: object
  *                     properties:
@@ -115,5 +113,47 @@ router.post(
  *         description: Server error.
  */
 router.get('/latest', getLatestArticles);
+
+/**
+ * @swagger
+ * /api/article/{id}:
+ *   get:
+ *     summary: Get Article by ID
+ *     description: Retrieve a single article by its ID.
+ *     tags: [Article]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the article to retrieve.
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of the article.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                 mainImage:
+ *                   type: string
+ *                 content:
+ *                   type: string
+ *                 author:
+ *                   type: object
+ *                   properties:
+ *                     username:
+ *                       type: string
+ *                 createdAt:
+ *                   type: date
+ *       404:
+ *         description: Article not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/:id', getArticleById);
 
 export default router;

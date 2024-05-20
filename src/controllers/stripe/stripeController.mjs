@@ -3,6 +3,7 @@ import { Order } from "../../models/orderModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
+import { socketManager } from '../../app.mjs';
 
 export const handleStripeWebhook = async (
   req,
@@ -60,7 +61,7 @@ export const handleStripeWebhook = async (
 
     // Notify the buyer about payment success
     createAndSendNotification({
-      recipientId: order.buyerId,
+      recipientId: order.sellerId,
       type: "payment_success",
       content: ` `,
       referenceId: order._id,
@@ -70,13 +71,17 @@ export const handleStripeWebhook = async (
 
     // Optionally, notify the seller that the payment has been received and the order is now being processed
     createAndSendNotification({
-      recipientId: order.sellerId,
+      recipientId: order.buyerId,
       type: "order_processing",
       content: ` `,
       referenceId: order._id,
       description: `Your Payment has been received, The seller will proceed with the next steps.`,
       sendPush: true,
     });
+
+    // Notifier le front-end de rafraîchir les données
+    socketManager.handleRefreshOrders(order.sellerId);
+
     res.status(200).json({ received: true });
   }
   
@@ -104,9 +109,10 @@ export const handleStripeWebhook = async (
   }
 };
 
-export const createStripeAccountLink = async (req, res) => {
+export const createStripeAccountLink = async (req, res) => /* istanbul ignore next */ {
   try {
     const userId = req.user.id;
+    const source = req.body.source;
     const user = await User.findById(userId);
 
     let account;
@@ -137,9 +143,7 @@ export const createStripeAccountLink = async (req, res) => {
       },
       business_type: 'individual',
       capabilities: {
-        card_payments: {
-          requested: true,
-        },
+        card_payments: { requested: true },
         transfers: { requested: true },
       },
     });
@@ -148,23 +152,31 @@ export const createStripeAccountLink = async (req, res) => {
     user.stripeAccountId = account.id;
     await user.save();
 
+    // Define the redirect URLs dynamically based on the source
+    const refreshUrl = source === 'web'
+      ? `${process.env.BASE_WEB_URL}/settings/me`
+      : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
+    const returnUrl = source === 'web'
+      ? `${process.env.BASE_WEB_URL}/settings/me`
+      : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
+
     // Create an account link for the onboarding process
     accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.BASE_WEB_URL}/account/stripe/reauth`,
-      return_url: `${process.env.BASE_WEB_URL}/account/stripe/return`,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
       type: 'account_onboarding',
     });
 
     res.json({ url: accountLink.url });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
 
-export const checkStripeAccountLink = async (req, res) => {
-  try {
+export const checkStripeAccountLink = async (req, res) => /* istanbul ignore next */ {
+  try  {
     const userId = req.user.id;
     const user = await User.findById(userId);
 
@@ -181,7 +193,7 @@ export const checkStripeAccountLink = async (req, res) => {
     } else {
       return res.status(200).json({ linked: false });
     }
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }

@@ -1,57 +1,53 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import db from '../config/db.mjs'; // Ensure this is correctly pointing to your Firestore instance
 
-const OrderSchema = new Schema({
-  artPublicationId: {
-    type: Schema.Types.ObjectId,
-    ref: 'ArtPublication',
-    required: true
-  },
-  buyerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  sellerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  orderState: {
-    type: String,
-    enum: ["pending", "paid", "cancelled", "shipping", "completed"],
-    default: "pending",
-    required: true
-  },
-  paymentStatus: {
-    type: String,
-    enum: ["pending", "paid", "refunded"],
-    default: "pending"
-  },
-  orderRating: {
-    type: Number,
-    min: 1,
-    max: 5
-  },
-  stripePaymentIntentId: String,
-  orderPrice: {
-    type: Number,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
-  stripeSessionId: String
-});
+class Order {
+  constructor(data) {
+    this.artPublicationId = data.artPublicationId; // Assume ID as a string
+    this.buyerId = data.buyerId; // Assume ID as a string
+    this.sellerId = data.sellerId; // Assume ID as a string
+    this.orderState = data.orderState || 'pending';
+    this.paymentStatus = data.paymentStatus || 'pending';
+    this.orderRating = data.orderRating;
+    this.stripePaymentIntentId = data.stripePaymentIntentId;
+    this.orderPrice = data.orderPrice;
+    this.createdAt = data.createdAt || new Date();
+    this.updatedAt = data.updatedAt || new Date();
+    this.stripeSessionId = data.stripeSessionId;
+  }
 
-OrderSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+  // Save an order to Firestore
+  async save() {
+    const orderId = db.collection('Orders').doc(); // Creates a new document ID
+    await orderId.set(this.toJSON());
+    this.id = orderId.id; // Store Firestore document ID within the object
+    return this;
+  }
 
-export const Order = mongoose.model('Order', OrderSchema);
+  // Convert the instance to JSON, preparing it for Firestore
+  toJSON() {
+    return {
+      artPublicationId: this.artPublicationId,
+      buyerId: this.buyerId,
+      sellerId: this.sellerId,
+      orderState: this.orderState,
+      paymentStatus: this.paymentStatus,
+      orderRating: this.orderRating,
+      stripePaymentIntentId: this.stripePaymentIntentId,
+      orderPrice: this.orderPrice,
+      createdAt: this.createdAt,
+      updatedAt: new Date(), // Update 'updatedAt' on every save
+      stripeSessionId: this.stripeSessionId
+    };
+  }
+
+  // Fetch an order by ID from Firestore
+  static async findById(orderId) {
+    const doc = await db.collection('Orders').doc(orderId).get();
+    if (!doc.exists) {
+      throw new Error('Order not found');
+    }
+    return new Order(doc.data());
+  }
+}
+
+export { Order };

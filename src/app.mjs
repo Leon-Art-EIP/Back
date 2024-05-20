@@ -27,12 +27,11 @@ import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
-import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
+import { handleStripeWebhook } from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
+import convertImageRoutes from './routes/convertImageRoutes.mjs';
 import SocketManager from "./utils/socketManager.mjs";
-
-
 
 
 const app = express();
@@ -102,7 +101,7 @@ app.use(
  *       500:
  *         description: Server error.
  */
-app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
+app.post('/webhooks/stripe', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Init Middleware
 app.use(express.json({ extended: false }));
@@ -127,25 +126,25 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/foryou', foryouRoutes);
+app.use('/api/', convertImageRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/api/map", mapRoutes);
 
-
 // AdminJS CONFIG
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+// const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+// const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-const admin = new AdminJS(adminOptions);
-const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-  authenticate: async (email, password) => /* istanbul ignore next */ {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      return { email: ADMIN_EMAIL };
-    }
-    return false;
-  },
-  cookieName: 'adminjs',
-  cookiePassword: 'super-secret-and-long-cookie-password',
-});
+// const admin = new AdminJS(adminOptions);
+// const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
+//   authenticate: async (email, password) => /* istanbul ignore next */ {
+//     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+//       return { email: ADMIN_EMAIL };
+//     }
+//     return false;
+//   },
+//   cookieName: 'adminjs',
+//   cookiePassword: 'super-secret-and-long-cookie-password',
+// });
 
 app.use(
   expressSession({
@@ -155,7 +154,7 @@ app.use(
   })
 );
 
-app.use(admin.options.rootPath, adminRouter);
+// app.use(admin.options.rootPath, adminRouter);
 
 
 

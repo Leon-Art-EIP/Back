@@ -1,13 +1,38 @@
-import mongoose from "mongoose";
+// Import Firestore from your configured instance or the Firebase Admin SDK
+import db from '../config/db.mjs'; // Ensure this is set up correctly to access Firestore
 
-const { Schema } = mongoose;
+class Article {
+  constructor(data) {
+    this.title = data.title; // Title of the article
+    this.mainImage = data.mainImage; // URL to the main image of the article
+    this.content = data.content; // HTML content of the article
+    this.authorId = data.authorId; // ID of the author (user)
+    this.createdAt = data.createdAt || new Date(); // Date and time the article was created
+  }
 
-const articleSchema = new Schema({
-  title: { type: String, required: true },
-  mainImage: { type: String, required: true },
-  content: { type: String, required: true }, // Stores the rich text content (HTML)
-  author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+  // Save the article to Firestore
+  async save() {
+    const articleRef = db.collection('Articles').doc(); // Creates a new document with a generated ID
+    await articleRef.set({
+      title: this.title,
+      mainImage: this.mainImage,
+      content: this.content,
+      authorId: this.authorId,
+      createdAt: this.createdAt
+    });
+    this.id = articleRef.id; // Store the Firestore document ID within the object
+    return this;
+  }
 
-export const Article = mongoose.model("Article", articleSchema);
+  // Static method to fetch an article by ID from Firestore
+  static async findById(articleId) {
+    const doc = await db.collection('Articles').doc(articleId).get();
+    if (!doc.exists) {
+      throw new Error('Article not found');
+    }
+    return new Article({ ...doc.data(), id: doc.id });
+  }
+}
+
+// Export the Article class so it can be used elsewhere in your application
+export { Article };

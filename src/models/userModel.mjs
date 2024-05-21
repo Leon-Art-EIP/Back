@@ -100,10 +100,12 @@ class User {
     return await user.save();
   }
 
-  static async findByID(query) {
-    const user = await db.collection('Users').doc(query).get();
-    if (user.exists) {
-      return new User(user.data());
+  static async findById(userId) {
+    const doc = await db.collection('Users').doc(userId).get();
+    if (doc.exists) {
+      const user = new User(doc.data());
+      user.id = doc.id; // Ajoutez l'ID de l'utilisateur pour les futures opérations
+      return user;
     } else {
       return null;
     }
@@ -118,14 +120,21 @@ class User {
     return usersList;
   }
 
-  static async find(query) {
+  static async find(query = {}) {
+    if (!query || Object.keys(query).length === 0) {
+      throw new Error("Query parameter is missing or invalid");
+    }
     const users = await db.collection('Users').where(Object.keys(query)[0], '==', Object.values(query)[0]).get();
     const usersList = [];
     users.forEach((doc) => {
-      usersList.push(new User(doc.data()));
+      const user = new User(doc.data());
+      user.id = doc.id; // Ajoutez l'ID de l'utilisateur pour les futures opérations
+      usersList.push(user);
     });
     return usersList;
   }
+
+
 }
 
 export { User };

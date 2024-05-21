@@ -46,6 +46,49 @@ class ArtPublication {
     }
     return new ArtPublication({ ...doc.data(), id: doc.id });
   }
+
+  static async deleteOne(query) {
+    const artPublication = await this.findOne(query);
+    if (artPublication) {
+      await db.collection('ArtPublications').doc(artPublication.id).delete();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async update(data) {
+    const artPublication = await db.collection('ArtPublications').doc(this.id).get();
+    if (artPublication.exists) {
+      await db.collection('ArtPublications').doc(this.id).update({ ...data });
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async delete() {
+    const artPublication = await db.collection('ArtPublications').doc(this.id).get();
+    if (artPublication.exists) {
+      await db.collection('ArtPublications').doc(this.id).delete();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async find(query) {
+    const querySnapshot = await db.collection('ArtPublications')
+      .where(Object.keys(query)[0], '==', Object.values(query)[0])
+      .get();
+
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), id: doc.id }));
+    } else {
+      return [];
+    }
+  }
+
 }
 
 // Export the ArtPublication class so it can be used elsewhere in your application

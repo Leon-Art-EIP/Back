@@ -32,6 +32,46 @@ class Article {
     }
     return new Article({ ...doc.data(), id: doc.id });
   }
+
+  static async deleteOne(query) {
+    const article = await this.findOne(query);
+    if (article) {
+      await db.collection('Articles').doc(article.id).delete();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async update(data) {
+    const article = await db.collection('Articles').doc(this.id).get();
+    if (article.exists) {
+      await db.collection('Articles').doc(this.id).update({ ...data });
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async delete() {
+    const article = await db.collection('Articles').doc(this.id).get();
+    if (article.exists) {
+      await db.collection('Articles').doc(this.id).delete();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async find(query) {
+    const articles = await db.collection('Articles').where(Object.keys(query)[0], '==', Object.values(query)[0]).get();
+    const results = [];
+    articles.forEach((doc) => {
+      results.push(new Article({ ...doc.data(), id: doc.id }));
+    });
+    return results;
+  }
+
 }
 
 // Export the Article class so it can be used elsewhere in your application

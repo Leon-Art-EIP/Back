@@ -99,6 +99,33 @@ class User {
     const user = new User(query);
     return await user.save();
   }
+
+  static async findByID(query) {
+    const user = await db.collection('Users').doc(query).get();
+    if (user.exists) {
+      return new User(user.data());
+    } else {
+      return null;
+    }
+  }
+
+  static async findAll() {
+    const users = await db.collection('Users').get();
+    const usersList = [];
+    users.forEach((doc) => {
+      usersList.push(new User(doc.data()));
+    });
+    return usersList;
+  }
+
+  static async find(query) {
+    const users = await db.collection('Users').where(Object.keys(query)[0], '==', Object.values(query)[0]).get();
+    const usersList = [];
+    users.forEach((doc) => {
+      usersList.push(new User(doc.data()));
+    });
+    return usersList;
+  }
 }
 
 export { User };

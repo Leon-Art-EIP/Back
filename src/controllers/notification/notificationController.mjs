@@ -24,7 +24,7 @@ async function sendPushNotification(fcmToken, title, body) /* istanbul ignore ne
   };
 
   try {
-    await admin.messaging().send(message).then((response) => {console.log('Push notification sent successfully !');}).catch((error) => {console.log('Error sending push notif : ' + error);});
+    await admin.messaging().send(message).then((response) => { console.log('Push notification sent successfully !'); }).catch((error) => { console.log('Error sending push notif : ' + error); });
   } catch (error) /* istanbul ignore next */ {
     console.error('Error sending push notification:', error);
   }
@@ -54,12 +54,18 @@ async function createAndSendNotification({ recipientId, type, content, reference
 export const getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
-    const notifications = await Notification.find({ recipient: userId })
-      .sort('-createdAt')
-      .limit(limit)
-      .skip((page - 1) * limit);
+    const offset = (page - 1) * limit;
+
+    const notifications = await Notification.findWithOrder(
+      { recipient: userId },
+      'createdAt',
+      'desc',
+      limit,
+      offset
+    );
+
     res.json(notifications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);

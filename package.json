@@ -39,6 +39,7 @@
     "fireorm": "^0.23.3",
     "firestore-sequelize": "^0.8.0",
     "formidable": "^3.5.1",
+    "geofire-common": "^6.0.0",
     "jest-mock-extended": "^3.0.4",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^5.5.0",

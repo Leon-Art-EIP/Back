@@ -120,21 +120,17 @@ export const updateOrderToShipping = async (req, res) => {
 export const getLatestBuyOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const buyOrders = await Order.find({
+    const buyOrders = await Order.findWithOrder({
       buyerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("artPublicationId", "name description price image");
+      paymentStatus: { $in: ["paid", "refunded"] }
+    }, 'createdAt', 'desc', limit, skip);
 
-    const formattedOrders = buyOrders.map((order) => ({
-      orderId: order._id,
+    const formattedOrders = buyOrders.map(order => ({
+      orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
       artPublicationName: order.artPublicationId.name,
@@ -150,27 +146,20 @@ export const getLatestBuyOrders = async (req, res) => {
   }
 };
 
-export const getLatestSellOrders = async (
-  req,
-  res
-) => /* istanbul ignore next */ {
+export const getLatestSellOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const sellOrders = await Order.find({
+    const sellOrders = await Order.findWithOrder({
       sellerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("artPublicationId", "name description price image");
+      paymentStatus: { $in: ["paid", "refunded"] }
+    }, 'createdAt', 'desc', limit, skip);
 
-    const formattedOrders = sellOrders.map((order) => ({
-      orderId: order._id,
+    const formattedOrders = sellOrders.map(order => ({
+      orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
       artPublicationName: order.artPublicationId.name,

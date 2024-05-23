@@ -1,5 +1,4 @@
-// Import Firestore from your configured instance or the Firebase Admin SDK
-import db from '../config/db.mjs'; // Ensure this is set up correctly to access Firestore
+import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
 
 class Conversation {
   constructor(data) {
@@ -15,28 +14,122 @@ class Conversation {
 
   // Save the conversation to Firestore
   async save() {
-    const conversationRef = db.collection('Conversations').doc(); // Creates a new document with a generated ID
-    await conversationRef.set({
-      lastMessage: this.lastMessage,
-      unreadMessages: this.unreadMessages,
-      userOneId: this.userOneId,
-      userOneName: this.userOneName,
-      userOnePicture: this.userOnePicture,
-      userTwoId: this.userTwoId,
-      userTwoName: this.userTwoName,
-      userTwoPicture: this.userTwoPicture
-    });
-    this.id = conversationRef.id; // Store the Firestore document ID within the object
-    return this;
+    try {
+      const conversationRef = db.collection('Conversations').doc(); // Creates a new document with a generated ID
+      await conversationRef.set({
+        lastMessage: this.lastMessage,
+        unreadMessages: this.unreadMessages,
+        userOneId: this.userOneId,
+        userOneName: this.userOneName,
+        userOnePicture: this.userOnePicture,
+        userTwoId: this.userTwoId,
+        userTwoName: this.userTwoName,
+        userTwoPicture: this.userTwoPicture
+      });
+      this.id = conversationRef.id; // Store the Firestore document ID within the object
+      return this;
+    } catch (error) {
+      console.error('Error saving conversation:', error);
+      throw new Error('Error saving conversation');
+    }
   }
 
   // Static method to fetch a conversation by ID from Firestore
   static async findById(conversationId) {
-    const doc = await db.collection('Conversations').doc(conversationId).get();
-    if (!doc.exists) {
-      throw new Error('Conversation not found');
+    try {
+      const doc = await db.collection('Conversations').doc(conversationId).get();
+      if (!doc.exists) {
+        throw new Error('Conversation not found');
+      }
+      return new Conversation({ ...doc.data(), id: doc.id });
+    } catch (error) {
+      console.error('Error finding conversation by ID:', error);
+      throw new Error('Error finding conversation');
     }
-    return new Conversation({ ...doc.data(), id: doc.id });
+  }
+
+  // Static method to update a conversation by ID
+  static async updateById(conversationId, updateData) {
+    try {
+      const conversationRef = db.collection('Conversations').doc(conversationId);
+      await conversationRef.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+      console.log('Conversation updated successfully');
+    } catch (error) {
+      console.error('Error updating conversation:', error);
+      throw new Error('Error updating conversation');
+    }
+  }
+
+  // Update the current conversation instance
+  async update(updateData) {
+    try {
+      const conversationRef = db.collection('Conversations').doc(this.id);
+      await conversationRef.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+      Object.assign(this, updateData); // Update the local instance with new data
+      console.log('Conversation updated successfully');
+      return this;
+    } catch (error) {
+      console.error('Error updating conversation:', error);
+      throw new Error('Error updating conversation');
+    }
+  }
+
+  // Static method to delete a conversation by ID
+  static async deleteById(conversationId) {
+    try {
+      const conversationRef = db.collection('Conversations').doc(conversationId);
+      await conversationRef.delete();
+      console.log('Conversation deleted successfully');
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      throw new Error('Error deleting conversation');
+    }
+  }
+
+  // Mark a conversation as having unread messages
+  async markAsUnread() {
+    try {
+      const conversationRef = db.collection('Conversations').doc(this.id);
+      await conversationRef.update({ unreadMessages: true });
+      this.unreadMessages = true; // Update the local instance
+      console.log('Conversation marked as unread');
+    } catch (error) {
+      console.error('Error marking conversation as unread:', error);
+      throw new Error('Error marking conversation as unread');
+    }
+  }
+
+  // Mark a conversation as having read messages
+  async markAsRead() {
+    try {
+      const conversationRef = db.collection('Conversations').doc(this.id);
+      await conversationRef.update({ unreadMessages: false });
+      this.unreadMessages = false; // Update the local instance
+      console.log('Conversation marked as read');
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+      throw new Error('Error marking conversation as read');
+    }
+  }
+
+  static async updateOne(updateData) {
+    try {
+      const conversationRef = db.collection('Conversations').doc(updateData.id);
+      await conversationRef.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+      console.log('Conversation updated successfully');
+    } catch (error) {
+      console.error('Error updating conversation:', error);
+      throw new Error('Error updating conversation');
+    }
   }
 }
 

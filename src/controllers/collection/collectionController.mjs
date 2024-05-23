@@ -66,15 +66,17 @@ export const getArtPublicationsInCollection = async (req, res) => {
       return res.status(404).json({ msg: "Collection not found" });
     }
 
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-    const artPublications = await ArtPublication.find({
-      _id: { $in: collection.artPublications },
-    })
-      .limit(limit)
-      .skip(skip);
+    const artPublications = await ArtPublication.findWithOrder(
+      { _id: { $in: collection.artPublications } },
+      'createdAt',
+      'desc',
+      limit,
+      offset
+    );
 
     res.json(artPublications);
   } catch (err) /* istanbul ignore next */ {

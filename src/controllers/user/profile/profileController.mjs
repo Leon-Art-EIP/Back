@@ -3,28 +3,43 @@ import { User } from "../../../models/userModel.mjs";
 export const getProfile = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const user = await User.findById(userId).select("-password -email -fcmToken");
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
-    res.json(user);
+
+    // Supprimer les champs que vous ne voulez pas inclure dans la réponse
+    const { password, email, fcmToken, ...userProfile } = user;
+
+    res.json(userProfile);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
 
+
+
 export const updateBiography = async (req, res) => {
   try {
     const userId = req.user.id;
     const { biography } = req.body;
-    const user = await User.findByIdAndUpdate(userId, { biography }, { new: true }).select("-password -email");
-    res.json(user);
+
+    // Mettre à jour l'utilisateur et récupérer les données mises à jour
+    const updatedUser = await User.findByIdAndUpdate(userId, { biography });
+
+    // Manuellement exclure les champs sensibles
+    const userWithoutSensitiveInfo = { ...updatedUser };
+    delete userWithoutSensitiveInfo.password;
+    delete userWithoutSensitiveInfo.email;
+
+    res.json(userWithoutSensitiveInfo);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const updateAvailability = async (req, res) => {
   try {

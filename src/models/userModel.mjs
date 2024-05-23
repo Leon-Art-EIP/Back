@@ -2,9 +2,9 @@ import admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../config/db.mjs';
 
-// Définition d'un modèle utilisateur simplifié
 class User {
   constructor(data) {
+    this.id = data.id || uuidv4(); // Générer un UUID si l'ID n'est pas fourni
     this.username = data.username;
     this.email = data.email;
     this.password = data.password; // Assurez-vous de stocker des mots de passe hashés
@@ -25,15 +25,42 @@ class User {
   }
 
   async save() {
-    const id = uuidv4(); // Générer un UUID pour chaque nouvel utilisateur
-    await db.collection('Users').doc(id).set({ ...this });
-    return id;
+    await db.collection('Users').doc(this.id).set(this.toJSON());
+    return this.id;
+  }
+
+  toJSON() {
+    return {
+      username: this.username,
+      email: this.email,
+      password: this.password,
+      is_artist: this.is_artist,
+      biography: this.biography,
+      availability: this.availability,
+      subscription: this.subscription,
+      collections: this.collections,
+      subscriptions: this.subscriptions,
+      subscribers: this.subscribers,
+      subscribersCount: this.subscribersCount,
+      likedPublications: this.likedPublications,
+      canPostArticles: this.canPostArticles,
+      fcmToken: this.fcmToken,
+      profilePicture: this.profilePicture,
+      bannerPicture: this.bannerPicture,
+      stripeAccountId: this.stripeAccountId
+    };
+  }
+
+  static async findById(userId) {
+    return await this.findUserById(userId);
   }
 
   static async findUserById(userId) {
     const doc = await db.collection('Users').doc(userId).get();
     if (doc.exists) {
-      return new User(doc.data());
+      const user = new User(doc.data());
+      user.id = doc.id;
+      return user;
     } else {
       return null;
     }
@@ -47,13 +74,15 @@ class User {
 
     if (!querySnapshot.empty) {
       const doc = querySnapshot.docs[0];
-      return new User(doc.data());
+      const user = new User(doc.data());
+      user.id = doc.id;
+      return user;
     } else {
       return null;
     }
   }
 
-  static async DeleteOne(query) {
+  static async deleteOne(query) {
     const user = await this.findOne(query);
     if (user) {
       await db.collection('Users').doc(user.id).delete();
@@ -64,23 +93,14 @@ class User {
   }
 
   async update(data) {
-    const user = await db.collection('Users').doc(this.id).get();
-    if (user.exists) {
-      await db.collection('Users').doc(this.id).update({ ...data });
-      return true;
-    } else {
-      return false;
-    }
+    await db.collection('Users').doc(this.id).update(data);
+    Object.assign(this, data);
+    return true;
   }
 
   async delete() {
-    const user = await db.collection('Users').doc(this.id).get();
-    if (user.exists) {
-      await db.collection('Users').doc(this.id).delete();
-      return true;
-    } else {
-      return false;
-    }
+    await db.collection('Users').doc(this.id).delete();
+    return true;
   }
 
   static async deleteMany(query) {
@@ -95,27 +115,18 @@ class User {
     }
   }
 
-  static async create(query) {
-    const user = new User(query);
+  static async create(data) {
+    const user = new User(data);
     return await user.save();
-  }
-
-  static async findById(userId) {
-    const doc = await db.collection('Users').doc(userId).get();
-    if (doc.exists) {
-      const user = new User(doc.data());
-      user.id = doc.id; // Ajoutez l'ID de l'utilisateur pour les futures opérations
-      return user;
-    } else {
-      return null;
-    }
   }
 
   static async findAll() {
     const users = await db.collection('Users').get();
     const usersList = [];
     users.forEach((doc) => {
-      usersList.push(new User(doc.data()));
+      const user = new User(doc.data());
+      user.id = doc.id;
+      usersList.push(user);
     });
     return usersList;
   }
@@ -128,13 +139,34 @@ class User {
     const usersList = [];
     users.forEach((doc) => {
       const user = new User(doc.data());
-      user.id = doc.id; // Ajoutez l'ID de l'utilisateur pour les futures opérations
+      user.id = doc.id;
       usersList.push(user);
     });
     return usersList;
   }
 
+  static async updateById(userId, updateData) {
+    const userRef = db.collection('Users').doc(userId);
+    await userRef.update({
+      ...updateData,
+      updatedAt: new Date() // Optionally add/update a timestamp field
+    });
+    return true;
+  }
 
+  static async findByIdAndUpdate(userId, updateData) {
+    const userRef = db.collection('Users').doc(userId);
+    const doc = await userRef.get();
+    if (!doc.exists) {
+      throw new Error('User not found');
+    }
+    await userRef.update({
+      ...updateData,
+      updatedAt: new Date() // Optionally add/update a timestamp field
+    });
+    const updatedDoc = await userRef.get();
+    return new User({ ...updatedDoc.data(), id: updatedDoc.id });
+  }
 }
 
 export { User };

@@ -1,78 +1,139 @@
-// Import Firestore from your configured instance or the Firebase Admin SDK
-import db from '../config/db.mjs'; // Ensure this is set up correctly to access Firestore
+import db from '../config/db.mjs';
 
 class Article {
   constructor(data) {
-    this.title = data.title; // Title of the article
-    this.mainImage = data.mainImage; // URL to the main image of the article
-    this.content = data.content; // HTML content of the article
-    this.authorId = data.authorId; // ID of the author (user)
-    this.createdAt = data.createdAt || new Date(); // Date and time the article was created
+    this.title = data.title;
+    this.mainImage = data.mainImage;
+    this.content = data.content;
+    this.authorId = data.authorId;
+    this.createdAt = data.createdAt || new Date();
   }
 
-  // Save the article to Firestore
   async save() {
-    const articleRef = db.collection('Articles').doc(); // Creates a new document with a generated ID
-    await articleRef.set({
-      title: this.title,
-      mainImage: this.mainImage,
-      content: this.content,
-      authorId: this.authorId,
-      createdAt: this.createdAt
-    });
-    this.id = articleRef.id; // Store the Firestore document ID within the object
-    return this;
+    try {
+      const articleRef = db.collection('Articles').doc();
+      await articleRef.set({
+        title: this.title,
+        mainImage: this.mainImage,
+        content: this.content,
+        authorId: this.authorId,
+        createdAt: this.createdAt
+      });
+      this.id = articleRef.id;
+      return this;
+    } catch (error) {
+      console.error('Error saving article:', error);
+      throw new Error('Error saving article');
+    }
   }
 
-  // Static method to fetch an article by ID from Firestore
   static async findById(articleId) {
-    const doc = await db.collection('Articles').doc(articleId).get();
-    if (!doc.exists) {
-      throw new Error('Article not found');
+    try {
+      const doc = await db.collection('Articles').doc(articleId).get();
+      if (!doc.exists) {
+        throw new Error('Article not found');
+      }
+      return new Article({ ...doc.data(), id: doc.id });
+    } catch (error) {
+      console.error('Error finding article by ID:', error);
+      throw new Error('Error finding article');
     }
-    return new Article({ ...doc.data(), id: doc.id });
+  }
+
+  async update(updateData) {
+    try {
+      const articleRef = db.collection('Articles').doc(this.id);
+      await articleRef.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+      Object.assign(this, updateData);
+      return this;
+    } catch (error) {
+      console.error('Error updating article:', error);
+      throw new Error('Error updating article');
+    }
+  }
+
+  async delete() {
+    try {
+      const articleRef = db.collection('Articles').doc(this.id);
+      await articleRef.delete();
+      return true;
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      throw new Error('Error deleting article');
+    }
+  }
+
+  static async deleteById(articleId) {
+    try {
+      const articleRef = db.collection('Articles').doc(articleId);
+      await articleRef.delete();
+      return true;
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      throw new Error('Error deleting article');
+    }
   }
 
   static async deleteOne(query) {
-    const article = await this.findOne(query);
-    if (article) {
-      await db.collection('Articles').doc(article.id).delete();
-      return true;
-    } else {
-      return false;
+    try {
+      const articles = await this.find(query);
+      if (articles.length > 0) {
+        await db.collection('Articles').doc(articles[0].id).delete();
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      throw new Error('Error deleting article');
     }
   }
 
-  static async update(data) {
-    const article = await db.collection('Articles').doc(this.id).get();
-    if (article.exists) {
-      await db.collection('Articles').doc(this.id).update({ ...data });
-      return true;
-    } else {
-      return false;
+  static async find(query = {}) {
+    try {
+      if (!query || Object.keys(query).length === 0) {
+        throw new Error("Query parameter is missing or invalid");
+      }
+      const querySnapshot = await db.collection('Articles')
+        .where(Object.keys(query)[0], '==', Object.values(query)[0])
+        .get();
+
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs.map(doc => new Article({ ...doc.data(), id: doc.id }));
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding articles by query:', error);
+      throw new Error('Error finding articles');
     }
   }
 
-  static async delete() {
-    const article = await db.collection('Articles').doc(this.id).get();
-    if (article.exists) {
-      await db.collection('Articles').doc(this.id).delete();
-      return true;
-    } else {
-      return false;
+  static async findWithOrder(query = {}, orderByField, orderDirection = 'asc') {
+    try {
+      let queryRef = db.collection('Articles');
+
+      if (Object.keys(query).length > 0) {
+        queryRef = queryRef.where(Object.keys(query)[0], '==', Object.values(query)[0]);
+      }
+
+      queryRef = queryRef.orderBy(orderByField, orderDirection);
+
+      const querySnapshot = await queryRef.get();
+
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs.map(doc => new Article({ ...doc.data(), id: doc.id }));
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding articles by query:', error);
+      throw new Error('Error finding articles');
     }
   }
-
-  static async find(query) {
-    const articles = await db.collection('Articles').where(Object.keys(query)[0], '==', Object.values(query)[0]).get();
-    const results = [];
-    articles.forEach((doc) => {
-      results.push(new Article({ ...doc.data(), id: doc.id }));
-    });
-    return results;
-  }
-
 }
 
-// Export the Article class so it can be used elsewhere in your application
 export { Article };

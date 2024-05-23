@@ -1,5 +1,4 @@
-// Import Firestore from your configured instance or the Firebase Admin SDK
-import db from '../config/db.mjs'; // Ensure this is correctly set up to access Firestore
+import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
 
 class Comment {
   constructor(data) {
@@ -11,24 +10,78 @@ class Comment {
 
   // Save the comment to Firestore
   async save() {
-    const commentRef = db.collection('Comments').doc(); // Creates a new document with a generated ID
-    await commentRef.set({
-      userId: this.userId,
-      artPublicationId: this.artPublicationId,
-      text: this.text,
-      createdAt: this.createdAt
-    });
-    this.id = commentRef.id; // Store the Firestore document ID within the object
-    return this;
+    try {
+      const commentRef = db.collection('Comments').doc(); // Creates a new document with a generated ID
+      await commentRef.set({
+        userId: this.userId,
+        artPublicationId: this.artPublicationId,
+        text: this.text,
+        createdAt: this.createdAt
+      });
+      this.id = commentRef.id; // Store the Firestore document ID within the object
+      return this;
+    } catch (error) {
+      console.error('Error saving comment:', error);
+      throw new Error('Error saving comment');
+    }
   }
 
   // Static method to fetch a comment by ID from Firestore
   static async findById(commentId) {
-    const doc = await db.collection('Comments').doc(commentId).get();
-    if (!doc.exists) {
-      throw new Error('Comment not found');
+    try {
+      const doc = await db.collection('Comments').doc(commentId).get();
+      if (!doc.exists) {
+        throw new Error('Comment not found');
+      }
+      return new Comment({ ...doc.data(), id: doc.id });
+    } catch (error) {
+      console.error('Error finding comment by ID:', error);
+      throw new Error('Error finding comment');
     }
-    return new Comment({ ...doc.data(), id: doc.id });
+  }
+
+  // Static method to update a comment by ID
+  static async updateById(commentId, updateData) {
+    try {
+      const commentRef = db.collection('Comments').doc(commentId);
+      await commentRef.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+      console.log('Comment updated successfully');
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      throw new Error('Error updating comment');
+    }
+  }
+
+  // Update the current comment instance
+  async update(updateData) {
+    try {
+      const commentRef = db.collection('Comments').doc(this.id);
+      await commentRef.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+      Object.assign(this, updateData); // Update the local instance with new data
+      console.log('Comment updated successfully');
+      return this;
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      throw new Error('Error updating comment');
+    }
+  }
+
+  // Static method to delete a comment by ID
+  static async deleteById(commentId) {
+    try {
+      const commentRef = db.collection('Comments').doc(commentId);
+      await commentRef.delete();
+      console.log('Comment deleted successfully');
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw new Error('Error deleting comment');
+    }
   }
 }
 

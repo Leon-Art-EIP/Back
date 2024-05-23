@@ -26,14 +26,21 @@ export const getArticleById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: 'Invalid article ID' });
-    }
-
-    const article = await Article.findById(id).populate('author', 'username');
+    // Récupérer l'article par son ID depuis Firestore
+    const article = await Article.findById(id);
 
     if (!article) {
       return res.status(404).json({ msg: 'Article not found' });
+    }
+
+    // Récupérer l'auteur de l'article
+    const author = await User.findById(article.authorId);
+
+    if (author) {
+      // Inclure les informations de l'auteur dans la réponse
+      article.author = {
+        username: author.username
+      };
     }
 
     res.json(article);
@@ -46,18 +53,9 @@ export const getArticleById = async (req, res) => {
 
 export const getLatestArticles = async (req, res) => {
   try {
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
-    const page = Number(req.query.page) || 1;
-    const skip = (page - 1) * limit;
-
-    const articles = await Article.find()
-      .sort({ _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('author', 'username'); // Populating author's username
-
+    const articles = await Article.findWithOrder({}, 'createdAt', 'desc');
     res.json(articles);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }

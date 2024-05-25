@@ -42,14 +42,14 @@ export const searchArtworksAndArtists = async (req, res) => {
       .offset((artPage - 1) * artLimit);
 
     const artSnapshot = await artQuery.get();
-    const artPublications = artSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+    const artPublications = artSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     let userQuery = db.collection('Users').where('username', '>=', searchTerm).where('username', '<=', searchTerm + '\uf8ff')
       .limit(Number(artistLimit))
       .offset((artistPage - 1) * artistLimit);
 
     const userSnapshot = await userQuery.get();
-    const users = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const users = userSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
 
     res.json({ artPublications, users });
   } catch (err) /* istanbul ignore next */ {

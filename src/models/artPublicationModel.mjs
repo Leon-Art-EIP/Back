@@ -94,7 +94,7 @@ class ArtPublication {
     const querySnapshot = await queryRef.get();
 
     if (!querySnapshot.empty) {
-      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), id: doc.id }));
+      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), _id: doc.id }));
     } else {
       return [];
     }

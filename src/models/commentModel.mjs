@@ -14,12 +14,12 @@ class Comment {
     try {
       const commentRef = db.collection('Comments').doc(); // Creates a new document with a generated ID
       await commentRef.set({
+        _id: this._id,
         userId: this.userId,
         artPublicationId: this.artPublicationId,
         text: this.text,
         createdAt: this.createdAt
       });
-      this._id = commentRef.id; // Store the Firestore document ID within the object
       return this;
     } catch (error) {
       console.error('Error saving comment:', error);

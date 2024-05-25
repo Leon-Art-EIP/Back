@@ -63,19 +63,26 @@ export const followUser = async (req, res) => {
 export const getUsersFollowing = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(userId).populate({
-      path: "subscriptions",
-      select: "username",
-      options: { limit, skip: (page - 1) * limit },
-    });
-    res.json({
-      subscriptions: user.subscriptions,
-      total: user.subscriptions.length,
-    });
-  } catch (error) /* istanbul ignore next */ {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
+
+    const subscriptions = [];
+    for (let i = (page - 1) * limit; i < Math.min(user.subscriptions.length, page * limit); i++) {
+      const subscriptionId = user.subscriptions[i];
+      const subscriptionDoc = await db.collection('Users').doc(subscriptionId).get();
+      if (subscriptionDoc.exists) {
+        const subscriptionData = subscriptionDoc.data();
+        subscriptions.push({ id: subscriptionId, username: subscriptionData.username });
+      }
+    }
+
+    res.json({ subscriptions, total: user.subscriptions.length });
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ msg: "Server error." });
   }
@@ -84,16 +91,26 @@ export const getUsersFollowing = async (req, res) => {
 export const getUserFollowers = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(userId).populate({
-      path: "subscribers",
-      select: "username",
-      options: { limit, skip: (page - 1) * limit },
-    });
-    res.json({ subscribers: user.subscribers, total: user.subscribersCount });
-  } catch (error) /* istanbul ignore next */ {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
+
+    const subscribers = [];
+    for (let i = (page - 1) * limit; i < Math.min(user.subscribers.length, page * limit); i++) {
+      const subscriberId = user.subscribers[i];
+      const subscriberDoc = await db.collection('Users').doc(subscriberId).get();
+      if (subscriberDoc.exists) {
+        const subscriberData = subscriberDoc.data();
+        subscribers.push({ id: subscriberId, username: subscriberData.username });
+      }
+    }
+
+    res.json({ subscribers, total: user.subscribersCount });
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ msg: "Server error." });
   }
@@ -102,19 +119,26 @@ export const getUserFollowers = async (req, res) => {
 export const getFollowersOfSpecificUser = async (req, res) => {
   try {
     const targetUserId = req.params.targetUserId;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(targetUserId).populate({
-      path: "subscribers",
-      select: "username",
-      options: { limit, skip: (page - 1) * limit },
-    });
+    const user = await User.findById(targetUserId);
     if (!user) {
       return res.status(404).json({ msg: "User not found." });
     }
-    res.json({ subscribers: user.subscribers, total: user.subscribersCount });
-  } catch (error) /* istanbul ignore next */ {
+
+    const subscribers = [];
+    for (let i = (page - 1) * limit; i < Math.min(user.subscribers.length, page * limit); i++) {
+      const subscriberId = user.subscribers[i];
+      const subscriberDoc = await db.collection('Users').doc(subscriberId).get();
+      if (subscriberDoc.exists) {
+        const subscriberData = subscriberDoc.data();
+        subscribers.push({ id: subscriberId, username: subscriberData.username });
+      }
+    }
+
+    res.json({ subscribers, total: user.subscribersCount });
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ msg: "Server error." });
   }
@@ -123,22 +147,26 @@ export const getFollowersOfSpecificUser = async (req, res) => {
 export const getFollowedUsersOfSpecificUser = async (req, res) => {
   try {
     const targetUserId = req.params.targetUserId;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(targetUserId).populate({
-      path: "subscriptions",
-      select: "username",
-      options: { limit, skip: (page - 1) * limit },
-    });
+    const user = await User.findById(targetUserId);
     if (!user) {
       return res.status(404).json({ msg: "User not found." });
     }
-    res.json({
-      subscriptions: user.subscriptions,
-      total: user.subscriptions.length,
-    });
-  } catch (error) /* istanbul ignore next */ {
+
+    const subscriptions = [];
+    for (let i = (page - 1) * limit; i < Math.min(user.subscriptions.length, page * limit); i++) {
+      const subscriptionId = user.subscriptions[i];
+      const subscriptionDoc = await db.collection('Users').doc(subscriptionId).get();
+      if (subscriptionDoc.exists) {
+        const subscriptionData = subscriptionDoc.data();
+        subscriptions.push({ id: subscriptionId, username: subscriptionData.username });
+      }
+    }
+
+    res.json({ subscriptions, total: user.subscriptions.length });
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ msg: "Server error." });
   }

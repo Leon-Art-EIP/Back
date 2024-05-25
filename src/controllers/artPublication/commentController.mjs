@@ -8,14 +8,17 @@ export const addComment = async (req, res) => {
     const artPublicationId = req.params.id;
     const { text } = req.body;
 
+    // Check if the art publication exists
     const artPublication = await ArtPublication.findById(artPublicationId);
     if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
 
+    // Create and save the new comment
     const newComment = new Comment({ userId, artPublicationId, text });
     await newComment.save();
 
-    artPublication.comments.push(newComment._id);
-    await artPublication.save();
+    // Update the art publication to include the new comment ID
+    const updatedComments = [...artPublication.comments, newComment._id];
+    await artPublication.update({ comments: updatedComments });
 
     // Send notification to the art publication owner
     if (artPublication.userId.toString() !== userId) {
@@ -45,6 +48,8 @@ export const addComment = async (req, res) => {
     res.status(500).json({ msg: 'Server Error', details: err.message });
   }
 };
+
+
 
 export const deleteComment = async (req, res) => {
   try {

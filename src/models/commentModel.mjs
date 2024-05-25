@@ -14,7 +14,7 @@ class Comment {
     try {
       const commentRef = db.collection('Comments').doc(); // Creates a new document with a generated ID
       await commentRef.set({
-        _id: this._id,
+        _id: commentRef.id,
         userId: this.userId,
         artPublicationId: this.artPublicationId,
         text: this.text,

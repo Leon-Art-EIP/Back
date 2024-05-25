@@ -93,15 +93,43 @@ export const deleteArtPublication = async (req, res) => {
 
 export const getArtPublicationById = async (req, res) => {
   try {
-    const artPublication = await ArtPublication.findById(req.params.id).populate('likes').populate('comments');
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+    const artPublicationId = req.params.id;
+    const doc = await db.collection('ArtPublications').doc(artPublicationId).get();
+    if (!doc.exists) {
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
+
+    const artPublicationData = doc.data();
+    const likes = [];
+    for (const likeId of artPublicationData.likes) {
+      const likeDoc = await db.collection('Likes').doc(likeId).get();
+      if (likeDoc.exists) {
+        likes.push({ id: likeId, ...likeDoc.data() });
+      }
+    }
+
+    const comments = [];
+    for (const commentId of artPublicationData.comments) {
+      const commentDoc = await db.collection('Comments').doc(commentId).get();
+      if (commentDoc.exists) {
+        comments.push({ id: commentId, ...commentDoc.data() });
+      }
+    }
+
+    const artPublication = {
+      _id: doc.id,
+      ...artPublicationData,
+      likes,
+      comments
+    };
 
     res.json(artPublication);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 export const getLatestArtPublications = async (req, res) => {
   try {

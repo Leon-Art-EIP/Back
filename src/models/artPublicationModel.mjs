@@ -27,6 +27,7 @@ class ArtPublication {
     const artPublicationRef = db.collection('ArtPublications').doc();
     const data = cleanUndefinedFields(this.toJSON());
     await artPublicationRef.set(data);
+    this._id = artPublicationRef.id;
     return this;
   }
 

@@ -42,7 +42,7 @@ export const createArtPublication = async (req, res) => {
     return res.json({
       msg: 'Art publication created successfully!',
       artPublication: {
-        id: newPublication.id, // MongoDB generates _id
+        _id: newPublication._id, // MongoDB generates _id
         userId: newPublication.userId,
         image: newPublication.image,
         artType: newPublication.artType,

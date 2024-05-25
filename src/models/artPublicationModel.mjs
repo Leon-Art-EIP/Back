@@ -7,7 +7,7 @@ const cleanUndefinedFields = (obj) => {
 
 class ArtPublication {
   constructor(data) {
-    this.id = data.id || uuidv4();
+    this._id = data._id || uuidv4();
     this.userId = data.userId;
     this.image = data.image || 'uploads/static/default-image-art.jpg';
     this.artType = data.artType;
@@ -27,7 +27,7 @@ class ArtPublication {
     const artPublicationRef = db.collection('ArtPublications').doc();
     const data = cleanUndefinedFields(this.toJSON());
     await artPublicationRef.set(data);
-    this.id = artPublicationRef.id;
+    this._id = artPublicationRef.id;
     return this;
   }
 

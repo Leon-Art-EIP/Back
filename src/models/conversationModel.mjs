@@ -5,12 +5,12 @@ class Conversation {
     this._id = data.id; // Firestore document ID
     this.lastMessage = data.lastMessage; // The last message text in the conversation
     this.unreadMessages = data.unreadMessages || false; // Boolean to track if there are unread messages
-    this.userOneId = data.userOneId; // ID of the first user
-    this.userOneName = data.userOneName; // Name of the first user
-    this.userOnePicture = data.userOnePicture; // Picture URL of the first user
-    this.userTwoId = data.userTwoId; // ID of the second user
-    this.userTwoName = data.userTwoName; // Name of the second user
-    this.userTwoPicture = data.userTwoPicture; // Picture URL of the second user
+    this.UserOneId = data.UserOneId; // ID of the first User
+    this.UserOneName = data.UserOneName; // Name of the first User
+    this.UserOnePicture = data.UserOnePicture; // Picture URL of the first User
+    this.UserTwoId = data.UserTwoId; // ID of the second User
+    this.UserTwoName = data.UserTwoName; // Name of the second User
+    this.UserTwoPicture = data.UserTwoPicture; // Picture URL of the second User
   }
 
   // Save the conversation to Firestore
@@ -18,16 +18,17 @@ class Conversation {
     try {
       const conversationRef = db.collection('Conversations').doc(); // Creates a new document with a generated ID
       await conversationRef.set({
-        _id: conversationRef.id,
         lastMessage: this.lastMessage,
         unreadMessages: this.unreadMessages,
-        userOneId: this.userOneId,
-        userOneName: this.userOneName,
-        userOnePicture: this.userOnePicture,
-        userTwoId: this.userTwoId,
-        userTwoName: this.userTwoName,
-        userTwoPicture: this.userTwoPicture
+        UserOneId: this.UserOneId,
+        UserOneName: this.UserOneName,
+        UserOnePicture: this.UserOnePicture,
+        UserTwoId: this.UserTwoId,
+        UserTwoName: this.UserTwoName,
+        UserTwoPicture: this.UserTwoPicture
       }); // Store the Firestore document ID within the object
+      await conversationRef.update({ _id: conversationRef.id });
+      this._id = conversationRef.id;
       return this;
     } catch (error) {
       console.error('Error saving conversation:', error);

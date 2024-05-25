@@ -113,8 +113,8 @@ router.put('/create', async (req, res) => {
         }
 
         conversation = new Conversation({
-            userOneId: UserOneId,
-            userTwoId: UserTwoId,
+            UserOneId: UserOneId,
+            UserTwoId: UserTwoId,
             unreadMessages: false,
             lastMessage: ' ',
             userOnePicture: UserOne.profilePicture,
@@ -123,7 +123,7 @@ router.put('/create', async (req, res) => {
             userTwoName: UserTwo.username
         });
 
-        await conversation.save();
+        await conversation.save()
 
         res.json({ message: "Nouvelle conversation créée", convId: conversation._id });
     } catch (err) {

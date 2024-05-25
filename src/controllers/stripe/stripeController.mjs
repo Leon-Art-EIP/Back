@@ -154,11 +154,11 @@ export const createStripeAccountLink = async (req, res) => /* istanbul ignore ne
 
     // Define the redirect URLs dynamically based on the source
     const refreshUrl = source === 'web'
-      ? `${process.env.BASE_WEB_URL}settings/me`
-      : `${process.env.MOBILE_APP_URL}account/stripe/reauth`;
+      ? `${process.env.BASE_WEB_URL}/settings/me`
+      : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
     const returnUrl = source === 'web'
-      ? `${process.env.BASE_WEB_URL}settings/me`
-      : `${process.env.MOBILE_APP_URL}account/stripe/return`;
+      ? `${process.env.BASE_WEB_URL}/settings/me`
+      : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
 
     // Create an account link for the onboarding process
     accountLink = await stripe.accountLinks.create({

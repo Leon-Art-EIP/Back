@@ -7,7 +7,7 @@ const cleanUndefinedFields = (obj) => {
 
 class Comment {
   constructor(data) {
-    this._id = data._id || uuidv4();
+    this._id = data._id || uuidv4(); // Generate or use provided UUID
     this.userId = data.userId;
     this.artPublicationId = data.artPublicationId;
     this.text = data.text;
@@ -16,10 +16,9 @@ class Comment {
 
   async save() {
     try {
-      const commentRef = db.collection('Comments').doc(this._id); // Use this._id to create the document with a specific ID
+      const commentRef = db.collection('Comments').doc(this._id); // Use this._id to ensure the document path is valid
       const data = cleanUndefinedFields(this.toJSON());
       await commentRef.set(data);
-      await commentRef.update({ _id: commentRef.id });
       return this;
     } catch (error) {
       console.error('Error saving comment:', error);

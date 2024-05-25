@@ -116,6 +116,40 @@ class Comment {
     }
   }
 
+  // Static method to find comments with sorting and pagination
+  static async findWithOrder(query = {}, orderByField = 'createdAt', orderDirection = 'asc', limit, offset) {
+    try {
+      let queryRef = db.collection('Comments');
+
+      if (Object.keys(query).length > 0) {
+        for (const field in query) {
+          queryRef = queryRef.where(field, '==', query[field]);
+        }
+      }
+
+      queryRef = queryRef.orderBy(orderByField, orderDirection);
+
+      if (offset) {
+        queryRef = queryRef.offset(offset);
+      }
+
+      if (limit) {
+        queryRef = queryRef.limit(limit);
+      }
+
+      const querySnapshot = await queryRef.get();
+
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs.map(doc => new Comment({ ...doc.data(), id: doc.id }));
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding comments:', error);
+      throw new Error('Error finding comments');
+    }
+  }
+
 
 }
 

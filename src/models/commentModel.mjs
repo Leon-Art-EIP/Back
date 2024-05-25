@@ -86,7 +86,7 @@ class Comment {
   }
 
   // Delete the current comment instance
-  async delete() {
+  static async delete() {
     try {
       const commentRef = db.collection('Comments').doc(this.id);
       await commentRef.delete();
@@ -98,7 +98,7 @@ class Comment {
     }
   }
 
-  async find(query) {
+  static async find(query) {
     try {
       let commentRef = db.collection('Comments');
       for (const field in query) {

@@ -2,6 +2,7 @@ import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
 import { check, validationResult } from 'express-validator';
+import db from '../../config/db.mjs';
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));

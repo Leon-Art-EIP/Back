@@ -33,6 +33,7 @@ class ArtPublication {
 
   toJSON() {
     return {
+      _id: this._id,
       userId: this.userId,
       image: this.image,
       artType: this.artType,

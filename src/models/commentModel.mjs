@@ -1,7 +1,8 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
-
+import { v4 as uuidv4 } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
 class Comment {
   constructor(data) {
+    this._id = data._id || uuidv4(); // Firestore document ID
     this.userId = data.userId; // ID of the user who made the comment
     this.artPublicationId = data.artPublicationId; // ID of the art publication being commented on
     this.text = data.text; // The comment text
@@ -18,7 +19,7 @@ class Comment {
         text: this.text,
         createdAt: this.createdAt
       });
-      this.id = commentRef.id; // Store the Firestore document ID within the object
+      this._id = commentRef.id; // Store the Firestore document ID within the object
       return this;
     } catch (error) {
       console.error('Error saving comment:', error);

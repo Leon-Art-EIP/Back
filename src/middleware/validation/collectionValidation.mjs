@@ -1,7 +1,7 @@
 import { check, validationResult } from 'express-validator';
 
 export const validateCollection = [
-  check('artPublicationId').isMongoId().withMessage('Invalid art publication ID'),
+  check('artPublicationId').isUUID().withMessage('Invalid art publication ID'),
   check('collectionName').notEmpty().withMessage('Collection name is required'),
   (req, res, next) => {
     const errors = validationResult(req);

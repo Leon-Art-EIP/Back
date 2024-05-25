@@ -1,6 +1,7 @@
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
+import { check, validationResult } from 'express-validator';
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -41,7 +42,7 @@ export const createArtPublication = async (req, res) => {
     return res.json({
       msg: 'Art publication created successfully!',
       artPublication: {
-        id: newPublication._id, // MongoDB generates _id
+        id: newPublication.id, // MongoDB generates _id
         userId: newPublication.userId,
         image: newPublication.image,
         artType: newPublication.artType,
@@ -81,7 +82,7 @@ export const deleteArtPublication = async (req, res) => {
       return res.status(400).json({ msg: 'Cannot delete publication with unfinished orders' });
     }
 
-    await ArtPublication.deleteOne({ _id: id });
+    await ArtPublication.deleteOne({ id: id });
 
     res.json({ msg: 'Art publication deleted successfully' });
   } catch (err) /* istanbul ignore next */ {
@@ -141,7 +142,29 @@ export const getArtPublicationsByUser = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
+    // Vérifiez si userId est valide (non vide)
+    if (!userId) {
+      return res.status(400).json({ msg: 'User ID is required' });
+    }
+
+    // Ajoutez des logs pour voir les valeurs des paramètres
+    console.log(`Fetching art publications for user: ${userId}`);
+    console.log(`Limit: ${limit}, Page: ${page}, Skip: ${skip}`);
+
+    // Vérifiez si userId existe dans la base de données
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Requête pour obtenir les publications d'art
     const artPublications = await ArtPublication.findWithOrder({ userId }, 'createdAt', 'desc', limit, skip);
+
+    // Vérifiez si des publications ont été trouvées
+    if (!artPublications || artPublications.length === 0) {
+      return res.status(404).json({ msg: 'No art publications found' });
+    }
+
     res.json(artPublications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);

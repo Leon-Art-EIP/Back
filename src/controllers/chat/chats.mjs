@@ -1,7 +1,7 @@
 import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
-import {Order} from '../../models/orderModel.mjs';
+import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
 
 const router = express.Router();
@@ -36,10 +36,10 @@ router.get('/:userId', async (req, res) => {
     try {
         const chats = await Conversation.find({
             $or: [
-              { UserOneId: userId }, 
-              { UserTwoId: userId }
+                { UserOneId: userId },
+                { UserTwoId: userId }
             ]
-          });
+        });
         res.json({ chats: chats });
     } catch (err) /* istanbul ignore next */ {
         res.status(500).send('Server error');
@@ -113,14 +113,14 @@ router.put('/create', async (req, res) => {
         }
 
         conversation = new Conversation({
-            UserOneId,
-            UserTwoId,
+            userOneId: UserOneId,
+            userTwoId: UserTwoId,
             unreadMessages: false,
             lastMessage: ' ',
-            UserOnePicture: UserOne.profilePicture,
-            UserTwoPicture: UserTwo.profilePicture,
-            UserOneName: UserOne.username,
-            UserTwoName: UserTwo.username
+            userOnePicture: UserOne.profilePicture,
+            userTwoPicture: UserTwo.profilePicture,
+            userOneName: UserOne.username,
+            userTwoName: UserTwo.username
         });
 
         await conversation.save();
@@ -194,7 +194,7 @@ router.get('/single/:convId', async (req, res) => {
     const convId = req.params.convId
     try {
         const chat = await Conversation.findById(convId);
-        
+
         if (!chat) {
             return res.status(404).json({ error: "Conversation non trouvée" });
         }
@@ -257,7 +257,7 @@ router.get('/messages/:chatId', async (req, res) => {
         const messages = await Message.find({ id: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
 
         await Conversation.updateOne({ _id: chatId }, { $set: { unreadMessages: false } });
-        
+
         res.json({ messages: messages });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
@@ -326,7 +326,7 @@ router.get('/messages/:chatId', async (req, res) => {
  */
 
 router.post('/messages/new', async (req, res) => {
-    const { convId, userId, contentType, content} = req.body;
+    const { convId, userId, contentType, content } = req.body;
 
     if (convId === undefined || userId === undefined || contentType === undefined || !content) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
@@ -349,7 +349,7 @@ router.post('/messages/new', async (req, res) => {
 
         await conversation.save();
 
-        res.json({message: message});
+        res.json({ message: message });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ success: false, error: 'Erreur du serveur' });

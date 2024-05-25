@@ -1,7 +1,8 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour votre instance Firestore
-
+import { v4 as uuidv4 } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
 class Order {
   constructor(data) {
+    this.id = data.id || uuidv4(); // Générer un UUID si l'ID n'est pas fourni  
     this.artPublicationId = data.artPublicationId; // Assume ID as a string
     this.buyerId = data.buyerId; // Assume ID as a string
     this.sellerId = data.sellerId; // Assume ID as a string

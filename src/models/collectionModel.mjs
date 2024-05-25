@@ -1,7 +1,8 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
-
+import { v4 as uuid } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
 class Collection {
   constructor(data) {
+    this._id = data.id || uuidv4(); // Firestore document ID  
     this.name = data.name; // Name of the collection
     this.artPublications = data.artPublications || []; // Array of ArtPublication document IDs
     this.isPublic = data.isPublic !== undefined ? data.isPublic : true; // Whether the collection is public

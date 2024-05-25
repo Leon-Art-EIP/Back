@@ -84,7 +84,7 @@ export const handleStripeWebhook = async (
 
     res.status(200).json({ received: true });
   }
-  
+
   // Handle the account.updated event
   else if (event.type === 'account.updated') {
     const account = event.data.object;
@@ -101,7 +101,7 @@ export const handleStripeWebhook = async (
       console.log('User not found for the Stripe account');
     }
   }
-  
+
   else {
     // Handle other event types
     console.log(`Unhandled event type ${event.type}`);
@@ -154,11 +154,11 @@ export const createStripeAccountLink = async (req, res) => /* istanbul ignore ne
 
     // Define the redirect URLs dynamically based on the source
     const refreshUrl = source === 'web'
-      ? `${process.env.BASE_WEB_URL}/settings/me`
-      : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
+      ? `${process.env.BASE_WEB_URL}settings/me`
+      : `${process.env.MOBILE_APP_URL}account/stripe/reauth`;
     const returnUrl = source === 'web'
-      ? `${process.env.BASE_WEB_URL}/settings/me`
-      : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
+      ? `${process.env.BASE_WEB_URL}settings/me`
+      : `${process.env.MOBILE_APP_URL}account/stripe/return`;
 
     // Create an account link for the onboarding process
     accountLink = await stripe.accountLinks.create({
@@ -176,7 +176,7 @@ export const createStripeAccountLink = async (req, res) => /* istanbul ignore ne
 };
 
 export const checkStripeAccountLink = async (req, res) => /* istanbul ignore next */ {
-  try  {
+  try {
     const userId = req.user.id;
     const user = await User.findById(userId);
 

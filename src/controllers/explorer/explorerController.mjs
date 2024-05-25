@@ -1,6 +1,7 @@
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import { User } from '../../models/userModel.mjs';
 import artTypes from '../../constants/artTypesData.js';
+import db from '../../config/db.mjs';
 
 export const searchArtworksAndArtists = async (req, res) => {
   try {

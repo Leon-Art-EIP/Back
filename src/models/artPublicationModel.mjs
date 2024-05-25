@@ -1,4 +1,5 @@
 import db from '../config/db.mjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -6,6 +7,7 @@ const cleanUndefinedFields = (obj) => {
 
 class ArtPublication {
   constructor(data) {
+    this.id = data.id || uuidv4();
     this.userId = data.userId;
     this.image = data.image || 'uploads/static/default-image-art.jpg';
     this.artType = data.artType;

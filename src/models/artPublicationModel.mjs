@@ -26,8 +26,9 @@ class ArtPublication {
   async save() {
     const artPublicationRef = db.collection('ArtPublications').doc();
     const data = cleanUndefinedFields(this.toJSON());
-    data._id = artPublicationRef.id;
     await artPublicationRef.set(data);
+    await artPublicationRef.update({ _id: artPublicationRef.id });
+    this._id = artPublicationRef.id;
     return this;
   }
 

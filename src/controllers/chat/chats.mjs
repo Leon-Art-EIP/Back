@@ -32,19 +32,21 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.get('/:userId', async (req, res) => {
-    const userId = req.params.userId
+    const userId = req.params.userId;
     try {
         const chats = await Conversation.find({
             $or: [
-                { UserOneId: userId },
-                { UserTwoId: userId }
+                { userOneId: userId },
+                { userTwoId: userId }
             ]
         });
-        res.json({ chats: chats });
+        res.json({ chats });
     } catch (err) /* istanbul ignore next */ {
+        console.error(err.message);
         res.status(500).send('Server error');
     }
 });
+
 
 
 /**
@@ -251,19 +253,21 @@ router.get('/single/:convId', async (req, res) => {
  */
 
 router.get('/messages/:chatId', async (req, res) => {
-    const chatId = req.params.chatId; // Récupérer le convId de la requête
+    const chatId = req.params.chatId;
+    const limit = Number(req.query.limit) || 10;
+    const page = Number(req.query.page) || 1;
+    const offset = (page - 1) * limit;
 
     try {
-        const messages = await Message.find({ id: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
-
-        await Conversation.updateOne({ _id: chatId }, { $set: { unreadMessages: false } });
-
-        res.json({ messages: messages });
+        const messages = await Message.findWithOrder({ id: chatId }, 'dateTime', 'asc', limit, offset);
+        await Conversation.updateById(chatId, { unreadMessages: false });
+        res.json({ messages });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).send('Erreur du serveur');
     }
 });
+
 
 /**
  * @swagger

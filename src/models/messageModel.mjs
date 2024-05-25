@@ -81,51 +81,59 @@ class Message {
     }
   }
 
-  static async update(updateData) {
+  // Static method to find messages based on a query
+  static async find(query = {}) {
     try {
-      const messageRef = db.collection('Messages').doc(this.messageId);
-      await messageRef.update({
-        ...updateData,
-        updatedAt: new Date() // Optionally add/update a timestamp field
-      });
-      Object.assign(this, updateData); // Update the local instance with new data
-      console.log('Message updated successfully');
-      return this;
+      let queryRef = db.collection('Messages');
+
+      if (Object.keys(query).length > 0) {
+        for (const [field, value] of Object.entries(query)) {
+          queryRef = queryRef.where(field, '==', value);
+        }
+      }
+
+      const querySnapshot = await queryRef.get();
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs.map(doc => new Message({ ...doc.data(), messageId: doc.id }));
+      } else {
+        return [];
+      }
     } catch (error) {
-      console.error('Error updating message:', error);
-      throw new Error('Error updating message');
+      console.error('Error finding messages:', error);
+      throw new Error('Error finding messages');
     }
   }
 
-  static async find(query) {
-    let queryRef = db.collection('Messages');
+  // Static method to find messages with sorting and pagination
+  static async findWithOrder(query = {}, orderByField = 'dateTime', orderDirection = 'asc', limit, offset) {
+    try {
+      let queryRef = db.collection('Messages');
 
-    if (query.senderId) {
-      queryRef = queryRef.where('senderId', '==', query.senderId);
-    }
+      if (Object.keys(query).length > 0) {
+        for (const [field, value] of Object.entries(query)) {
+          queryRef = queryRef.where(field, '==', value);
+        }
+      }
 
-    if (query.contentType) {
-      queryRef = queryRef.where('contentType', '==', query.contentType);
-    }
+      queryRef = queryRef.orderBy(orderByField, orderDirection);
 
-    if (query.read) {
-      queryRef = queryRef.where('read', '==', query.read);
-    }
+      if (offset) {
+        queryRef = queryRef.offset(offset);
+      }
 
-    if (query.orderBy) {
-      queryRef = queryRef.orderBy(query.orderBy);
-    }
+      if (limit) {
+        queryRef = queryRef.limit(limit);
+      }
 
-    if (query.limit) {
-      queryRef = queryRef.limit(query.limit);
-    }
-
-    const querySnapshot = await queryRef.get();
-
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs.map(doc => new Message({ ...doc.data(), messageId: doc.id }));
-    } else {
-      return [];
+      const querySnapshot = await queryRef.get();
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs.map(doc => new Message({ ...doc.data(), messageId: doc.id }));
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding messages with order:', error);
+      throw new Error('Error finding messages with order');
     }
   }
 }

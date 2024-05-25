@@ -84,6 +84,39 @@ class Comment {
       throw new Error('Error deleting comment');
     }
   }
+
+  // Delete the current comment instance
+  async delete() {
+    try {
+      const commentRef = db.collection('Comments').doc(this.id);
+      await commentRef.delete();
+      console.log('Comment deleted successfully');
+      return true;
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw new Error('Error deleting comment');
+    }
+  }
+
+  async find(query) {
+    try {
+      let commentRef = db.collection('Comments');
+      for (const field in query) {
+        commentRef = commentRef.where(field, '==', query[field]);
+      }
+      const querySnapshot = await commentRef.get();
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs.map(doc => new Comment({ ...doc.data(), id: doc.id }));
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding comments:', error);
+      throw new Error('Error finding comments');
+    }
+  }
+
+
 }
 
 // Export the Comment class so it can be used elsewhere in your application

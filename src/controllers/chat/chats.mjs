@@ -117,10 +117,10 @@ router.put('/create', async (req, res) => {
             UserTwoId: UserTwoId,
             unreadMessages: false,
             lastMessage: ' ',
-            userOnePicture: UserOne.profilePicture,
-            userTwoPicture: UserTwo.profilePicture,
-            userOneName: UserOne.username,
-            userTwoName: UserTwo.username
+            UserOnePicture: UserOne.profilePicture,
+            UserTwoPicture: UserTwo.profilePicture,
+            UserOneName: UserOne.username,
+            UserTwoName: UserTwo.username
         });
 
         await conversation.save()

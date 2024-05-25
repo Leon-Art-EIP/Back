@@ -96,6 +96,38 @@ class Message {
       throw new Error('Error updating message');
     }
   }
+
+  static async find(query) {
+    let queryRef = db.collection('Messages');
+
+    if (query.senderId) {
+      queryRef = queryRef.where('senderId', '==', query.senderId);
+    }
+
+    if (query.contentType) {
+      queryRef = queryRef.where('contentType', '==', query.contentType);
+    }
+
+    if (query.read) {
+      queryRef = queryRef.where('read', '==', query.read);
+    }
+
+    if (query.orderBy) {
+      queryRef = queryRef.orderBy(query.orderBy);
+    }
+
+    if (query.limit) {
+      queryRef = queryRef.limit(query.limit);
+    }
+
+    const querySnapshot = await queryRef.get();
+
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs.map(doc => new Message({ ...doc.data(), messageId: doc.id }));
+    } else {
+      return [];
+    }
+  }
 }
 
 // Export the Message class so it can be used elsewhere in your application

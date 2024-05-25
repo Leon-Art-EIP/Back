@@ -51,6 +51,7 @@ export const addComment = async (req, res) => {
 
 
 
+
 export const deleteComment = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -92,8 +93,14 @@ export const getCommentsByArtPublicationId = async (req, res) => {
     // Fetch the comments
     const comments = await Comment.findWithOrder({ artPublicationId }, 'createdAt', 'desc', limit, offset);
 
+    // Format the dates of the comments
+    const formattedComments = comments.map(comment => ({
+      ...comment,
+      createdAt: format(new Date(comment.createdAt), 'yyyy-MM-dd HH:mm:ss') // Format the date as desired
+    }));
+
     // Return the paginated comments
-    res.json(comments);
+    res.json(formattedComments);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error', details: err.message });

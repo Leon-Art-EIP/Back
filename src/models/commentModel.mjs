@@ -1,25 +1,25 @@
-import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
-import { v4 as uuidv4 } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
+import db from '../config/db.mjs';
+import { v4 as uuidv4 } from 'uuid';
+
+const cleanUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+};
+
 class Comment {
   constructor(data) {
-    this._id = data._id || uuidv4(); // Firestore document ID
-    this.userId = data.userId; // ID of the user who made the comment
-    this.artPublicationId = data.artPublicationId; // ID of the art publication being commented on
-    this.text = data.text; // The comment text
-    this.createdAt = data.createdAt || new Date(); // Date and time the comment was made
+    this._id = data._id || uuidv4();
+    this.userId = data.userId;
+    this.artPublicationId = data.artPublicationId;
+    this.text = data.text;
+    this.createdAt = data.createdAt || new Date();
   }
 
-  // Save the comment to Firestore
   async save() {
     try {
-      const commentRef = db.collection('Comments').doc(); // Creates a new document with a generated ID
-      await commentRef.set({
-        _id: commentRef.id,
-        userId: this.userId,
-        artPublicationId: this.artPublicationId,
-        text: this.text,
-        createdAt: this.createdAt
-      });
+      const commentRef = db.collection('Comments').doc(this._id); // Use this._id to create the document with a specific ID
+      const data = cleanUndefinedFields(this.toJSON());
+      await commentRef.set(data);
+      await commentRef.update({ _id: commentRef.id });
       return this;
     } catch (error) {
       console.error('Error saving comment:', error);
@@ -27,7 +27,16 @@ class Comment {
     }
   }
 
-  // Static method to fetch a comment by ID from Firestore
+  toJSON() {
+    return {
+      _id: this._id,
+      userId: this.userId,
+      artPublicationId: this.artPublicationId,
+      text: this.text,
+      createdAt: this.createdAt
+    };
+  }
+
   static async findById(commentId) {
     try {
       const doc = await db.collection('Comments').doc(commentId).get();
@@ -41,13 +50,12 @@ class Comment {
     }
   }
 
-  // Static method to update a comment by ID
   static async updateById(commentId, updateData) {
     try {
       const commentRef = db.collection('Comments').doc(commentId);
       await commentRef.update({
         ...updateData,
-        updatedAt: new Date() // Optionally add/update a timestamp field
+        updatedAt: new Date()
       });
       console.log('Comment updated successfully');
     } catch (error) {
@@ -56,15 +64,14 @@ class Comment {
     }
   }
 
-  // Update the current comment instance
   async update(updateData) {
     try {
-      const commentRef = db.collection('Comments').doc(this.id);
+      const commentRef = db.collection('Comments').doc(this._id);
       await commentRef.update({
         ...updateData,
-        updatedAt: new Date() // Optionally add/update a timestamp field
+        updatedAt: new Date()
       });
-      Object.assign(this, updateData); // Update the local instance with new data
+      Object.assign(this, updateData);
       console.log('Comment updated successfully');
       return this;
     } catch (error) {
@@ -73,7 +80,6 @@ class Comment {
     }
   }
 
-  // Static method to delete a comment by ID
   static async deleteById(commentId) {
     try {
       const commentRef = db.collection('Comments').doc(commentId);
@@ -85,10 +91,9 @@ class Comment {
     }
   }
 
-  // Delete the current comment instance
   static async delete() {
     try {
-      const commentRef = db.collection('Comments').doc(this.id);
+      const commentRef = db.collection('Comments').doc(this._id);
       await commentRef.delete();
       console.log('Comment deleted successfully');
       return true;
@@ -98,25 +103,6 @@ class Comment {
     }
   }
 
-  static async find(query) {
-    try {
-      let commentRef = db.collection('Comments');
-      for (const field in query) {
-        commentRef = commentRef.where(field, '==', query[field]);
-      }
-      const querySnapshot = await commentRef.get();
-      if (!querySnapshot.empty) {
-        return querySnapshot.docs.map(doc => new Comment({ ...doc.data(), id: doc.id }));
-      } else {
-        return [];
-      }
-    } catch (error) {
-      console.error('Error finding comments:', error);
-      throw new Error('Error finding comments');
-    }
-  }
-
-  // Static method to find comments with sorting and pagination
   static async findWithOrder(query = {}, orderByField = 'createdAt', orderDirection = 'asc', limit, offset) {
     try {
       let queryRef = db.collection('Comments');
@@ -149,9 +135,6 @@ class Comment {
       throw new Error('Error finding comments');
     }
   }
-
-
 }
 
-// Export the Comment class so it can be used elsewhere in your application
 export { Comment };

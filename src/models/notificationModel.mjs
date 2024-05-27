@@ -13,6 +13,7 @@ class Notification {
     this.referenceId = data.referenceId || null; // Optional ID of the related item
     this.read = data.read || false; // Default false if not provided
     this.createdAt = data.createdAt || new Date().toISOString();
+    this.id = data.id || uuidv4(); // Generate or use provided UUID
   }
 
   // Save the notification to Firestore

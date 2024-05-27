@@ -66,7 +66,14 @@ export const getNotifications = async (req, res) => {
       offset
     );
 
-    res.json(notifications);
+    // Transform notifications to replace `id` with `_id`
+    const transformedNotifications = notifications.map(notification => ({
+      ...notification,
+      _id: notification.id,
+      id: undefined // Remove the original `id` field
+    }));
+
+    res.json(transformedNotifications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });

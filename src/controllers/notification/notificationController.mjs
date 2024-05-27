@@ -4,6 +4,7 @@ import { Notification } from '../../models/notificationModel.mjs';
 import { User } from "../../models/userModel.mjs";
 import admin from 'firebase-admin';
 import fs from 'fs';
+import { format } from 'date-fns';
 
 // Initialize the FCM SDK
 const serviceAccount = JSON.parse(fs.readFileSync(process.env.SERVICE_ACCOUNT_KEY_PATH, 'utf8'));
@@ -66,7 +67,12 @@ export const getNotifications = async (req, res) => {
       offset
     );
 
-    res.json(notifications);
+    const formattedNotifications = notifications.map(notification => ({
+      ...notification,
+      createdAt: format(new Date(notification.createdAt), 'yyyy-MM-dd HH:mm:ss')
+    }));
+
+    res.json(formattedNotifications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
@@ -76,7 +82,7 @@ export const getNotifications = async (req, res) => {
 export const markNotificationRead = async (req, res) => {
   try {
     const notificationId = req.params.id;
-    const notification = await Notification.findByIdAndUpdate(notificationId, { read: true }, { new: true });
+    const notification = await Notification.updateById(notificationId, { read: true });
     if (!notification) return res.status(404).json({ msg: 'Notification not found' });
 
     res.json({ msg: 'Notification marked as read', notification });

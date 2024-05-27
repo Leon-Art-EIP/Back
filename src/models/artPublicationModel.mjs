@@ -56,7 +56,7 @@ class ArtPublication {
     if (!doc.exists) {
       throw new Error('Art publication not found');
     }
-    return new ArtPublication({ ...doc.data(), id: doc.id });
+    return new ArtPublication({ ...doc.data(), _id: doc.id });
   }
 
   static async find(query = {}) {
@@ -69,9 +69,26 @@ class ArtPublication {
     const querySnapshot = await queryRef.get();
 
     if (!querySnapshot.empty) {
-      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), id: doc.id }));
+      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), _id: doc.id }));
     } else {
       return [];
+    }
+  }
+
+  static async findOne(query) {
+    let queryRef = db.collection('ArtPublications');
+
+    if (Object.keys(query).length > 0) {
+      queryRef = queryRef.where(Object.keys(query)[0], '==', Object.values(query)[0]);
+    }
+
+    const querySnapshot = await queryRef.limit(1).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return new ArtPublication({ ...doc.data(), _id: doc.id });
+    } else {
+      return null;
     }
   }
 
@@ -95,7 +112,7 @@ class ArtPublication {
     const querySnapshot = await queryRef.get();
 
     if (!querySnapshot.empty) {
-      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), id: doc.id }));
+      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), _id: doc.id }));
     } else {
       return [];
     }
@@ -104,7 +121,7 @@ class ArtPublication {
   static async deleteOne(query) {
     const artPublication = await this.findOne(query);
     if (artPublication) {
-      await db.collection('ArtPublications').doc(artPublication.id).delete();
+      await db.collection('ArtPublications').doc(artPublication._id).delete();
       return true;
     } else {
       return false;

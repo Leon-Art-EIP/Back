@@ -23,7 +23,7 @@ class Collection {
         isPublic: this.isPublic,
         userId: this.userId
       });
-      this.id = collectionRef.id; // Store the Firestore document ID within the object
+      this._id = collectionRef.id; // Store the Firestore document ID within the object
       return this;
     } catch (error) {
       console.error('Error saving collection:', error);
@@ -38,7 +38,7 @@ class Collection {
       if (!doc.exists) {
         throw new Error('Collection not found');
       }
-      return new Collection({ ...doc.data(), id: doc.id });
+      return new Collection({ ...doc.data(), _id: doc.id });
     } catch (error) {
       console.error('Error finding collection by ID:', error);
       throw new Error('Error finding collection');
@@ -63,7 +63,7 @@ class Collection {
   // Update the current collection instance
   async update(updateData) {
     try {
-      const collectionRef = firestore.collection('Collections').doc(this.id);
+      const collectionRef = firestore.collection('Collections').doc(this._id);
       await collectionRef.update({
         ...updateData,
         updatedAt: new Date() // Optionally add/update a timestamp field
@@ -134,7 +134,7 @@ class Collection {
       const snapshot = await collectionsRef.get();
       const collections = [];
       snapshot.forEach(doc => {
-        collections.push(new Collection({ ...doc.data(), id: doc.id }));
+        collections.push(new Collection({ ...doc.data(), _id: doc.id }));
       });
       return collections;
     } catch (error) {
@@ -174,7 +174,7 @@ class Collection {
         updatedAt: new Date() // Optionally add/update a timestamp field
       });
 
-      return new Collection({ ...doc.data(), id: doc.id });
+      return new Collection({ ...doc.data(), _id: doc.id });
     } catch (error) {
       console.error('Error finding and updating collection:', error);
       throw new Error('Error finding and updating collection');
@@ -182,5 +182,5 @@ class Collection {
   }
 }
 
-// Export the Collection class so it can be used ailleurs dans votre application
+// Export the Collection class so it can be used elsewhere in your application
 export default Collection;

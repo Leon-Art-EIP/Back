@@ -1,4 +1,6 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
+import { v4 as uuidv4 } from 'uuid';
+import { format } from 'date-fns'; // Importez la bibliothèque date-fns
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -6,7 +8,6 @@ const cleanUndefinedFields = (obj) => {
 
 class Notification {
   constructor(data) {
-    // Initialize the notification with data, providing default values if necessary
     this.recipient = data.recipient; // Expecting recipient's user ID as a string
     this.type = data.type; // Type of the notification, e.g., 'like', 'comment', 'order'
     this.content = data.content; // Custom message for the notification
@@ -42,7 +43,6 @@ class Notification {
       if (!doc.exists) {
         throw new Error('Notification not found');
       }
-      // Construct a new Notification object with the document data
       return new Notification({ ...doc.data(), id: doc.id });
     } catch (error) {
       console.error('Error finding notification by ID:', error);

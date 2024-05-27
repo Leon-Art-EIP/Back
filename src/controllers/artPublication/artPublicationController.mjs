@@ -102,10 +102,10 @@ export const getArtPublicationById = async (req, res) => {
 
     const artPublicationData = doc.data();
     const likes = [];
-    for (const likeId of artPublicationData.likes) {
-      const likeDoc = await db.collection('Likes').doc(likeId).get();
-      if (likeDoc.exists) {
-        likes.push({ id: likeId, ...likeDoc.data() });
+    for (const userId of artPublicationData.likes) {
+      const userDoc = await db.collection('Users').doc(userId).get();
+      if (userDoc.exists) {
+        likes.push({ _id: userDoc.id, ...userDoc.data() });
       }
     }
 
@@ -116,6 +116,8 @@ export const getArtPublicationById = async (req, res) => {
         comments.push({ id: commentId, ...commentDoc.data() });
       }
     }
+
+    // génère moi un tableau de user qui ont like la publication a partir de la collection likes
 
     const artPublication = {
       _id: doc.id,

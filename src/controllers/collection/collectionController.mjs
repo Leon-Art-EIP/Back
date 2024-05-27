@@ -24,7 +24,7 @@ export const addToCollection = async (req, res) => {
     const user = await User.findById(userId);
     if (!user.collections.includes(collection._id)) {
       user.collections.push(collection._id);
-      await user.save();
+      await user.update({ collections: user.collections });
     }
 
     res.json({
@@ -37,12 +37,10 @@ export const addToCollection = async (req, res) => {
   }
 };
 
-
-
 export const getMyCollections = async (req, res) => {
   try {
     const userId = req.user.id;
-    const userCollections = await Collection.find({ user: userId }); // Directly find by user reference
+    const userCollections = await Collection.find({ userId: userId });
     res.json(userCollections);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -53,7 +51,7 @@ export const getMyCollections = async (req, res) => {
 export const getPublicCollections = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const publicCollections = await Collection.find({ user: userId, isPublic: true });
+    const publicCollections = await Collection.find({ userId: userId, isPublic: true });
     res.json(publicCollections);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);

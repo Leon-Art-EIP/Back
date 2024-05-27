@@ -4,7 +4,6 @@ import { Notification } from '../../models/notificationModel.mjs';
 import { User } from "../../models/userModel.mjs";
 import admin from 'firebase-admin';
 import fs from 'fs';
-import { format } from 'date-fns';
 
 // Initialize the FCM SDK
 const serviceAccount = JSON.parse(fs.readFileSync(process.env.SERVICE_ACCOUNT_KEY_PATH, 'utf8'));
@@ -67,12 +66,7 @@ export const getNotifications = async (req, res) => {
       offset
     );
 
-    const formattedNotifications = notifications.map(notification => ({
-      ...notification,
-      createdAt: format(new Date(notification.createdAt), 'yyyy-MM-dd HH:mm:ss')
-    }));
-
-    res.json(formattedNotifications);
+    res.json(notifications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });

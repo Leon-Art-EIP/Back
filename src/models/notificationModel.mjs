@@ -1,6 +1,5 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
 import { v4 as uuidv4 } from 'uuid';
-import { format } from 'date-fns'; // Importez la bibliothèque date-fns
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -13,7 +12,7 @@ class Notification {
     this.content = data.content; // Custom message for the notification
     this.referenceId = data.referenceId || null; // Optional ID of the related item
     this.read = data.read || false; // Default false if not provided
-    this.createdAt = data.createdAt || new Date(); // Use current time if not provided
+    this.createdAt = data.createdAt || new Date().toISOString();
   }
 
   // Save the notification to Firestore
@@ -92,7 +91,7 @@ class Notification {
       const notificationRef = db.collection('Notifications').doc(this.id);
       await notificationRef.update({
         ...updateData,
-        updatedAt: new Date() // Optionally add/update a timestamp field
+        updatedAt: new Date().toISOString() // Optionally add/update a timestamp field
       });
       Object.assign(this, updateData); // Update the local instance with new data
       console.log('Notification updated successfully');

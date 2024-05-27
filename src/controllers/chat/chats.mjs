@@ -3,6 +3,7 @@ import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
 import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
+import db from '../../config/db.mjs';
 
 const router = express.Router();
 
@@ -347,11 +348,20 @@ router.post('/messages/new', async (req, res) => {
 
         await message.save();
 
-        const conversation = await Conversation.findOne({ _id: convId });
-        conversation.unreadMessages = true;
-        conversation.lastMessage = content;
+        const conversationRef = db.collection('Conversations').doc(convId);
+        const conversationDoc = await conversationRef.get();
 
-        await conversation.save();
+        if (!conversationDoc.exists) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+
+        const conversationData = conversationDoc.data();
+
+        await conversationRef.update({
+            unreadMessages: true,
+            lastMessage: content,
+            updatedAt: new Date().toISOString()
+        });
 
         res.json({ message: message });
     } catch (err) /* istanbul ignore next */ {

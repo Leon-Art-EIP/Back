@@ -9,7 +9,8 @@ export const getProfile = async (req, res) => {
     }
 
     // Supprimer les champs que vous ne voulez pas inclure dans la réponse
-    const { password, email, fcmToken, ...userProfile } = user;
+    const { password, email, fcmToken, id, ...rest } = user;
+    const userProfile = { ...rest, _id: id };
 
     res.json(userProfile);
   } catch (err) /* istanbul ignore next */ {
@@ -17,6 +18,7 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 
 

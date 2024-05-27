@@ -1,52 +1,59 @@
-import mongoose from "mongoose";
 import { User } from "../../models/userModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
+import { FieldValue } from 'firebase-admin/firestore';
+import db from '../../config/db.mjs';
 
 export const followUser = async (req, res) => {
   const userId = req.user.id;
   const targetUserId = req.params.targetUserId;
 
-  if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+  // Vérification simple de la validité de l'ID
+  if (!targetUserId) {
     return res.status(400).json({ msg: "Invalid user id." });
   }
 
   try {
-    const user = await User.findById(userId);
-    const targetUser = await User.findById(targetUserId);
+    const userRef = db.collection('Users').doc(userId);
+    const targetUserRef = db.collection('Users').doc(targetUserId);
 
-    if (!targetUser) {
+    const userDoc = await userRef.get();
+    const targetUserDoc = await targetUserRef.get();
+
+    if (!targetUserDoc.exists) {
       return res.status(404).json({ msg: "User to follow not found." });
     }
-    if (user._id.toString() === targetUser._id.toString()) {
+    if (userId === targetUserId) {
       return res.status(400).json({ msg: "You cannot follow yourself." });
     }
 
-    const isAlreadyFollowing = user.subscriptions.includes(
-      targetUserId.toString()
-    );
+    const userData = userDoc.data();
+    const targetUserData = targetUserDoc.data();
+
+    const isAlreadyFollowing = userData.subscriptions.includes(targetUserId);
 
     if (isAlreadyFollowing) {
-      user.subscriptions.pull(targetUserId);
-      targetUser.subscribers.pull(userId);
-      targetUser.subscribersCount = Math.max(
-        0,
-        targetUser.subscribersCount - 1
-      );
-      await user.save();
-      await targetUser.save();
+      await userRef.update({
+        subscriptions: FieldValue.arrayRemove(targetUserId)
+      });
+      await targetUserRef.update({
+        subscribers: FieldValue.arrayRemove(userId),
+        subscribersCount: Math.max(0, targetUserData.subscribersCount - 1)
+      });
       return res.status(200).json({ msg: "Successfully unfollowed user." });
     } else {
-      user.subscriptions.push(targetUserId);
-      targetUser.subscribers.push(userId);
-      targetUser.subscribersCount += 1;
-      await user.save();
-      await targetUser.save();
+      await userRef.update({
+        subscriptions: FieldValue.arrayUnion(targetUserId)
+      });
+      await targetUserRef.update({
+        subscribers: FieldValue.arrayUnion(userId),
+        subscribersCount: targetUserData.subscribersCount + 1
+      });
 
       // Notification for following
       createAndSendNotification({
         recipientId: targetUserId,
         type: "follow",
-        content: `${user.username}`,
+        content: `${userData.username}`,
         referenceId: userId, // Optional: use the follower's ID as reference
         description: `Someone just followed your profile`,
         sendPush: true,

@@ -1,8 +1,12 @@
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
 import { v4 as uuid } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
+
+const firestore = getFirestore();
+
 class Collection {
   constructor(data) {
-    this._id = data.id || uuidv4(); // Firestore document ID  
+    this._id = data.id || uuid(); // Firestore document ID  
     this.name = data.name; // Name of the collection
     this.artPublications = data.artPublications || []; // Array of ArtPublication document IDs
     this.isPublic = data.isPublic !== undefined ? data.isPublic : true; // Whether the collection is public
@@ -12,7 +16,7 @@ class Collection {
   // Save the collection to Firestore
   async save() {
     try {
-      const collectionRef = db.collection('Collections').doc(); // Creates a new document with a generated ID
+      const collectionRef = firestore.collection('Collections').doc(); // Creates a new document with a generated ID
       await collectionRef.set({
         name: this.name,
         artPublications: this.artPublications,
@@ -30,7 +34,7 @@ class Collection {
   // Static method to fetch a collection by ID from Firestore
   static async findById(collectionId) {
     try {
-      const doc = await db.collection('Collections').doc(collectionId).get();
+      const doc = await firestore.collection('Collections').doc(collectionId).get();
       if (!doc.exists) {
         throw new Error('Collection not found');
       }
@@ -44,7 +48,7 @@ class Collection {
   // Static method to update a collection by ID
   static async updateById(collectionId, updateData) {
     try {
-      const collectionRef = db.collection('Collections').doc(collectionId);
+      const collectionRef = firestore.collection('Collections').doc(collectionId);
       await collectionRef.update({
         ...updateData,
         updatedAt: new Date() // Optionally add/update a timestamp field
@@ -59,7 +63,7 @@ class Collection {
   // Update the current collection instance
   async update(updateData) {
     try {
-      const collectionRef = db.collection('Collections').doc(this.id);
+      const collectionRef = firestore.collection('Collections').doc(this.id);
       await collectionRef.update({
         ...updateData,
         updatedAt: new Date() // Optionally add/update a timestamp field
@@ -76,7 +80,7 @@ class Collection {
   // Static method to delete a collection by ID
   static async deleteById(collectionId) {
     try {
-      const collectionRef = db.collection('Collections').doc(collectionId);
+      const collectionRef = firestore.collection('Collections').doc(collectionId);
       await collectionRef.delete();
       console.log('Collection deleted successfully');
     } catch (error) {
@@ -118,7 +122,7 @@ class Collection {
 
   static async find(query) {
     try {
-      let collectionsRef = db.collection('Collections');
+      let collectionsRef = firestore.collection('Collections');
       if (query) {
         if (query.userId) {
           collectionsRef = collectionsRef.where('userId', '==', query.userId);
@@ -138,7 +142,45 @@ class Collection {
       throw new Error('Error finding collections');
     }
   }
+
+  static async findOneAndUpdate(query, updateData, options = {}) {
+    try {
+      let collectionsRef = firestore.collection('Collections');
+
+      // Ajouter des conditions de requête pour la recherche de collection
+      if (query.userId) {
+        collectionsRef = collectionsRef.where('userId', '==', query.userId);
+      }
+      if (query.name) {
+        collectionsRef = collectionsRef.where('name', '==', query.name);
+      }
+
+      const snapshot = await collectionsRef.limit(1).get();
+
+      if (snapshot.empty) {
+        if (options.upsert) {
+          // Créer une nouvelle collection si elle n'existe pas et si upsert est vrai
+          const newCollection = new Collection({ ...query, ...updateData });
+          await newCollection.save();
+          return newCollection;
+        } else {
+          throw new Error('Collection not found');
+        }
+      }
+
+      const doc = snapshot.docs[0];
+      await doc.ref.update({
+        ...updateData,
+        updatedAt: new Date() // Optionally add/update a timestamp field
+      });
+
+      return new Collection({ ...doc.data(), id: doc.id });
+    } catch (error) {
+      console.error('Error finding and updating collection:', error);
+      throw new Error('Error finding and updating collection');
+    }
+  }
 }
 
-// Export the Collection class so it can be used elsewhere in your application
+// Export the Collection class so it can be used ailleurs dans votre application
 export default Collection;

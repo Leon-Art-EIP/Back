@@ -11,14 +11,25 @@ class Comment {
     this.userId = data.userId;
     this.artPublicationId = data.artPublicationId;
     this.text = data.text;
-    this.createdAt = data.createdAt || new Date();
+    this.createdAt = data.createdAt || new Date().toISOString();
   }
 
   async save() {
     try {
-      const commentRef = db.collection('Comments').doc(this._id); // Use this._id to ensure the document path is valid
-      const data = cleanUndefinedFields(this.toJSON());
+      console.log('Saving comment:', this);
+      const commentRef = db.collection('Comments').doc();
+      const data = {
+        _id: this._id,
+        userId: this.userId,
+        artPublicationId: this.artPublicationId,
+        text: this.text,
+        createdAt: this.createdAt
+      };
       await commentRef.set(data);
+      await commentRef.update({ _id: commentRef.id })
+      this._id = commentRef.id;
+      console.log('Comment saved successfully');
+
       return this;
     } catch (error) {
       console.error('Error saving comment:', error);
@@ -134,6 +145,22 @@ class Comment {
       throw new Error('Error finding comments');
     }
   }
+
+  static async findByIdAndRemove(commentId) {
+    try {
+      const commentRef = db.collection('Comments').doc(commentId);
+      const doc = await commentRef.get();
+      if (!doc.exists) {
+        throw new Error('Comment not found');
+      }
+      await commentRef.delete();
+      console.log('Comment deleted successfully');
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw new Error('Error deleting comment');
+    }
+  }
+
 }
 
 export { Comment };

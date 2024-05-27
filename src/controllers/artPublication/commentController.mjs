@@ -2,6 +2,8 @@ import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { Comment } from "../../models/commentModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import { format } from 'date-fns';
+import { FieldValue } from 'firebase-admin/firestore';
+import db from '../../config/db.mjs';
 
 export const addComment = async (req, res) => {
   try {
@@ -17,6 +19,7 @@ export const addComment = async (req, res) => {
     const newComment = new Comment({ userId, artPublicationId, text });
     await newComment.save();
 
+    console.log('Comment going to be added:', newComment);
     // Update the art publication to include the new comment ID
     const updatedComments = [...artPublication.comments, newComment._id];
     await artPublication.update({ comments: updatedComments });
@@ -50,25 +53,34 @@ export const addComment = async (req, res) => {
   }
 };
 
-
-
-
-
 export const deleteComment = async (req, res) => {
   try {
     const userId = req.user.id;
     const commentId = req.params.commentId;
 
-    const comment = await Comment.findById(commentId);
-    if (!comment) return res.status(404).json({ msg: 'Comment not found' });
+    console.log(`User ID: ${userId}`);
+    console.log(`Comment ID: ${commentId}`);
 
-    if (String(comment.userId) !== String(userId)) return res.status(403).json({ msg: 'Unauthorized' });
+    const commentDoc = await db.collection('Comments').doc(commentId).get();
+    if (!commentDoc.exists) return res.status(404).json({ msg: 'Comment not found' });
 
-    await Comment.findByIdAndRemove(commentId);
+    const comment = commentDoc.data();
+    if (String(comment.userId) !== String(userId)) {
+      console.error('Unauthorized attempt to delete comment');
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
 
-    const artPublication = await ArtPublication.findById(comment.artPublicationId);
-    artPublication.comments.pull(commentId);
-    await artPublication.save();
+    await db.collection('Comments').doc(commentId).delete();
+
+    const artPublicationDoc = await db.collection('ArtPublications').doc(comment.artPublicationId).get();
+    if (!artPublicationDoc.exists) {
+      console.error('Art publication not found while deleting comment');
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
+
+    await db.collection('ArtPublications').doc(comment.artPublicationId).update({
+      comments: FieldValue.arrayRemove(commentId)
+    });
 
     res.json({
       msg: 'Comment deleted',
@@ -80,6 +92,7 @@ export const deleteComment = async (req, res) => {
     res.status(500).json({ msg: 'Server Error', details: err.message });
   }
 };
+
 
 export const getCommentsByArtPublicationId = async (req, res) => {
   try {

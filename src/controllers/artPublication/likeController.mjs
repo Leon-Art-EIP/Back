@@ -2,6 +2,8 @@ import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { Notification } from "../../models/notificationModel.mjs";
 import { User } from "../../models/userModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
+import { FieldValue } from 'firebase-admin/firestore';
+import db from '../../config/db.mjs';
 
 export const likeArtPublication = async (req, res) => {
   try {
@@ -11,19 +13,28 @@ export const likeArtPublication = async (req, res) => {
     const artPublication = await ArtPublication.findById(artPublicationId);
     const user = await User.findById(userId);
 
-    if (!artPublication)
+    if (!artPublication) {
       return res.status(404).json({ msg: "Art publication not found" });
+    }
 
-    if (artPublication.likes.includes(userId)) {
-      // Remove like from ArtPublication
-      artPublication.likes.pull(userId);
-      // Remove liked publication from User
-      user.likedPublications.pull(artPublicationId);
+    const isLiked = artPublication.likes.includes(userId);
+
+    if (isLiked) {
+      // Remove like from ArtPublication and User
+      await db.collection('ArtPublications').doc(artPublicationId).update({
+        likes: FieldValue.arrayRemove(userId)
+      });
+      await db.collection('Users').doc(userId).update({
+        likedPublications: FieldValue.arrayRemove(artPublicationId)
+      });
     } else {
-      // Add like to ArtPublication
-      artPublication.likes.push(userId);
-      // Add liked publication to User
-      user.likedPublications.push(artPublicationId);
+      // Add like to ArtPublication and User
+      await db.collection('ArtPublications').doc(artPublicationId).update({
+        likes: FieldValue.arrayUnion(userId)
+      });
+      await db.collection('Users').doc(userId).update({
+        likedPublications: FieldValue.arrayUnion(artPublicationId)
+      });
       createAndSendNotification({
         recipientId: artPublication.userId,
         type: 'like',
@@ -34,15 +45,12 @@ export const likeArtPublication = async (req, res) => {
       });
     }
 
-    await artPublication.save();
-    await user.save();
-
     res.json({
       msg: "Like status updated",
       likeStatus: {
         artPublicationId,
-        isLiked: artPublication.likes.includes(userId),
-        totalLikes: artPublication.likes.length, // Here's the count of likes
+        isLiked: !isLiked,
+        totalLikes: isLiked ? artPublication.likes.length - 1 : artPublication.likes.length + 1,
       },
     });
   } catch (err) /* istanbul ignore next */ {
@@ -54,8 +62,9 @@ export const likeArtPublication = async (req, res) => {
 export const getPublicationLikeCount = async (req, res) => {
   try {
     const artPublication = await ArtPublication.findById(req.params.id);
-    if (!artPublication)
+    if (!artPublication) {
       return res.status(404).json({ msg: "Art publication not found" });
+    }
 
     res.json({
       artPublicationId: artPublication._id,
@@ -69,27 +78,23 @@ export const getPublicationLikeCount = async (req, res) => {
 
 export const getUsersWhoLikedPublication = async (req, res) => {
   try {
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
 
-    const artPublication = await ArtPublication.findById(
-      req.params.id
-    ).populate({
-      path: "likes",
-      model: "User",
-      select: "username",
-      options: {
-        limit: limit,
-        skip: (page - 1) * limit,
-      },
-    });
+    const artPublication = await ArtPublication.findById(req.params.id);
 
-    if (!artPublication)
+    if (!artPublication) {
       return res.status(404).json({ msg: "Art publication not found" });
+    }
+
+    const likedUsers = await User.find({ _id: { $in: artPublication.likes } })
+      .select("username")
+      .limit(limit)
+      .skip((page - 1) * limit);
 
     res.json({
       artPublicationId: artPublication._id,
-      users: artPublication.likes,
+      users: likedUsers,
     });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);

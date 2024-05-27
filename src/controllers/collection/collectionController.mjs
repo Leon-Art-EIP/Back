@@ -1,6 +1,7 @@
 import { User } from "../../models/userModel.mjs";
 import Collection from "../../models/collectionModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
+import { FieldValue } from 'firebase-admin/firestore';
 
 export const addToCollection = async (req, res) => {
   try {
@@ -14,9 +15,9 @@ export const addToCollection = async (req, res) => {
 
     // Create or update collection
     let collection = await Collection.findOneAndUpdate(
-      { name: collectionName, user: userId },
-      { $addToSet: { artPublications: artPublicationId } },
-      { new: true, upsert: true }
+      { name: collectionName, userId: userId },
+      { artPublications: FieldValue.arrayUnion(artPublicationId) },
+      { upsert: true }
     );
 
     // Update user's collections
@@ -31,10 +32,12 @@ export const addToCollection = async (req, res) => {
       collection: collection,
     });
   } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    console.error('Error adding to collection:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
+
 
 export const getMyCollections = async (req, res) => {
   try {

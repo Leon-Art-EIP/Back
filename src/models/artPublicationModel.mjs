@@ -112,7 +112,7 @@ class ArtPublication {
   }
 
   async update(data) {
-    const artPublicationRef = db.collection('ArtPublications').doc(this.id);
+    const artPublicationRef = db.collection('ArtPublications').doc(this._id);
     const doc = await artPublicationRef.get();
     if (doc.exists) {
       const cleanData = cleanUndefinedFields(data);

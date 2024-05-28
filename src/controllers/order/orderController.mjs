@@ -136,8 +136,16 @@ export const getLatestBuyOrders = async (req, res) => {
 
       return {
         orderId: order.id,
+        buyerId: order.buyerId,
+        buyerName: order.buyerName,
+        sellerId: order.sellerId,
+        sellerName: order.sellerName,
         orderState: order.orderState,
+        paymentStatus: order.paymentStatus,
         orderPrice: order.orderPrice,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        artPublicationId: order.artPublicationId,
         artPublicationName: artPublication.name,
         artPublicationDescription: artPublication.description,
         artPublicationPrice: artPublication.price,
@@ -164,14 +172,30 @@ export const getLatestSellOrders = async (req, res) => {
       paymentStatus: { $in: ["paid", "refunded"] }
     }, 'createdAt', 'desc', limit, skip);
 
-    const formattedOrders = sellOrders.map(order => ({
-      orderId: order.id,
-      orderState: order.orderState,
-      orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
+    const formattedOrders = await Promise.all(sellOrders.map(async (order) => {
+      const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+      if (!artPublicationDoc.exists) {
+        throw new Error(`Art publication with ID ${order.artPublicationId} not found`);
+      }
+      const artPublication = artPublicationDoc.data();
+
+      return {
+        orderId: order.id,
+        buyerId: order.buyerId,
+        buyerName: order.buyerName,
+        sellerId: order.sellerId,
+        sellerName: order.sellerName,
+        orderState: order.orderState,
+        paymentStatus: order.paymentStatus,
+        orderPrice: order.orderPrice,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        artPublicationId: order.artPublicationId,
+        artPublicationName: artPublication.name,
+        artPublicationDescription: artPublication.description,
+        artPublicationPrice: artPublication.price,
+        artPublicationImage: artPublication.image,
+      };
     }));
 
     res.json(formattedOrders);

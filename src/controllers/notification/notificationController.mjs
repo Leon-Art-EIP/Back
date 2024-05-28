@@ -95,12 +95,25 @@ export const markNotificationRead = async (req, res) => {
     // Récupérer la notification mise à jour
     const updatedNotification = await Notification.findById(notificationId);
 
-    res.json({ msg: 'Notification marked as read', notification: updatedNotification });
+    res.json({
+      msg: 'Notification marked as read',
+      notification: {
+        _id: updatedNotification.id,
+        recipient: updatedNotification.recipient,
+        type: updatedNotification.type,
+        content: updatedNotification.content,
+        referenceId: updatedNotification.referenceId,
+        read: updatedNotification.read,
+        createdAt: updatedNotification.createdAt,
+        updatedAt: updatedNotification.updatedAt,
+      },
+    });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 
 export const getUnreadNotificationCount = async (req, res) => {

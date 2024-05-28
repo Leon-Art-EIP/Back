@@ -11,9 +11,7 @@ export const createOrder = async (req, res) => {
     const artPublication = await ArtPublication.findById(artPublicationId);
 
     if (!artPublication || !artPublication.isForSale || artPublication.isSold) {
-      return res
-        .status(400)
-        .json({ msg: "Art publication not available for sale" });
+      return res.status(400).json({ msg: "Art publication not available for sale" });
     }
 
     // Vérifier si une commande payée existe déjà pour cette publication
@@ -23,9 +21,7 @@ export const createOrder = async (req, res) => {
     });
 
     if (existingOrder) {
-      /* istanbul ignore next */ return res
-        .status(400)
-        .json({ msg: "This art has already been sold" });
+      /* istanbul ignore next */ return res.status(400).json({ msg: "This art has already been sold" });
     }
 
     const sellerId = artPublication.userId;
@@ -37,6 +33,9 @@ export const createOrder = async (req, res) => {
       sellerId,
       orderPrice: artPublication.price,
       paymentStatus: "pending",
+      orderRating: null, // Initialize optional fields to null
+      stripePaymentIntentId: null,
+      stripeSessionId: null,
     });
     await newOrder.save();
 
@@ -61,8 +60,7 @@ export const createOrder = async (req, res) => {
     });
 
     // Enregistrer l'ID de la session de paiement dans la commande
-    newOrder.stripeSessionId = session.id;
-    await newOrder.save();
+    await Order.updateById(newOrder.id, { stripeSessionId: session.id });
 
     res.status(201).json({
       msg: "Order created and Stripe Checkout session initiated",
@@ -97,15 +95,14 @@ export const updateOrderToShipping = async (req, res) => {
         .json({ msg: "Order must be in paid state to mark as shipping" });
     }
 
-    order.orderState = "shipping";
-    await order.save();
+    await Order.updateById(order.id, { orderState: "shipping" });
 
     // Send notification to the buyer about the order shipping status
     createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_shipping",
       content: ` `,
-      referenceId: order._id,
+      referenceId: order.id,
       description: `The seller marked your order as currently in shipping`,
       sendPush: true,
     });
@@ -184,9 +181,7 @@ export const getBuyOrderById = async (req, res) => {
       _id: orderId,
       buyerId: userId,
       paymentStatus: { $in: ["paid", "refunded"] },
-    })
-      .populate("artPublicationId", "name description price image")
-      .populate("sellerId", "username");
+    });
 
     if (!order) {
       /* istanbul ignore next */ return res
@@ -194,16 +189,19 @@ export const getBuyOrderById = async (req, res) => {
         .json({ msg: "Order not found" });
     }
 
+    const artPublication = await ArtPublication.findById(order.artPublicationId);
+    const seller = await User.findById(order.sellerId);
+
     const formattedOrder = {
       orderId: order._id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
-      sellerName: order.sellerId.username,
-      sellerId: order.sellerId._id,
+      artPublicationName: artPublication.name,
+      artPublicationDescription: artPublication.description,
+      artPublicationPrice: artPublication.price,
+      artPublicationImage: artPublication.image,
+      sellerName: seller.username,
+      sellerId: seller._id,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
@@ -224,28 +222,29 @@ export const getSellOrderById = async (req, res) => {
       _id: orderId,
       sellerId: userId,
       paymentStatus: { $in: ["paid", "refunded"] },
-    })
-      .populate("artPublicationId", "name description price image")
-      .populate("buyerId", "username");
+    });
 
     if (!order) {
       return res.status(404).json({ msg: "Order not found" });
     }
-    /* istanbul ignore next */
+
+    const artPublication = await ArtPublication.findById(order.artPublicationId);
+    const buyer = await User.findById(order.buyerId);
+
     const formattedOrder = {
       orderId: order._id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
-      buyerName: order.buyerId.username,
-      buyerId: order.buyerId._id,
+      artPublicationName: artPublication.name,
+      artPublicationDescription: artPublication.description,
+      artPublicationPrice: artPublication.price,
+      artPublicationImage: artPublication.image,
+      buyerName: buyer.username,
+      buyerId: buyer._id,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
-    /* istanbul ignore next */
+
     res.json(formattedOrder);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -273,15 +272,13 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     }
 
     // Cancel the order in the database
-    order.orderState = "cancelled";
-    order.paymentStatus =
-      order.paymentStatus === "paid" ? "refunded" : "pending";
-    await order.save();
+    await Order.updateById(order.id, {
+      orderState: "cancelled",
+      paymentStatus: order.paymentStatus === "paid" ? "refunded" : "pending",
+    });
 
     // If the artPublication is not sold to someone else, set it as unsold
-    const artPublication = await ArtPublication.findById(
-      order.artPublicationId
-    );
+    const artPublication = await ArtPublication.findById(order.artPublicationId);
     if (artPublication && artPublication.isSold) {
       const otherPaidOrder = await Order.findOne({
         artPublicationId: order.artPublicationId,
@@ -290,8 +287,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
       });
 
       if (!otherPaidOrder) {
-        artPublication.isSold = false;
-        await artPublication.save();
+        await ArtPublication.updateById(artPublication.id, { isSold: false });
       }
     }
 
@@ -327,9 +323,7 @@ async function refundOrder(orderId) /* istanbul ignore next */ {
   if (!order) throw new Error("Order not found");
 
   // Retrieve the Stripe Checkout session to get the payment intent
-  const session = await stripe.checkout.sessions.retrieve(
-    order.stripeSessionId
-  );
+  const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
   if (!session || !session.payment_intent) {
     throw new Error("No payment intent found for this order");
   }
@@ -339,8 +333,7 @@ async function refundOrder(orderId) /* istanbul ignore next */ {
     payment_intent: session.payment_intent,
   });
 
-  order.paymentStatus = "refunded";
-  await order.save();
+  await Order.updateById(order.id, { paymentStatus: "refunded" });
 
   return order;
 }
@@ -357,9 +350,10 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
       return res.status(403).json({ msg: "Unauthorized" });
     }
 
-    order.orderState = "completed";
-    order.orderRating = rating;
-    await order.save();
+    await Order.updateById(order.id, {
+      orderState: "completed",
+      orderRating: rating,
+    });
 
     // Notify the seller
     createAndSendNotification({
@@ -377,3 +371,4 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+g

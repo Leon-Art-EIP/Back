@@ -1,19 +1,20 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour votre instance Firestore
 import { v4 as uuidv4 } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
+
 class Order {
   constructor(data) {
-    this.id = data.id || uuidv4(); // Générer un UUID si l'ID n'est pas fourni  
+    this.id = data.id || uuidv4(); // Générer un UUID si l'ID n'est pas fourni
     this.artPublicationId = data.artPublicationId; // Assume ID as a string
     this.buyerId = data.buyerId; // Assume ID as a string
     this.sellerId = data.sellerId; // Assume ID as a string
     this.orderState = data.orderState || 'pending';
     this.paymentStatus = data.paymentStatus || 'pending';
-    this.orderRating = data.orderRating;
-    this.stripePaymentIntentId = data.stripePaymentIntentId;
-    this.orderPrice = data.orderPrice;
-    this.createdAt = data.createdAt || new Date();
-    this.updatedAt = data.updatedAt || new Date();
-    this.stripeSessionId = data.stripeSessionId;
+    this.orderRating = data.orderRating !== undefined ? data.orderRating : 0; // Initialize orderRating to null if undefined
+    this.stripePaymentIntentId = data.stripePaymentIntentId || null; // Ensure stripePaymentIntentId is not undefined
+    this.orderPrice = data.orderPrice || null; // Ensure orderPrice is not undefined
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.updatedAt = data.updatedAt || new Date().toISOString();
+    this.stripeSessionId = data.stripeSessionId || null; // Ensure stripeSessionId is not undefined
   }
 
   // Save an order to Firestore
@@ -21,6 +22,7 @@ class Order {
     try {
       const orderRef = db.collection('Orders').doc(); // Creates a new document ID
       await orderRef.set(this.toJSON());
+      await orderRef.update({ id: orderRef.id }); // Update the document with its own ID
       this.id = orderRef.id; // Store Firestore document ID within the object
       return this;
     } catch (error) {
@@ -41,8 +43,9 @@ class Order {
       stripePaymentIntentId: this.stripePaymentIntentId,
       orderPrice: this.orderPrice,
       createdAt: this.createdAt,
-      updatedAt: new Date(), // Update 'updatedAt' on every save
-      stripeSessionId: this.stripeSessionId
+      updatedAt: new Date().toISOString(), // Update 'updatedAt' on every save
+      stripeSessionId: this.stripeSessionId,
+      id: this.id // Include the ID in the JSON object
     };
   }
 
@@ -101,7 +104,7 @@ class Order {
       const orderRef = db.collection('Orders').doc(orderId);
       await orderRef.update({
         ...updateData,
-        updatedAt: new Date() // Update the 'updatedAt' field
+        updatedAt: new Date().toISOString() // Update the 'updatedAt' field
       });
       console.log('Order updated successfully');
     } catch (error) {
@@ -127,7 +130,7 @@ class Order {
       const orderRef = db.collection('Orders').doc(this.id);
       await orderRef.update({
         ...updateData,
-        updatedAt: new Date() // Optionally add/update a timestamp field
+        updatedAt: new Date().toISOString() // Optionally add/update a timestamp field
       });
       console.log('Order updated successfully');
     } catch (error) {

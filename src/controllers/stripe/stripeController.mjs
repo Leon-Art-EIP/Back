@@ -3,7 +3,7 @@ import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
 import socketManager from '../../utils/socketManager.mjs'; // Assuming you have a socket manager
-import User from '../../models/userModel.mjs'; // Ensure the path is correct
+import { User } from '../../models/userModel.mjs'; // Ensure the path is correct
 
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];

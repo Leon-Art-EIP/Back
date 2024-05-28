@@ -7,11 +7,15 @@ export const postArticle = async (req, res) => {
     const userId = req.user.id;
     const mainImage = req.file ? req.file.path : null; // Get the path of the uploaded image
 
+    const maxPosition = await Article.getMaxPosition();
+    const position = maxPosition + 1;
+
     const article = new Article({
       title,
       mainImage,
       content,
       authorId: userId, // Utilisez `authorId` au lieu de `author`
+      position
     });
 
     await article.save();
@@ -26,7 +30,8 @@ export const postArticle = async (req, res) => {
       author: {
         username: author.username
       },
-      createdAt: article.createdAt
+      createdAt: article.createdAt,
+      position: article.position
     });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -56,7 +61,8 @@ export const getArticleById = async (req, res) => {
       author: {
         username: author.username
       },
-      createdAt: article.createdAt
+      createdAt: article.createdAt,
+      position: article.position
     });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -77,7 +83,8 @@ export const getLatestArticles = async (req, res) => {
         author: {
           username: author.username
         },
-        createdAt: article.createdAt
+        createdAt: article.createdAt,
+        position: article.position
       };
     }));
     res.json(result);

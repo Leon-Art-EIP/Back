@@ -8,6 +8,7 @@ class Article {
     this.content = data.content;
     this.authorId = data.authorId;
     this.createdAt = data.createdAt || new Date().toISOString();
+    this.position = data.position; // Ajout du champ position
   }
 
   async save() {
@@ -18,7 +19,8 @@ class Article {
         mainImage: this.mainImage,
         content: this.content,
         authorId: this.authorId,
-        createdAt: this.createdAt
+        createdAt: this.createdAt,
+        position: this.position
       });
       this._id = articleRef.id; // Stocke l'ID du document Firestore dans le champ _id
       return this;
@@ -133,6 +135,24 @@ class Article {
     } catch (error) {
       console.error('Error finding articles by query:', error);
       throw new Error('Error finding articles');
+    }
+  }
+
+  static async getMaxPosition() {
+    try {
+      const querySnapshot = await db.collection('Articles')
+        .orderBy('position', 'desc')
+        .limit(1)
+        .get();
+
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data().position;
+      } else {
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error getting max position:', error);
+      throw new Error('Error getting max position');
     }
   }
 }

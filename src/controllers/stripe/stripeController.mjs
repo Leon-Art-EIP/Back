@@ -1,14 +1,11 @@
-import { User } from "../../models/userModel.mjs";
 import { Order } from "../../models/orderModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
-import { socketManager } from '../../app.mjs';
+import socketManager from '../../utils/socketManager.mjs'; // Assuming you have a socket manager
+import User from '../../models/userModel.mjs'; // Ensure the path is correct
 
-export const handleStripeWebhook = async (
-  req,
-  res
-) => /* istanbul ignore next */ {
+export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
 
@@ -20,7 +17,7 @@ export const handleStripeWebhook = async (
     console.log("err.message = " + err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  // Handle the checkout.session.completed event
+
   if (event.type === "checkout.session.completed") {
     console.log("checkout.session.completed event detected");
     const session = event.data.object;
@@ -46,47 +43,42 @@ export const handleStripeWebhook = async (
     }
 
     // Mark the art publication as sold
-    const artPublication = await ArtPublication.findById(
-      order.artPublicationId
-    );
+    const artPublication = await ArtPublication.findById(order.artPublicationId);
     if (artPublication && !artPublication.isSold) {
       artPublication.isSold = true;
-      await artPublication.save();
+      await artPublication.update({ isSold: true });
     }
 
     // Update the order status
     order.paymentStatus = "paid";
     order.orderState = "paid";
-    await order.save();
+    await order.update({ paymentStatus: "paid", orderState: "paid" });
 
     // Notify the buyer about payment success
-    createAndSendNotification({
+    await createAndSendNotification({
       recipientId: order.sellerId,
       type: "payment_success",
       content: ` `,
       referenceId: order._id,
-      description: `Someone just bought one of your publication !`,
+      description: `Someone just bought one of your publication!`,
       sendPush: true,
     });
 
-    // Optionally, notify the seller that the payment has been received and the order is now being processed
-    createAndSendNotification({
+    // Notify the seller about order processing
+    await createAndSendNotification({
       recipientId: order.buyerId,
       type: "order_processing",
       content: ` `,
       referenceId: order._id,
-      description: `Your Payment has been received, The seller will proceed with the next steps.`,
+      description: `Your Payment has been received. The seller will proceed with the next steps.`,
       sendPush: true,
     });
 
-    // Notifier le front-end de rafraîchir les données
+    // Notify the front-end to refresh the orders
     socketManager.handleRefreshOrders(order.sellerId);
 
     res.status(200).json({ received: true });
-  }
-
-  // Handle the account.updated event
-  else if (event.type === 'account.updated') {
+  } else if (event.type === 'account.updated') {
     const account = event.data.object;
 
     // Find the user associated with the Stripe account
@@ -100,14 +92,15 @@ export const handleStripeWebhook = async (
     } else {
       console.log('User not found for the Stripe account');
     }
-  }
 
-  else {
+    res.status(200).json({ received: true });
+  } else {
     // Handle other event types
     console.log(`Unhandled event type ${event.type}`);
     res.status(200).json({ received: true });
   }
 };
+
 
 export const createStripeAccountLink = async (req, res) => /* istanbul ignore next */ {
   try {

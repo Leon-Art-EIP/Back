@@ -210,40 +210,53 @@ export const getBuyOrderById = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user.id;
 
-    const order = await Order.findOne({
+    // Simplified query to find the order
+    let order = await Order.findOne({
       _id: orderId,
       buyerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
+      paymentStatus: "paid", // Check for "paid" first
     });
 
     if (!order) {
-      /* istanbul ignore next */ return res
-        .status(404)
-        .json({ msg: "Order not found" });
+      order = await Order.findOne({
+        _id: orderId,
+        buyerId: userId,
+        paymentStatus: "refunded", // Check for "refunded" next
+      });
+
+      if (!order) {
+        return res.status(404).json({ msg: "Order not found" });
+      }
     }
 
-    const artPublication = await ArtPublication.findById(order.artPublicationId);
-    if (!artPublication) {
+    // Fetching related artPublication and seller details
+    const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+    if (!artPublicationDoc.exists) {
       return res.status(404).json({ msg: "Art publication not found" });
     }
+    const artPublication = artPublicationDoc.data();
 
-    const seller = await User.findById(order.sellerId);
-    if (!seller) {
+    const sellerDoc = await db.collection('Users').doc(order.sellerId).get();
+    if (!sellerDoc.exists) {
       return res.status(404).json({ msg: "Seller not found" });
     }
+    const seller = sellerDoc.data();
 
     const formattedOrder = {
       orderId: order._id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
+      artPublicationId: order.artPublicationId,
       artPublicationName: artPublication.name,
       artPublicationDescription: artPublication.description,
       artPublicationPrice: artPublication.price,
       artPublicationImage: artPublication.image,
+      sellerId: order.sellerId,
       sellerName: seller.username,
-      sellerId: seller._id,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+      buyerId: order.buyerId,
+      buyerName: req.user.username // Assuming req.user has the buyer's username
     };
 
     res.json(formattedOrder);
@@ -252,37 +265,60 @@ export const getBuyOrderById = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const getSellOrderById = async (req, res) => {
   try {
     const orderId = req.params.id;
     const userId = req.user.id;
 
-    const order = await Order.findOne({
+    // Simplified query to find the order
+    let order = await Order.findOne({
       _id: orderId,
       sellerId: userId,
-      paymentStatus: { $in: ["paid", "refunded"] },
+      paymentStatus: "paid", // Check for "paid" first
     });
 
     if (!order) {
-      return res.status(404).json({ msg: "Order not found" });
+      order = await Order.findOne({
+        _id: orderId,
+        sellerId: userId,
+        paymentStatus: "refunded", // Check for "refunded" next
+      });
+
+      if (!order) {
+        return res.status(404).json({ msg: "Order not found" });
+      }
     }
 
-    const artPublication = await ArtPublication.findById(order.artPublicationId);
-    const buyer = await User.findById(order.buyerId);
+    // Fetching related artPublication and buyer details
+    const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+    if (!artPublicationDoc.exists) {
+      return res.status(404).json({ msg: "Art publication not found" });
+    }
+    const artPublication = artPublicationDoc.data();
+
+    const buyerDoc = await db.collection('Users').doc(order.buyerId).get();
+    if (!buyerDoc.exists) {
+      return res.status(404).json({ msg: "Buyer not found" });
+    }
+    const buyer = buyerDoc.data();
 
     const formattedOrder = {
       orderId: order._id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
+      artPublicationId: order.artPublicationId,
       artPublicationName: artPublication.name,
       artPublicationDescription: artPublication.description,
       artPublicationPrice: artPublication.price,
       artPublicationImage: artPublication.image,
+      buyerId: order.buyerId,
       buyerName: buyer.username,
-      buyerId: buyer._id,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+      sellerId: order.sellerId,
+      sellerName: req.user.username // Assuming req.user has the seller's username
     };
 
     res.json(formattedOrder);
@@ -291,6 +327,7 @@ export const getSellOrderById = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
   try {

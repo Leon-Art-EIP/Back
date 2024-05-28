@@ -15,7 +15,19 @@ export const postArticle = async (req, res) => {
     });
 
     await article.save();
-    res.status(201).json({ ...article, _id: article._id }); // Inclure _id dans la réponse
+
+    const author = await User.findById(userId);
+
+    res.status(201).json({
+      _id: article._id,
+      title: article.title,
+      mainImage: article.mainImage,
+      content: article.content,
+      author: {
+        username: author.username
+      },
+      createdAt: article.createdAt
+    });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
@@ -36,14 +48,16 @@ export const getArticleById = async (req, res) => {
     // Récupérer l'auteur de l'article
     const author = await User.findById(article.authorId);
 
-    if (author) {
-      // Inclure les informations de l'auteur dans la réponse
-      article.author = {
+    res.json({
+      _id: article._id,
+      title: article.title,
+      mainImage: article.mainImage,
+      content: article.content,
+      author: {
         username: author.username
-      };
-    }
-
-    res.json({ ...article, _id: article._id }); // Inclure _id dans la réponse
+      },
+      createdAt: article.createdAt
+    });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
@@ -53,7 +67,20 @@ export const getArticleById = async (req, res) => {
 export const getLatestArticles = async (req, res) => {
   try {
     const articles = await Article.findWithOrder({}, 'createdAt', 'desc');
-    res.json(articles.map(article => ({ ...article, _id: article._id }))); // Inclure _id dans chaque article
+    const result = await Promise.all(articles.map(async article => {
+      const author = await User.findById(article.authorId);
+      return {
+        _id: article._id,
+        title: article.title,
+        mainImage: article.mainImage,
+        content: article.content,
+        author: {
+          username: author.username
+        },
+        createdAt: article.createdAt
+      };
+    }));
+    res.json(result);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });

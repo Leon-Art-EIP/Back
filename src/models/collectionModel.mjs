@@ -2,11 +2,10 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour accéder à Firestore
 import { v4 as uuid } from 'uuid'; // Importez la fonction uuid pour générer des identifiants uniques
 
-const firestore = getFirestore();
 
 class Collection {
   constructor(data) {
-    this._id = data.id || uuid(); // Firestore document ID  
+    this._id = data.id || data._id; // Firestore document ID  
     this.name = data.name; // Name of the collection
     this.artPublications = data.artPublications || []; // Array of ArtPublication document IDs
     this.isPublic = data.isPublic !== undefined ? data.isPublic : true; // Whether the collection is public
@@ -16,7 +15,7 @@ class Collection {
   // Save the collection to Firestore
   async save() {
     try {
-      const collectionRef = firestore.collection('Collections').doc(); // Creates a new document with a generated ID
+      const collectionRef = db.collection('Collections').doc(); // Creates a new document with a generated ID
       await collectionRef.set({
         name: this.name,
         artPublications: this.artPublications,
@@ -24,6 +23,7 @@ class Collection {
         userId: this.userId
       });
       this._id = collectionRef.id; // Store the Firestore document ID within the object
+      collectionRef.update({ _id: this._id }); // Update the document with the ID
       return this;
     } catch (error) {
       console.error('Error saving collection:', error);
@@ -33,8 +33,9 @@ class Collection {
 
   // Static method to fetch a collection by ID from Firestore
   static async findById(collectionId) {
+    console.log('collectionId', collectionId);
     try {
-      const doc = await firestore.collection('Collections').doc(collectionId).get();
+      const doc = await db.collection('Collections').doc(collectionId).get();
       if (!doc.exists) {
         throw new Error('Collection not found');
       }
@@ -48,7 +49,7 @@ class Collection {
   // Static method to update a collection by ID
   static async updateById(collectionId, updateData) {
     try {
-      const collectionRef = firestore.collection('Collections').doc(collectionId);
+      const collectionRef = db.collection('Collections').doc(collectionId);
       await collectionRef.update({
         ...updateData,
         updatedAt: new Date() // Optionally add/update a timestamp field
@@ -63,7 +64,7 @@ class Collection {
   // Update the current collection instance
   async update(updateData) {
     try {
-      const collectionRef = firestore.collection('Collections').doc(this._id);
+      const collectionRef = db.collection('Collections').doc(this._id);
       await collectionRef.update({
         ...updateData,
         updatedAt: new Date() // Optionally add/update a timestamp field
@@ -80,7 +81,7 @@ class Collection {
   // Static method to delete a collection by ID
   static async deleteById(collectionId) {
     try {
-      const collectionRef = firestore.collection('Collections').doc(collectionId);
+      const collectionRef = db.collection('Collections').doc(collectionId);
       await collectionRef.delete();
       console.log('Collection deleted successfully');
     } catch (error) {
@@ -122,7 +123,7 @@ class Collection {
 
   static async find(query) {
     try {
-      let collectionsRef = firestore.collection('Collections');
+      let collectionsRef = db.collection('Collections');
       if (query) {
         if (query.userId) {
           collectionsRef = collectionsRef.where('userId', '==', query.userId);
@@ -134,8 +135,9 @@ class Collection {
       const snapshot = await collectionsRef.get();
       const collections = [];
       snapshot.forEach(doc => {
-        collections.push(new Collection({ ...doc.data(), _id: doc.id }));
+        collections.push(new Collection({ ...doc.data(), _id: doc.id })); // Utilisez l'ID du document Firestore
       });
+      console.log('Collections found:', collections);
       return collections;
     } catch (error) {
       console.error('Error finding collections:', error);
@@ -143,9 +145,10 @@ class Collection {
     }
   }
 
+
   static async findOneAndUpdate(query, updateData, options = {}) {
     try {
-      let collectionsRef = firestore.collection('Collections');
+      let collectionsRef = db.collection('Collections');
 
       // Ajouter des conditions de requête pour la recherche de collection
       if (query.userId) {

@@ -41,50 +41,90 @@ export const getMyCollections = async (req, res) => {
   try {
     const userId = req.user.id;
     const userCollections = await Collection.find({ userId: userId });
-    res.json(userCollections);
+
+    // Ajoutez l'ID du document Firestore comme _id dans chaque collection
+    const collectionsWithId = userCollections.map(collection => {
+      return {
+        ...collection,
+        _id: collection._id || collection.id
+      };
+    });
+
+    console.log('User collections:', collectionsWithId);
+    res.json(collectionsWithId);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const getPublicCollections = async (req, res) => {
   try {
     const userId = req.params.userId;
     const publicCollections = await Collection.find({ userId: userId, isPublic: true });
-    res.json(publicCollections);
+
+    // Ajoutez l'ID du document Firestore comme _id dans chaque collection
+    const collectionsWithId = publicCollections.map(collection => {
+      return {
+        ...collection,
+        _id: collection._id || collection.id
+      };
+    });
+
+    console.log('Public collections:', collectionsWithId);
+    res.json(collectionsWithId);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
 
+
 export const getArtPublicationsInCollection = async (req, res) => {
   try {
     const collectionId = req.params.collectionId;
+    console.log('Collection ID:', collectionId);
     const collection = await Collection.findById(collectionId);
     if (!collection) {
       return res.status(404).json({ msg: "Collection not found" });
     }
 
+    console.log('Found collection:', collection);
+
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;
 
-    const artPublications = await ArtPublication.findWithOrder(
-      { _id: { $in: collection.artPublications } },
+    // Vérifiez que les artPublications existent
+    console.log('ArtPublications in collection:', collection.artPublications);
+
+    if (collection.artPublications.length === 0) {
+      return res.status(404).json({ msg: "No art publications found in this collection" });
+    }
+
+    // Nouvelle méthode pour récupérer les ArtPublications en utilisant array-contains-any
+    const artPublications = await ArtPublication.findWithArrayContainsAny(
+      '_id',
+      collection.artPublications,
       'createdAt',
       'desc',
       limit,
       offset
     );
 
+    console.log('Found artPublications:', artPublications);
+
     res.json(artPublications);
   } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    console.error('Server Error:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
+
+
+
 
 export const deleteCollection = async (req, res) => {
   try {

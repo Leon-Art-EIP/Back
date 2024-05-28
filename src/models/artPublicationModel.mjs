@@ -93,28 +93,86 @@ class ArtPublication {
   }
 
   static async findWithOrder(query = {}, orderByField, orderDirection = 'asc', limit, offset) {
-    let queryRef = db.collection('ArtPublications');
+    try {
+      let queryRef = db.collection('ArtPublications');
 
-    if (Object.keys(query).length > 0) {
-      queryRef = queryRef.where(Object.keys(query)[0], '==', Object.values(query)[0]);
+      console.log('Initial query:', query);
+
+      if (Object.keys(query).length > 0) {
+        for (const [key, value] of Object.entries(query)) {
+          if (Array.isArray(value)) {
+            console.log(`Adding where clause for array: ${key} array-contains-any`, value);
+            queryRef = queryRef.where(key, 'array-contains-any', value);
+          } else {
+            console.log(`Adding where clause: ${key} == ${value}`);
+            queryRef = queryRef.where(key, '==', value);
+          }
+        }
+      }
+
+      queryRef = queryRef.orderBy(orderByField, orderDirection);
+      console.log(`Ordering by ${orderByField} ${orderDirection}`);
+
+      if (offset) {
+        queryRef = queryRef.offset(offset);
+        console.log(`Offset: ${offset}`);
+      }
+
+      if (limit) {
+        queryRef = queryRef.limit(limit);
+        console.log(`Limit: ${limit}`);
+      }
+
+      const querySnapshot = await queryRef.get();
+
+      if (!querySnapshot.empty) {
+        const results = querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), id: doc.id }));
+        console.log('Query results:', results);
+        return results;
+      } else {
+        console.log('No documents found');
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding art publications with order:', error);
+      throw new Error('Error finding art publications with order');
     }
+  }
 
-    queryRef = queryRef.orderBy(orderByField, orderDirection);
+  static async findWithArrayContainsAny(field, values, orderByField, orderDirection = 'asc', limit, offset) {
+    try {
+      let queryRef = db.collection('ArtPublications');
 
-    if (offset) {
-      queryRef = queryRef.offset(offset);
-    }
+      console.log('Initial query:', { [field]: values });
 
-    if (limit) {
-      queryRef = queryRef.limit(limit);
-    }
+      queryRef = queryRef.where(field, 'in', values);
 
-    const querySnapshot = await queryRef.get();
+      queryRef = queryRef.orderBy(orderByField, orderDirection);
+      console.log(`Ordering by ${orderByField} ${orderDirection}`);
 
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), _id: doc.id }));
-    } else {
-      return [];
+      if (offset) {
+        queryRef = queryRef.offset(offset);
+        console.log(`Offset: ${offset}`);
+      }
+
+      if (limit) {
+        queryRef = queryRef.limit(limit);
+        console.log(`Limit: ${limit}`);
+      }
+
+      const querySnapshot = await queryRef.get();
+
+      if (!querySnapshot.empty) {
+        const results = querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), _id: doc.id }));
+        console.log('Query results:', results);
+        return results;
+      } else {
+        console.log('No documents found');
+        return [];
+      }
+    } catch (error) {
+      console.error('Error finding art publications with array-contains-any:', error);
+      throw new Error('Error finding art publications with array-contains-any');
     }
   }
 

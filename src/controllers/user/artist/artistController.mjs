@@ -10,9 +10,6 @@ export const getLatestArtists = async (req, res) => {
     // Créez la requête pour obtenir les artistes
     let query = db.collection('Users')
       .where('is_artist', '==', true)
-      .orderBy('createdAt', 'desc')
-      .offset(skip)
-      .limit(limit);
 
     // Exécutez la requête
     const querySnapshot = await query.get();
@@ -20,15 +17,18 @@ export const getLatestArtists = async (req, res) => {
 
     // Transformez les résultats en instances de `User`
     querySnapshot.forEach((doc) => {
-      const artist = new User(doc.data());
-      artist.id = doc.id;
+      const artistData = doc.data();
+      const artist = {
+        ...artistData,
+        _id: doc.id,
+      };
       delete artist.password; // Supprimez les informations sensibles
       artists.push(artist);
     });
 
-    return res.json({ artists });
+    res.json({ artists });
   } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
-    return res.status(500).json({ msg: "Server Error" });
+    console.error('Error fetching artists:', err);
+    res.status(500).json({ msg: 'Server Error' });
   }
 };

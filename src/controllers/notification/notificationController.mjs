@@ -4,6 +4,7 @@ import { Notification } from '../../models/notificationModel.mjs';
 import { User } from "../../models/userModel.mjs";
 import admin from 'firebase-admin';
 import fs from 'fs';
+import db from '../../config/db.mjs';
 
 // Initialize the FCM SDK
 const serviceAccount = JSON.parse(fs.readFileSync(process.env.SERVICE_ACCOUNT_KEY_PATH, 'utf8'));
@@ -96,13 +97,28 @@ export const markNotificationRead = async (req, res) => {
 export const getUnreadNotificationCount = async (req, res) => {
   try {
     const userId = req.user.id;
-    const count = await Notification.countDocuments({ recipient: userId, read: false });
-    res.json({ unreadCount: count });
+
+    // Vérifiez si des notifications non lues existent pour cet utilisateur
+    const notificationsRef = db.collection('Notifications')
+      .where('recipient', '==', userId)
+      .where('read', '==', false);
+
+    const snapshot = await notificationsRef.get();
+
+    if (snapshot.empty) {
+      console.log('No matching documents.');
+      return res.json({ unreadCount: 0 });
+    } else {
+      const unreadCount = snapshot.size;
+      console.log(`Found ${unreadCount} unread notifications.`);
+      return res.json({ unreadCount });
+    }
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 export const updateFcmToken = async (req, res) => {
   const userId = req.user.id;

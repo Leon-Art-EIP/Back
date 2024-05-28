@@ -2,11 +2,12 @@ import db from '../config/db.mjs';
 
 class Article {
   constructor(data) {
+    this._id = data._id; // Ajout du champ _id
     this.title = data.title;
     this.mainImage = data.mainImage;
     this.content = data.content;
     this.authorId = data.authorId;
-    this.createdAt = data.createdAt || new Date();
+    this.createdAt = data.createdAt || new Date().toISOString();
   }
 
   async save() {
@@ -19,7 +20,7 @@ class Article {
         authorId: this.authorId,
         createdAt: this.createdAt
       });
-      this.id = articleRef.id;
+      this._id = articleRef.id; // Stocke l'ID du document Firestore dans le champ _id
       return this;
     } catch (error) {
       console.error('Error saving article:', error);
@@ -33,7 +34,7 @@ class Article {
       if (!doc.exists) {
         throw new Error('Article not found');
       }
-      return new Article({ ...doc.data(), id: doc.id });
+      return new Article({ ...doc.data(), _id: doc.id }); // Inclure l'ID du document dans la réponse
     } catch (error) {
       console.error('Error finding article by ID:', error);
       throw new Error('Error finding article');
@@ -42,10 +43,10 @@ class Article {
 
   async update(updateData) {
     try {
-      const articleRef = db.collection('Articles').doc(this.id);
+      const articleRef = db.collection('Articles').doc(this._id);
       await articleRef.update({
         ...updateData,
-        updatedAt: new Date() // Optionally add/update a timestamp field
+        updatedAt: new Date().toISOString() // Optionally add/update a timestamp field
       });
       Object.assign(this, updateData);
       return this;
@@ -57,7 +58,7 @@ class Article {
 
   async delete() {
     try {
-      const articleRef = db.collection('Articles').doc(this.id);
+      const articleRef = db.collection('Articles').doc(this._id);
       await articleRef.delete();
       return true;
     } catch (error) {
@@ -81,7 +82,7 @@ class Article {
     try {
       const articles = await this.find(query);
       if (articles.length > 0) {
-        await db.collection('Articles').doc(articles[0].id).delete();
+        await db.collection('Articles').doc(articles[0]._id).delete();
         return true;
       } else {
         return false;
@@ -102,7 +103,7 @@ class Article {
         .get();
 
       if (!querySnapshot.empty) {
-        return querySnapshot.docs.map(doc => new Article({ ...doc.data(), id: doc.id }));
+        return querySnapshot.docs.map(doc => new Article({ ...doc.data(), _id: doc.id }));
       } else {
         return [];
       }
@@ -125,7 +126,7 @@ class Article {
       const querySnapshot = await queryRef.get();
 
       if (!querySnapshot.empty) {
-        return querySnapshot.docs.map(doc => new Article({ ...doc.data(), id: doc.id }));
+        return querySnapshot.docs.map(doc => new Article({ ...doc.data(), _id: doc.id }));
       } else {
         return [];
       }

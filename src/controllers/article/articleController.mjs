@@ -1,5 +1,5 @@
 import { Article } from "../../models/articleModel.mjs";
-import mongoose from 'mongoose';
+import { User } from "../../models/userModel.mjs";
 
 export const postArticle = async (req, res) => {
   try {
@@ -11,11 +11,11 @@ export const postArticle = async (req, res) => {
       title,
       mainImage,
       content,
-      author: userId,
+      authorId: userId, // Utilisez `authorId` au lieu de `author`
     });
 
     await article.save();
-    res.status(201).json(article);
+    res.status(201).json({ ...article, _id: article._id }); // Inclure _id dans la réponse
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
@@ -43,18 +43,17 @@ export const getArticleById = async (req, res) => {
       };
     }
 
-    res.json(article);
+    res.json({ ...article, _id: article._id }); // Inclure _id dans la réponse
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
 
-
 export const getLatestArticles = async (req, res) => {
   try {
     const articles = await Article.findWithOrder({}, 'createdAt', 'desc');
-    res.json(articles);
+    res.json(articles.map(article => ({ ...article, _id: article._id }))); // Inclure _id dans chaque article
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });

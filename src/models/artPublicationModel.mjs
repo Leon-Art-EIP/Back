@@ -96,8 +96,6 @@ class ArtPublication {
     try {
       let queryRef = db.collection('ArtPublications');
 
-      console.log('Initial query:', query);
-
       if (Object.keys(query).length > 0) {
         for (const [key, value] of Object.entries(query)) {
           if (Array.isArray(value)) {
@@ -111,26 +109,21 @@ class ArtPublication {
       }
 
       queryRef = queryRef.orderBy(orderByField, orderDirection);
-      console.log(`Ordering by ${orderByField} ${orderDirection}`);
 
       if (offset) {
         queryRef = queryRef.offset(offset);
-        console.log(`Offset: ${offset}`);
       }
 
       if (limit) {
         queryRef = queryRef.limit(limit);
-        console.log(`Limit: ${limit}`);
       }
 
       const querySnapshot = await queryRef.get();
 
       if (!querySnapshot.empty) {
         const results = querySnapshot.docs.map(doc => new ArtPublication({ ...doc.data(), id: doc.id }));
-        console.log('Query results:', results);
         return results;
       } else {
-        console.log('No documents found');
         return [];
       }
     } catch (error) {

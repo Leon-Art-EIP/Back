@@ -2,6 +2,7 @@ import { Order } from "../../models/orderModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
+import db from "../../config/db.mjs";
 
 export const createOrder = async (req, res) => {
   const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
@@ -32,7 +33,7 @@ export const createOrder = async (req, res) => {
       buyerId,
       sellerId,
       orderPrice: artPublication.price,
-      paymentStatus: "pending",
+      paymentStatus: "paid",
       orderRating: null, // Initialize optional fields to null
       stripePaymentIntentId: null,
       stripeSessionId: null,
@@ -95,7 +96,7 @@ export const updateOrderToShipping = async (req, res) => {
         .json({ msg: "Order must be in paid state to mark as shipping" });
     }
 
-    await Order.updateById(order.id, { orderState: "shipping" });
+    await Order.updateById(order.id, { orderState: "shipping", });
 
     // Send notification to the buyer about the order shipping status
     createAndSendNotification({
@@ -126,14 +127,22 @@ export const getLatestBuyOrders = async (req, res) => {
       paymentStatus: { $in: ["paid", "refunded"] }
     }, 'createdAt', 'desc', limit, skip);
 
-    const formattedOrders = buyOrders.map(order => ({
-      orderId: order.id,
-      orderState: order.orderState,
-      orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
+    const formattedOrders = await Promise.all(buyOrders.map(async (order) => {
+      const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+      if (!artPublicationDoc.exists) {
+        throw new Error(`Art publication with ID ${order.artPublicationId} not found`);
+      }
+      const artPublication = artPublicationDoc.data();
+
+      return {
+        orderId: order.id,
+        orderState: order.orderState,
+        orderPrice: order.orderPrice,
+        artPublicationName: artPublication.name,
+        artPublicationDescription: artPublication.description,
+        artPublicationPrice: artPublication.price,
+        artPublicationImage: artPublication.image,
+      };
     }));
 
     res.json(formattedOrders);
@@ -190,7 +199,14 @@ export const getBuyOrderById = async (req, res) => {
     }
 
     const artPublication = await ArtPublication.findById(order.artPublicationId);
+    if (!artPublication) {
+      return res.status(404).json({ msg: "Art publication not found" });
+    }
+
     const seller = await User.findById(order.sellerId);
+    if (!seller) {
+      return res.status(404).json({ msg: "Seller not found" });
+    }
 
     const formattedOrder = {
       orderId: order._id,

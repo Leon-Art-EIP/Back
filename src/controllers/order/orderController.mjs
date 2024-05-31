@@ -212,14 +212,14 @@ export const getBuyOrderById = async (req, res) => {
 
     // Simplified query to find the order
     let order = await Order.findOne({
-      _id: orderId,
+      id: orderId,
       buyerId: userId,
       paymentStatus: "paid", // Check for "paid" first
     });
 
     if (!order) {
       order = await Order.findOne({
-        _id: orderId,
+        id: orderId,
         buyerId: userId,
         paymentStatus: "refunded", // Check for "refunded" next
       });
@@ -243,7 +243,7 @@ export const getBuyOrderById = async (req, res) => {
     const seller = sellerDoc.data();
 
     const formattedOrder = {
-      orderId: order._id,
+      orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
       artPublicationId: order.artPublicationId,
@@ -274,14 +274,14 @@ export const getSellOrderById = async (req, res) => {
 
     // Simplified query to find the order
     let order = await Order.findOne({
-      _id: orderId,
+      id: orderId,
       sellerId: userId,
       paymentStatus: "paid", // Check for "paid" first
     });
 
     if (!order) {
       order = await Order.findOne({
-        _id: orderId,
+        id: orderId,
         sellerId: userId,
         paymentStatus: "refunded", // Check for "refunded" next
       });
@@ -305,7 +305,7 @@ export const getSellOrderById = async (req, res) => {
     const buyer = buyerDoc.data();
 
     const formattedOrder = {
-      orderId: order._id,
+      orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
       artPublicationId: order.artPublicationId,
@@ -345,7 +345,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
     // If the order is already paid, initiate a refund
     if (order.paymentStatus === "paid") {
       // Refund through Stripe
-      await refundOrder(order._id);
+      await refundOrder(order.id);
     }
 
     // Cancel the order in the database
@@ -373,7 +373,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
       recipientId: order.sellerId,
       type: "order_cancelled",
       content: ` `,
-      referenceId: order._id,
+      referenceId: order.id,
       description: `You just cancelled an order`,
       sendPush: true,
     });
@@ -383,7 +383,7 @@ export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
       recipientId: order.buyerId,
       type: "order_cancelled",
       content: ` `,
-      referenceId: order._id,
+      referenceId: order.id,
       description: `One of your order was cancelled`,
       sendPush: true,
     });
@@ -437,7 +437,7 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
       recipientId: order.sellerId,
       type: "order_completed",
       content: `${rating}`,
-      referenceId: order._id,
+      referenceId: order.id,
       description: `One of your Order is completed ! You got a rating of ${rating} stars !`,
       sendPush: true,
     });

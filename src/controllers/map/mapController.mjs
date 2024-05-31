@@ -1,6 +1,7 @@
 import { User } from '../../models/userModel.mjs';
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import db from '../../config/db.mjs';
+import geofire from 'geofire-common';
 
 export async function getUsersWithArtNearLocation(req, res) {
   try {
@@ -40,6 +41,11 @@ export async function getUsersWithArtNearLocation(req, res) {
 
     // Step 2: Filter users who have art publications
     const userIds = users.map(user => user.id);
+
+    // Vérifiez si userIds est vide avant d'exécuter la requête Firestore
+    if (userIds.length === 0) {
+      return res.json([]); // Retourne une réponse vide
+    }
 
     // Récupérer les publications d'art pour les utilisateurs spécifiés
     const artPublicationsSnapshot = await db.collection('ArtPublications')

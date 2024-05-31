@@ -172,9 +172,11 @@ class ArtPublication {
   static async deleteOne(query) {
     const artPublication = await this.findOne(query);
     if (artPublication) {
-      await db.collection('ArtPublications').doc(artPublication._id).delete();
+      console.log(`Deleting ArtPublication with ID: ${artPublication.id}`);
+      await db.collection('ArtPublications').doc(artPublication.id).delete();
       return true;
     } else {
+      console.log('ArtPublication not found for deletion');
       return false;
     }
   }

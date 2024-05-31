@@ -2,18 +2,17 @@ import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct p
 
 class Conversation {
   constructor(data) {
-    this._id = data.id; // Firestore document ID
-    this.lastMessage = data.lastMessage; // The last message text in the conversation
-    this.unreadMessages = data.unreadMessages || false; // Boolean to track if there are unread messages
-    this.UserOneId = data.UserOneId; // ID of the first User
-    this.UserOneName = data.UserOneName; // Name of the first User
-    this.UserOnePicture = data.UserOnePicture; // Picture URL of the first User
-    this.UserTwoId = data.UserTwoId; // ID of the second User
-    this.UserTwoName = data.UserTwoName; // Name of the second User
-    this.UserTwoPicture = data.UserTwoPicture; // Picture URL of the second User
+    this._id = data._id;
+    this.lastMessage = data.lastMessage;
+    this.unreadMessages = data.unreadMessages || false;
+    this.UserOneId = data.UserOneId;
+    this.UserOneName = data.UserOneName;
+    this.UserOnePicture = data.UserOnePicture;
+    this.UserTwoId = data.UserTwoId;
+    this.UserTwoName = data.UserTwoName;
+    this.UserTwoPicture = data.UserTwoPicture;
   }
 
-  // Save the conversation to Firestore
   async save() {
     try {
       const conversationRef = db.collection('Conversations').doc(); // Creates a new document with a generated ID
@@ -26,8 +25,7 @@ class Conversation {
         UserTwoId: this.UserTwoId,
         UserTwoName: this.UserTwoName,
         UserTwoPicture: this.UserTwoPicture
-      }); // Store the Firestore document ID within the object
-      await conversationRef.update({ _id: conversationRef.id });
+      });
       this._id = conversationRef.id;
       return this;
     } catch (error) {
@@ -173,17 +171,22 @@ class Conversation {
   }
 
   static async findOne(query) {
-    try {
-      const conversations = await this.find(query);
-      if (conversations.length > 0) {
-        return conversations[0];
-      } else {
-        return null;
-      }
-    } catch (error) {
-      console.error('Error finding conversation:', error);
-      throw new Error('Error finding conversation');
+    if (!query.UserOneId || !query.UserTwoId) {
+      throw new Error('User IDs cannot be undefined.');
     }
+
+    const snapshot = await db.collection('Conversations')
+      .where('UserOneId', '==', query.UserOneId)
+      .where('UserTwoId', '==', query.UserTwoId)
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      return new Conversation({ ...doc.data(), _id: doc.id });
+    }
+
+    return null;
   }
 }
 

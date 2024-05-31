@@ -92,20 +92,27 @@ router.get('/:userId', async (req, res) => {
 router.put('/create', async (req, res) => {
     const { UserOneId, UserTwoId } = req.body;
 
+    console.log('Received UserOneId:', UserOneId);
+    console.log('Received UserTwoId:', UserTwoId);
+
     if (!UserOneId || !UserTwoId) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
     try {
+        // Vérifiez si les UserOneId et UserTwoId ne sont pas undefined
+        if (UserOneId === undefined || UserTwoId === undefined) {
+            return res.status(400).json({ error: "User IDs cannot be undefined." });
+        }
+
+        // Vérifiez si une conversation existe déjà entre les deux utilisateurs spécifiés
         let conversation = await Conversation.findOne({
-            $or: [
-                { UserOneId: UserOneId, UserTwoId: UserTwoId },
-                { UserOneId: UserTwoId, UserTwoId: UserOneId }
-            ]
+            UserOneId: UserOneId,
+            UserTwoId: UserTwoId
         });
 
         if (conversation) {
-            return res.json({ message: "Conversation existante trouvée", convId: conversation._id });
+            return res.status(409).json({ message: "Conversation existante trouvée", convId: conversation._id });
         }
 
         const UserOne = await User.findById(UserOneId);
@@ -126,15 +133,14 @@ router.put('/create', async (req, res) => {
             UserTwoName: UserTwo.username
         });
 
-        await conversation.save()
+        await conversation.save();
 
-        res.json({ message: "Nouvelle conversation créée", convId: conversation._id });
+        res.status(201).json({ message: "Nouvelle conversation créée", convId: conversation._id });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Erreur du serveur' });
     }
 });
-
 /**
  * @swagger
  * /api/conversations/single/{convId}:

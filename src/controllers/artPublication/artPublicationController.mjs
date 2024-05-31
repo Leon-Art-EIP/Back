@@ -83,7 +83,21 @@ export const deleteArtPublication = async (req, res) => {
       return res.status(400).json({ msg: 'Cannot delete publication with unfinished orders' });
     }
 
-    await ArtPublication.deleteOne({ id: id });
+    // Utilisez une transaction pour vous assurer que les opérations sont atomiques
+    await db.runTransaction(async (transaction) => {
+      // Supprimez la publication d'art
+      const artPublicationRef = db.collection('ArtPublications').doc(id);
+      transaction.delete(artPublicationRef);
+
+      // Supprimez l'ID de la publication d'art dans les collections associées
+      const collectionsSnapshot = await db.collection('Collections').where('artPublications', 'array-contains', id).get();
+      collectionsSnapshot.forEach((collectionDoc) => {
+        const collectionRef = db.collection('Collections').doc(collectionDoc.id);
+        transaction.update(collectionRef, {
+          artPublications: admin.firestore.FieldValue.arrayRemove(id)
+        });
+      });
+    });
 
     res.json({ msg: 'Art publication deleted successfully' });
   } catch (err) /* istanbul ignore next */ {

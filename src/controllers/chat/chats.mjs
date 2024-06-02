@@ -1,8 +1,9 @@
 import express from 'express';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
-import {Order} from '../../models/orderModel.mjs';
+import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
+import db from '../../config/db.mjs';
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ const router = express.Router();
  *         description: User ID to fetch conversations for
  *     responses:
  *       200:
- *         description: Successfully retrieved conversations
+ *         description: Successfully retrieved conversations :)
  *         content:
  *           application/json:
  *             schema:
@@ -32,19 +33,21 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.get('/:userId', async (req, res) => {
-    const userId = req.params.userId
+    const userId = req.params.userId;
     try {
         const chats = await Conversation.find({
             $or: [
-              { UserOneId: userId }, 
-              { UserTwoId: userId }
+                { userOneId: userId },
+                { userTwoId: userId }
             ]
-          });
-        res.json({ chats: chats });
+        });
+        res.json({ chats });
     } catch (err) /* istanbul ignore next */ {
+        console.error(err.message);
         res.status(500).send('Server error');
     }
 });
+
 
 
 /**
@@ -89,20 +92,27 @@ router.get('/:userId', async (req, res) => {
 router.put('/create', async (req, res) => {
     const { UserOneId, UserTwoId } = req.body;
 
+    console.log('Received UserOneId:', UserOneId);
+    console.log('Received UserTwoId:', UserTwoId);
+
     if (!UserOneId || !UserTwoId) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
     }
 
     try {
+        // Vérifiez si les UserOneId et UserTwoId ne sont pas undefined
+        if (UserOneId === undefined || UserTwoId === undefined) {
+            return res.status(400).json({ error: "User IDs cannot be undefined." });
+        }
+
+        // Vérifiez si une conversation existe déjà entre les deux utilisateurs spécifiés
         let conversation = await Conversation.findOne({
-            $or: [
-                { UserOneId: UserOneId, UserTwoId: UserTwoId },
-                { UserOneId: UserTwoId, UserTwoId: UserOneId }
-            ]
+            UserOneId: UserOneId,
+            UserTwoId: UserTwoId
         });
 
         if (conversation) {
-            return res.json({ message: "Conversation existante trouvée", convId: conversation._id });
+            return res.status(409).json({ message: "Conversation existante trouvée", convId: conversation._id });
         }
 
         const UserOne = await User.findById(UserOneId);
@@ -113,8 +123,8 @@ router.put('/create', async (req, res) => {
         }
 
         conversation = new Conversation({
-            UserOneId,
-            UserTwoId,
+            UserOneId: UserOneId,
+            UserTwoId: UserTwoId,
             unreadMessages: false,
             lastMessage: ' ',
             UserOnePicture: UserOne.profilePicture,
@@ -125,13 +135,12 @@ router.put('/create', async (req, res) => {
 
         await conversation.save();
 
-        res.json({ message: "Nouvelle conversation créée", convId: conversation._id });
+        res.status(201).json({ message: "Nouvelle conversation créée", convId: conversation._id });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Erreur du serveur' });
     }
 });
-
 /**
  * @swagger
  * /api/conversations/single/{convId}:
@@ -194,7 +203,7 @@ router.get('/single/:convId', async (req, res) => {
     const convId = req.params.convId
     try {
         const chat = await Conversation.findById(convId);
-        
+
         if (!chat) {
             return res.status(404).json({ error: "Conversation non trouvée" });
         }
@@ -251,19 +260,21 @@ router.get('/single/:convId', async (req, res) => {
  */
 
 router.get('/messages/:chatId', async (req, res) => {
-    const chatId = req.params.chatId; // Récupérer le convId de la requête
+    const chatId = req.params.chatId;
+    const limit = Number(req.query.limit) || 10;
+    const page = Number(req.query.page) || 1;
+    const offset = (page - 1) * limit;
 
     try {
-        const messages = await Message.find({ id: chatId }).sort({ dateTime: 1 }); // Trier par dateTime pour obtenir des messages dans l'ordre chronologique
-
-        const conversation = await Conversation.findOne({ _id: chatId });
-        conversation.unreadMessages = false;
-        res.json({ messages: messages });
+        const messages = await Message.findWithOrder({ id: chatId }, 'dateTime', 'asc', limit, offset);
+        await Conversation.updateById(chatId, { unreadMessages: false });
+        res.json({ messages });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).send('Erreur du serveur');
     }
 });
+
 
 /**
  * @swagger
@@ -326,7 +337,7 @@ router.get('/messages/:chatId', async (req, res) => {
  */
 
 router.post('/messages/new', async (req, res) => {
-    const { convId, userId, contentType, content} = req.body;
+    const { convId, userId, contentType, content } = req.body;
 
     if (convId === undefined || userId === undefined || contentType === undefined || !content) {
         return res.status(400).json({ error: "Données manquantes ou invalides." });
@@ -343,13 +354,22 @@ router.post('/messages/new', async (req, res) => {
 
         await message.save();
 
-        const conversation = await Conversation.findOne({ _id: convId });
-        conversation.unreadMessages = true;
-        conversation.lastMessage = content;
+        const conversationRef = db.collection('Conversations').doc(convId);
+        const conversationDoc = await conversationRef.get();
 
-        await conversation.save();
+        if (!conversationDoc.exists) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
 
-        res.json({message: message});
+        const conversationData = conversationDoc.data();
+
+        await conversationRef.update({
+            unreadMessages: true,
+            lastMessage: content,
+            updatedAt: new Date().toISOString()
+        });
+
+        res.json({ message: message });
     } catch (err) /* istanbul ignore next */ {
         console.error(err.message);
         res.status(500).json({ success: false, error: 'Erreur du serveur' });

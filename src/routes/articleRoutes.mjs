@@ -1,8 +1,9 @@
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.mjs';
 import { checkArticleAuthorization } from '../middleware/checkArticleAuthorization.mjs';
-import { postArticle, getLatestArticles } from '../controllers/article/articleController.mjs';
+import { postArticle, getLatestArticles, getArticleById } from '../controllers/article/articleController.mjs';
 import { validateArticle } from '../middleware/validation/articleValidation.mjs';
+import { uploadArticleImage } from "../middleware/uploadMiddleware.mjs";
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -27,12 +28,13 @@ const router = express.Router();
  *                 description: Title of the article.
  *               mainImage:
  *                 type: string
- *                 description: Main image URL for the article.
+ *                 format: binary
+ *                 description: Main image file for the article.
  *               content:
  *                 type: string
  *                 description: Rich-text content of the article (HTML).
  *     responses:
- *       201:
+ *       '201':
  *         description: Article posted successfully.
  *         content:
  *           application/json:
@@ -48,15 +50,23 @@ const router = express.Router();
  *                 author:
  *                   type: string
  *                 createdAt:
- *                   type: date
- *       401:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
  *         description: Unauthorized.
- *       403:
+ *       '403':
  *         description: User not authorized to post articles.
- *       500:
+ *       '500':
  *         description: Server error.
  */
-router.post('/', authenticate, checkArticleAuthorization, validateArticle, postArticle);
+router.post(
+  '/',
+  authenticate,
+  uploadArticleImage,
+  checkArticleAuthorization,
+  validateArticle,
+  postArticle
+);
 
 /**
  * @swagger
@@ -92,8 +102,6 @@ router.post('/', authenticate, checkArticleAuthorization, validateArticle, postA
  *                     type: string
  *                   mainImage:
  *                     type: string
- *                   content:
- *                     type: string
  *                   author:
  *                     type: object
  *                     properties:
@@ -105,5 +113,47 @@ router.post('/', authenticate, checkArticleAuthorization, validateArticle, postA
  *         description: Server error.
  */
 router.get('/latest', getLatestArticles);
+
+/**
+ * @swagger
+ * /api/article/{id}:
+ *   get:
+ *     summary: Get Article by ID
+ *     description: Retrieve a single article by its ID.
+ *     tags: [Article]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the article to retrieve.
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of the article.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                 mainImage:
+ *                   type: string
+ *                 content:
+ *                   type: string
+ *                 author:
+ *                   type: object
+ *                   properties:
+ *                     username:
+ *                       type: string
+ *                 createdAt:
+ *                   type: date
+ *       404:
+ *         description: Article not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/:id', getArticleById);
 
 export default router;

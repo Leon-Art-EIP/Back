@@ -1,5 +1,13 @@
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
+import { Order } from '../../models/orderModel.mjs';
 import { User } from '../../models/userModel.mjs';
+import { check, validationResult } from 'express-validator';
+import db from '../../config/db.mjs';
+
+const cleanUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+};
+
 
 export const createArtPublication = async (req, res) => {
   try {
@@ -15,11 +23,8 @@ export const createArtPublication = async (req, res) => {
       price,
       location
     } = req.body;
-    // if (isForSale == true && !user.stripeAccountId) {
-    //   return res.status(403).json({ msg: "User must set up Stripe account to sell art" });
-    // }
 
-    const newPublication = new ArtPublication({
+    const newPublicationData = cleanUndefinedFields({
       userId,
       image,
       artType,
@@ -30,6 +35,8 @@ export const createArtPublication = async (req, res) => {
       price,
       location,
     });
+
+    const newPublication = new ArtPublication(newPublicationData);
 
     await newPublication.save();
 
@@ -57,24 +64,97 @@ export const createArtPublication = async (req, res) => {
   }
 };
 
+export const deleteArtPublication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const artPublication = await ArtPublication.findById(id);
+
+    if (!artPublication) {
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
+
+    if (artPublication.userId.toString() !== req.user.id) /* istanbul ignore next */ {
+      return res.status(403).json({ msg: 'User not authorized to delete this publication' });
+    }
+
+    const pendingOrder = await Order.findOne({ artPublicationId: id, orderState: { $ne: 'completed' } });
+
+    if (pendingOrder) {
+      return res.status(400).json({ msg: 'Cannot delete publication with unfinished orders' });
+    }
+
+    // Utilisez une transaction pour vous assurer que les opérations sont atomiques
+    await db.runTransaction(async (transaction) => {
+      // Supprimez la publication d'art
+      const artPublicationRef = db.collection('ArtPublications').doc(id);
+      transaction.delete(artPublicationRef);
+
+      // Supprimez l'ID de la publication d'art dans les collections associées
+      const collectionsSnapshot = await db.collection('Collections').where('artPublications', 'array-contains', id).get();
+      collectionsSnapshot.forEach((collectionDoc) => {
+        const collectionRef = db.collection('Collections').doc(collectionDoc.id);
+        transaction.update(collectionRef, {
+          artPublications: admin.firestore.FieldValue.arrayRemove(id)
+        });
+      });
+    });
+
+    res.json({ msg: 'Art publication deleted successfully' });
+  } catch (err) /* istanbul ignore next */ {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
 export const getArtPublicationById = async (req, res) => {
   try {
-    const artPublication = await ArtPublication.findById(req.params.id).populate('likes').populate('comments');
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+    const artPublicationId = req.params.id;
+    const doc = await db.collection('ArtPublications').doc(artPublicationId).get();
+    if (!doc.exists) {
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
+
+    const artPublicationData = doc.data();
+    const likes = [];
+    for (const userId of artPublicationData.likes) {
+      const userDoc = await db.collection('Users').doc(userId).get();
+      if (userDoc.exists) {
+        likes.push({ _id: userDoc.id, ...userDoc.data() });
+      }
+    }
+
+    const comments = [];
+    for (const commentId of artPublicationData.comments) {
+      const commentDoc = await db.collection('Comments').doc(commentId).get();
+      if (commentDoc.exists) {
+        comments.push({ id: commentId, ...commentDoc.data() });
+      }
+    }
+
+    // génère moi un tableau de user qui ont like la publication a partir de la collection likes
+
+    const artPublication = {
+      _id: doc.id,
+      ...artPublicationData,
+      likes,
+      comments
+    };
 
     res.json(artPublication);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
 
+
 export const getLatestArtPublications = async (req, res) => {
   try {
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
+    const skip = (page - 1) * limit;
 
-    const artPublications = await ArtPublication.find().sort({ _id: -1 }).limit(limit).skip((page - 1) * limit).populate('likes').populate('comments');
+    const artPublications = await ArtPublication.findWithOrder({}, 'createdAt', 'desc', limit, skip);
     res.json(artPublications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -88,10 +168,11 @@ export const getFollowedArtPublications = async (req, res) => {
     const user = await User.findById(userId);
     const followedUsers = user.subscriptions;
 
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
+    const skip = (page - 1) * limit;
 
-    const artPublications = await ArtPublication.find({ userId: { $in: followedUsers } }).sort({ _id: -1 }).limit(limit).skip((page - 1) * limit);
+    const artPublications = await ArtPublication.findWithOrder({ userId: { $in: followedUsers } }, 'createdAt', 'desc', limit, skip);
     res.json(artPublications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
@@ -102,15 +183,33 @@ export const getFollowedArtPublications = async (req, res) => {
 export const getArtPublicationsByUser = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
+    const skip = (page - 1) * limit;
 
-    const artPublications = await ArtPublication.find({ userId })
-      .sort({ _id: -1 })
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .populate('likes')
-      .populate('comments');
+    // Vérifiez si userId est valide (non vide)
+    if (!userId) {
+      return res.status(400).json({ msg: 'User ID is required' });
+    }
+
+    // Ajoutez des logs pour voir les valeurs des paramètres
+    console.log(`Fetching art publications for user: ${userId}`);
+    console.log(`Limit: ${limit}, Page: ${page}, Skip: ${skip}`);
+
+    // Vérifiez si userId existe dans la base de données
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Requête pour obtenir les publications d'art
+    const artPublications = await ArtPublication.findWithOrder({ userId }, 'createdAt', 'desc', limit, skip);
+
+    // Vérifiez si des publications ont été trouvées
+    if (!artPublications || artPublications.length === 0) {
+      return res.status(404).json({ msg: 'No art publications found' });
+    }
+
     res.json(artPublications);
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);

@@ -18,29 +18,56 @@ const router = express.Router();
  * /api/order/create:
  *   post:
  *     summary: Create a new order
- *     description: >
- *       Allows a buyer to create a new order for an art publication. 
- *       Initiates a Stripe Checkout session and returns a URL for the checkout page.
+ *     description: Create a new order for a specific art publication. This endpoint allows buyers to place an order for an art publication, initiating the payment process through Stripe Checkout.
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
- *       description: Required data for creating a new order
  *       required: true
  *       content:
  *         application/json:
- *           example: {
- *             artPublicationId: "123456789"
- *           }
+ *           schema:
+ *             type: object
+ *             required:
+ *               - artPublicationId
+ *             properties:
+ *               artPublicationId:
+ *                 type: string
+ *                 description: The ID of the art publication to order.
  *     responses:
  *       201:
- *         description: >
- *           Order created successfully. Returns a URL to the Stripe Checkout session.
- *           The response body contains a message and a URL.
+ *         description: Order created successfully. Returns the order details along with a Stripe Checkout session URL for payment.
+ *         content:
+ *           application/json:
+ *             example:
+ *               msg: Order created and Stripe Checkout session initiated
+ *               order:
+ *                 _id: 12345
+ *                 artPublicationId: 67890
+ *                 buyerId: 54321
+ *                 sellerId: 98765
+ *                 orderPrice: 50.00
+ *                 paymentStatus: "pending"
+ *                 stripeSessionId: "stripe_session_id_123"
+ *               url: "https://stripe.com/checkout/stripe_session_id_123"
  *       400:
- *         description: Bad request, art publication not available for sale or already sold.
+ *         description: Bad request. The art publication is not available for sale or has already been sold.
+ *         content:
+ *           application/json:
+ *             example:
+ *               msg: "Art publication not available for sale or already sold"
+ *       404:
+ *         description: Art publication not found.
+ *         content:
+ *           application/json:
+ *             example:
+ *               msg: "Art publication not found"
  *       500:
- *         description: Server error.
+ *         description: Server error. An internal server error occurred.
+ *         content:
+ *           application/json:
+ *             example:
+ *               msg: "Server Error"
  */
 router.post('/create', authenticate, createOrder);
 

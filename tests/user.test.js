@@ -1,21 +1,19 @@
 import request from 'supertest';
 import app from '../src/app';
-import { User } from '../src/models/userModel.mjs';
+import { getDocs, collection, deleteDoc, doc, setDoc } from 'firebase/firestore';
 
 describe('User Availability Routes', () => {
-  // Function to create a user for testing
   const createUser = async (username, email, password) => {
-    await User.create({ username, email, password });
+    const userRef = doc(collection(global.db, 'users'), username);
+    await setDoc(userRef, { email, password });
   };
 
-  // Function to test username availability
   const checkUsername = async (username, expectedStatus, expectedMsg) => {
     const response = await request(app).get(`/api/user/check-username/${username}`);
     expect(response.status).toBe(expectedStatus);
     expect(response.body).toHaveProperty('msg', expectedMsg);
   };
 
-  // Function to test email availability
   const checkEmail = async (email, expectedStatus, expectedMsg) => {
     const response = await request(app).get(`/api/user/check-email/${email}`);
     expect(response.status).toBe(expectedStatus);
@@ -23,8 +21,10 @@ describe('User Availability Routes', () => {
   };
 
   beforeEach(async () => {
-    // Clear User collection before each test
-    await User.deleteMany({});
+    const usersCollection = collection(global.db, 'users');
+    const querySnapshot = await getDocs(usersCollection);
+    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletePromises);
   });
 
   describe('GET /api/user/check-username/:username', () => {

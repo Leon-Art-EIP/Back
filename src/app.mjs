@@ -1,12 +1,9 @@
 import dotenv from "dotenv";
-import { initializeStripe } from "./controllers/order/orderController.mjs";
-
 dotenv.config();
 
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
-import { Server } from 'socket.io';
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 import collectionRoutes from "./routes/collectionRoutes.mjs";
@@ -22,51 +19,25 @@ import expressSession from "express-session";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
 import articleRoutes from "./routes/articleRoutes.mjs";
+import locationRoutes from "./routes/locationRoutes.mjs";
+import mapRoutes from "./routes/mapRoutes.mjs";
 import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
 import chatsRoutes from "./controllers/chat/chats.mjs";
-import Message from "./models/messageModel.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
-import {handleStripeWebhook} from "./controllers/order/orderController.mjs"
+import { handleStripeWebhook } from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
+import foryouRoutes from './routes/foryouRoutes.mjs';
+import convertImageRoutes from './routes/convertImageRoutes.mjs';
+import SocketManager from "./utils/socketManager.mjs";
 
-
-initializeStripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const httpServer = http.createServer(app);
 
-// Configuration de socket.io
-const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
-
-global.onlineUsers = new Map();
-io.on("connection", (socket) => /* istanbul ignore next */ {
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
-  });
-
-  socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
-    if (sendUserSocket) {
-      const message = new Message({
-        id: data.convId,
-        senderId: data.from,
-        contentType: "text",
-        content: data.msg,
-        dateTime: new Date().toISOString()
-    });
-      socket.to(sendUserSocket).emit("msg-recieve", message);
-    }
-  });
-});
+export const socketManager = new SocketManager(httpServer);
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -130,7 +101,7 @@ app.use(
  *       500:
  *         description: Server error.
  */
-app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
+app.post('/webhooks/stripe', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Init Middleware
 app.use(express.json({ extended: false }));
@@ -154,22 +125,26 @@ app.use('/api/order', orderRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
+app.use('/api/foryou', foryouRoutes);
+app.use('/api/', convertImageRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/map", mapRoutes);
 
 // AdminJS CONFIG
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+// const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+// const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-const admin = new AdminJS(adminOptions);
-const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-  authenticate: async (email, password) => {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      return { email: ADMIN_EMAIL };
-    }
-    return false;
-  },
-  cookieName: 'adminjs',
-  cookiePassword: 'super-secret-and-long-cookie-password',
-});
+// const admin = new AdminJS(adminOptions);
+// const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
+//   authenticate: async (email, password) => /* istanbul ignore next */ {
+//     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+//       return { email: ADMIN_EMAIL };
+//     }
+//     return false;
+//   },
+//   cookieName: 'adminjs',
+//   cookiePassword: 'super-secret-and-long-cookie-password',
+// });
 
 app.use(
   expressSession({
@@ -179,7 +154,7 @@ app.use(
   })
 );
 
-app.use(admin.options.rootPath, adminRouter);
+// app.use(admin.options.rootPath, adminRouter);
 
 
 

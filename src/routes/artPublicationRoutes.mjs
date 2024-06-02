@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
+import { createArtPublication, deleteArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
 import { likeArtPublication, getPublicationLikeCount, getUsersWhoLikedPublication } from '../controllers/artPublication/likeController.mjs';
 import { addComment, deleteComment, getCommentsByArtPublicationId } from '../controllers/artPublication/commentController.mjs';
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
@@ -81,6 +81,53 @@ import {
  *         description: Server Error.
  */
 router.post('/', authenticate, uploadArtImage, validateArtPublication, createArtPublication);
+
+/**
+ * @swagger
+ * /api/art-publication/{id}:
+ *   delete:
+ *     summary: Delete an Art Publication
+ *     description: |
+ *       Allows an authenticated user to delete their art publication. Deletion is not allowed if there is an unfinished order associated with the art publication.
+ *     tags: [ArtPublication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the art publication to delete.
+ *     responses:
+ *       200:
+ *         description: Art publication deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Message indicating the success of the deletion.
+ *       400:
+ *         description: Cannot delete art publication with unfinished orders.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message indicating the reason for failure.
+ *       401:
+ *         description: No token provided or token is invalid.
+ *       404:
+ *         description: Art publication not found.
+ *       500:
+ *         description: Server Error.
+ */
+router.delete('/:id', authenticate, validateArtPublicationId, deleteArtPublication);
 
 /**
  * @swagger

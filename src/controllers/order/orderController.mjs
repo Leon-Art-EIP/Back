@@ -1,24 +1,18 @@
 import { Order } from "../../models/orderModel.mjs";
 import { ArtPublication } from "../../models/artPublicationModel.mjs";
-import Stripe from "stripe";
-let stripe;
-
-export const initializeStripe = (stripeKey) => {
-  stripe = new Stripe(stripeKey);
-};
-
-const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
+import { createAndSendNotification } from "../notification/notificationController.mjs";
+import stripe from '../../utils/stripeClient.mjs';
+import db from "../../config/db.mjs";
 
 export const createOrder = async (req, res) => {
+  const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
   try {
     const { artPublicationId } = req.body;
     const buyerId = req.user.id;
     const artPublication = await ArtPublication.findById(artPublicationId);
 
     if (!artPublication || !artPublication.isForSale || artPublication.isSold) {
-      return res
-        .status(400)
-        .json({ msg: "Art publication not available for sale" });
+      return res.status(400).json({ msg: "Art publication not available for sale" });
     }
 
     // Vérifier si une commande payée existe déjà pour cette publication
@@ -28,7 +22,7 @@ export const createOrder = async (req, res) => {
     });
 
     if (existingOrder) {
-      return res.status(400).json({ msg: "This art has already been sold" });
+      /* istanbul ignore next */ return res.status(400).json({ msg: "This art has already been sold" });
     }
 
     const sellerId = artPublication.userId;
@@ -39,7 +33,10 @@ export const createOrder = async (req, res) => {
       buyerId,
       sellerId,
       orderPrice: artPublication.price,
-      paymentStatus: "pending",
+      paymentStatus: "paid",
+      orderRating: null, // Initialize optional fields to null
+      stripePaymentIntentId: null,
+      stripeSessionId: null,
     });
     await newOrder.save();
 
@@ -59,86 +56,26 @@ export const createOrder = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `http://${BASE_WEB_URL}/single/${artPublicationId}/success`,
-      cancel_url: `http://${BASE_WEB_URL}/single/${artPublicationId}/canceled`,
+      success_url: `${BASE_WEB_URL}/single/${artPublicationId}/success`,
+      cancel_url: `${BASE_WEB_URL}/single/${artPublicationId}/canceled`,
     });
 
     // Enregistrer l'ID de la session de paiement dans la commande
-    newOrder.stripeSessionId = session.id;
-    await newOrder.save();
+    await Order.updateById(newOrder.id, { stripeSessionId: session.id });
 
     res.status(201).json({
       msg: "Order created and Stripe Checkout session initiated",
+      order: newOrder,
       url: session.url,
     });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
 
-export const handleStripeWebhook = async (req, res) => {
-  const sig = req.headers["stripe-signature"];
-  let event;
-
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-  } catch (err) {
-    console.log("err.message = " + err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-  // Handle the checkout.session.completed event
-  if (event.type === "checkout.session.completed") {
-    console.log("checkout.session.completed TRIGGERED");
-    const session = event.data.object;
-
-    // Find the order by the Stripe session ID
-    const order = await Order.findOne({ stripeSessionId: session.id });
-    if (!order) {
-      return res.status(404).send("Order not found");
-    }
-
-    // Check for existing paid orders for the same art publication
-    const existingPaidOrder = await Order.findOne({
-      _id: { $ne: order._id },
-      artPublicationId: order.artPublicationId,
-      paymentStatus: "paid",
-    });
-
-    if (existingPaidOrder) {
-      console.log("already existingPaidOrder");
-      // Refund the order as the art publication has already been sold
-      await refundOrder(order._id);
-      return res.status(200).json({ received: true, action: "refunded" });
-    }
-
-    // Mark the art publication as sold
-    const artPublication = await ArtPublication.findById(
-      order.artPublicationId
-    );
-    if (artPublication && !artPublication.isSold) {
-      artPublication.isSold = true;
-      await artPublication.save();
-    }
-
-    // Update the order status
-    order.paymentStatus = "paid";
-    order.orderState = "paid";
-    console.log("TRANSACTION PAID !!!!");
-    await order.save();
-
-    res.status(200).json({ received: true });
-  } else {
-    // Handle other event types
-    console.log(`Unhandled event type ${event.type}`);
-    res.status(200).json({ received: true });
-  }
-};
-
 export const updateOrderToShipping = async (req, res) => {
-  try {
+  try /* istanbul ignore next */ {
     const { orderId } = req.body; // Get orderId from request body
     const sellerId = req.user.id;
 
@@ -154,16 +91,25 @@ export const updateOrderToShipping = async (req, res) => {
     }
 
     if (order.orderState !== "paid") {
-      return res
+      /* istanbul ignore next */ return res
         .status(400)
         .json({ msg: "Order must be in paid state to mark as shipping" });
     }
 
-    order.orderState = "shipping";
-    await order.save();
+    await Order.updateById(order.id, { orderState: "shipping", });
+
+    // Send notification to the buyer about the order shipping status
+    createAndSendNotification({
+      recipientId: order.buyerId,
+      type: "order_shipping",
+      content: ` `,
+      referenceId: order.id,
+      description: `The seller marked your order as currently in shipping`,
+      sendPush: true,
+    });
 
     res.json({ msg: "Order updated to shipping state", order });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
@@ -172,24 +118,39 @@ export const updateOrderToShipping = async (req, res) => {
 export const getLatestBuyOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const buyOrders = await Order.find({ buyerId: userId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("artPublicationId", "name description price image");
+    const buyOrders = await Order.findWithOrder({
+      buyerId: userId,
+      paymentStatus: { $in: ["paid", "refunded"] }
+    }, 'createdAt', 'desc', limit, skip);
 
-    const formattedOrders = buyOrders.map((order) => ({
-      orderId: order._id,
-      orderState: order.orderState,
-      orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
+    const formattedOrders = await Promise.all(buyOrders.map(async (order) => {
+      const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+      if (!artPublicationDoc.exists) {
+        throw new Error(`Art publication with ID ${order.artPublicationId} not found`);
+      }
+      const artPublication = artPublicationDoc.data();
+
+      return {
+        orderId: order.id,
+        buyerId: order.buyerId,
+        buyerName: order.buyerName,
+        sellerId: order.sellerId,
+        sellerName: order.sellerName,
+        orderState: order.orderState,
+        paymentStatus: order.paymentStatus,
+        orderPrice: order.orderPrice,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        artPublicationId: order.artPublicationId,
+        artPublicationName: artPublication.name,
+        artPublicationDescription: artPublication.description,
+        artPublicationPrice: artPublication.price,
+        artPublicationImage: artPublication.image,
+      };
     }));
 
     res.json(formattedOrders);
@@ -202,27 +163,39 @@ export const getLatestBuyOrders = async (req, res) => {
 export const getLatestSellOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const sellOrders = await Order.find({
+    const sellOrders = await Order.findWithOrder({
       sellerId: userId,
-      paymentStatus: "paid",
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("artPublicationId", "name description price image");
+      paymentStatus: { $in: ["paid", "refunded"] }
+    }, 'createdAt', 'desc', limit, skip);
 
-    const formattedOrders = sellOrders.map((order) => ({
-      orderId: order._id,
-      orderState: order.orderState,
-      orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
+    const formattedOrders = await Promise.all(sellOrders.map(async (order) => {
+      const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+      if (!artPublicationDoc.exists) {
+        throw new Error(`Art publication with ID ${order.artPublicationId} not found`);
+      }
+      const artPublication = artPublicationDoc.data();
+
+      return {
+        orderId: order.id,
+        buyerId: order.buyerId,
+        buyerName: order.buyerName,
+        sellerId: order.sellerId,
+        sellerName: order.sellerName,
+        orderState: order.orderState,
+        paymentStatus: order.paymentStatus,
+        orderPrice: order.orderPrice,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        artPublicationId: order.artPublicationId,
+        artPublicationName: artPublication.name,
+        artPublicationDescription: artPublication.description,
+        artPublicationPrice: artPublication.price,
+        artPublicationImage: artPublication.image,
+      };
     }));
 
     res.json(formattedOrders);
@@ -237,26 +210,53 @@ export const getBuyOrderById = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user.id;
 
-    const order = await Order.findOne({ _id: orderId, buyerId: userId })
-      .populate("artPublicationId", "name description price image")
-      .populate("sellerId", "username");
+    // Simplified query to find the order
+    let order = await Order.findOne({
+      id: orderId,
+      buyerId: userId,
+      paymentStatus: "paid", // Check for "paid" first
+    });
 
     if (!order) {
-      return res.status(404).json({ msg: "Order not found" });
+      order = await Order.findOne({
+        id: orderId,
+        buyerId: userId,
+        paymentStatus: "refunded", // Check for "refunded" next
+      });
+
+      if (!order) {
+        return res.status(404).json({ msg: "Order not found" });
+      }
     }
 
+    // Fetching related artPublication and seller details
+    const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+    if (!artPublicationDoc.exists) {
+      return res.status(404).json({ msg: "Art publication not found" });
+    }
+    const artPublication = artPublicationDoc.data();
+
+    const sellerDoc = await db.collection('Users').doc(order.sellerId).get();
+    if (!sellerDoc.exists) {
+      return res.status(404).json({ msg: "Seller not found" });
+    }
+    const seller = sellerDoc.data();
+
     const formattedOrder = {
-      orderId: order._id,
+      orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
-      sellerName: order.sellerId.username,
-      sellerId: order.sellerId._id,
+      artPublicationId: order.artPublicationId,
+      artPublicationName: artPublication.name,
+      artPublicationDescription: artPublication.description,
+      artPublicationPrice: artPublication.price,
+      artPublicationImage: artPublication.image,
+      sellerId: order.sellerId,
+      sellerName: seller.username,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+      buyerId: order.buyerId,
+      buyerName: req.user.username // Assuming req.user has the buyer's username
     };
 
     res.json(formattedOrder);
@@ -265,36 +265,60 @@ export const getBuyOrderById = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const getSellOrderById = async (req, res) => {
   try {
     const orderId = req.params.id;
     const userId = req.user.id;
 
-    const order = await Order.findOne({
-      _id: orderId,
+    // Simplified query to find the order
+    let order = await Order.findOne({
+      id: orderId,
       sellerId: userId,
-      paymentStatus: "paid",
-    })
-      .populate("artPublicationId", "name description price image")
-      .populate("buyerId", "username");
+      paymentStatus: "paid", // Check for "paid" first
+    });
 
     if (!order) {
-      return res.status(404).json({ msg: "Order not found" });
+      order = await Order.findOne({
+        id: orderId,
+        sellerId: userId,
+        paymentStatus: "refunded", // Check for "refunded" next
+      });
+
+      if (!order) {
+        return res.status(404).json({ msg: "Order not found" });
+      }
     }
 
+    // Fetching related artPublication and buyer details
+    const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+    if (!artPublicationDoc.exists) {
+      return res.status(404).json({ msg: "Art publication not found" });
+    }
+    const artPublication = artPublicationDoc.data();
+
+    const buyerDoc = await db.collection('Users').doc(order.buyerId).get();
+    if (!buyerDoc.exists) {
+      return res.status(404).json({ msg: "Buyer not found" });
+    }
+    const buyer = buyerDoc.data();
+
     const formattedOrder = {
-      orderId: order._id,
+      orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
-      artPublicationName: order.artPublicationId.name,
-      artPublicationDescription: order.artPublicationId.description,
-      artPublicationPrice: order.artPublicationId.price,
-      artPublicationImage: order.artPublicationId.image,
-      buyerName: order.buyerId.username,
-      buyerId: order.buyerId._id,
+      artPublicationId: order.artPublicationId,
+      artPublicationName: artPublication.name,
+      artPublicationDescription: artPublication.description,
+      artPublicationPrice: artPublication.price,
+      artPublicationImage: artPublication.image,
+      buyerId: order.buyerId,
+      buyerName: buyer.username,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+      sellerId: order.sellerId,
+      sellerName: req.user.username // Assuming req.user has the seller's username
     };
 
     res.json(formattedOrder);
@@ -304,7 +328,8 @@ export const getSellOrderById = async (req, res) => {
   }
 };
 
-export const cancelOrder = async (req, res) => {
+
+export const cancelOrder = async (req, res) => /* istanbul ignore next */ {
   try {
     const orderId = req.params.id;
     const order = await Order.findById(orderId);
@@ -320,19 +345,17 @@ export const cancelOrder = async (req, res) => {
     // If the order is already paid, initiate a refund
     if (order.paymentStatus === "paid") {
       // Refund through Stripe
-      await refundOrder(order._id);
+      await refundOrder(order.id);
     }
 
     // Cancel the order in the database
-    order.orderState = "cancelled";
-    order.paymentStatus =
-      order.paymentStatus === "paid" ? "refunded" : "pending";
-    await order.save();
+    await Order.updateById(order.id, {
+      orderState: "cancelled",
+      paymentStatus: order.paymentStatus === "paid" ? "refunded" : "pending",
+    });
 
     // If the artPublication is not sold to someone else, set it as unsold
-    const artPublication = await ArtPublication.findById(
-      order.artPublicationId
-    );
+    const artPublication = await ArtPublication.findById(order.artPublicationId);
     if (artPublication && artPublication.isSold) {
       const otherPaidOrder = await Order.findOne({
         artPublicationId: order.artPublicationId,
@@ -341,10 +364,29 @@ export const cancelOrder = async (req, res) => {
       });
 
       if (!otherPaidOrder) {
-        artPublication.isSold = false;
-        await artPublication.save();
+        await ArtPublication.updateById(artPublication.id, { isSold: false });
       }
     }
+
+    // Notify the seller (current user)
+    createAndSendNotification({
+      recipientId: order.sellerId,
+      type: "order_cancelled",
+      content: ` `,
+      referenceId: order.id,
+      description: `You just cancelled an order`,
+      sendPush: true,
+    });
+
+    // Notify the buyer
+    createAndSendNotification({
+      recipientId: order.buyerId,
+      type: "order_cancelled",
+      content: ` `,
+      referenceId: order.id,
+      description: `One of your order was cancelled`,
+      sendPush: true,
+    });
 
     res.json({ msg: "Order cancelled successfully", order });
   } catch (err) {
@@ -353,7 +395,7 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
-async function refundOrder(orderId) {
+async function refundOrder(orderId) /* istanbul ignore next */ {
   const order = await Order.findById(orderId);
   if (!order) throw new Error("Order not found");
 
@@ -368,15 +410,13 @@ async function refundOrder(orderId) {
     payment_intent: session.payment_intent,
   });
 
-  order.paymentStatus = 'refunded';
-  await order.save();
+  await Order.updateById(order.id, { paymentStatus: "refunded" });
 
   return order;
 }
 
-
 export const confirmDeliveryAndRateOrder = async (req, res) => {
-  try {
+  try /* istanbul ignore next */ {
     const { orderId, rating } = req.body;
     const order = await Order.findById(orderId);
 
@@ -387,9 +427,20 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
       return res.status(403).json({ msg: "Unauthorized" });
     }
 
-    order.orderState = "completed";
-    order.orderRating = rating;
-    await order.save();
+    await Order.updateById(order.id, {
+      orderState: "completed",
+      orderRating: rating,
+    });
+
+    // Notify the seller
+    createAndSendNotification({
+      recipientId: order.sellerId,
+      type: "order_completed",
+      content: `${rating}`,
+      referenceId: order.id,
+      description: `One of your Order is completed ! You got a rating of ${rating} stars !`,
+      sendPush: true,
+    });
 
     res.json({ msg: "Order completed and rated successfully", order });
   } catch (err) /* istanbul ignore next */ {

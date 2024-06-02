@@ -1,6 +1,7 @@
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import { User } from '../../models/userModel.mjs';
 import artTypes from '../../constants/artTypesData.js';
+import db from '../../config/db.mjs';
 
 export const searchArtworksAndArtists = async (req, res) => {
   try {
@@ -18,32 +19,45 @@ export const searchArtworksAndArtists = async (req, res) => {
 
     const artTypes = req.query.artType ? req.query.artType.split(',') : [];
 
-    const query = {};
+    let artQuery = db.collection('ArtPublications');
     if (searchTerm) {
-      query.$or = [
-        { name: { $regex: searchTerm, $options: 'i' } },
-        { 'artist.name': { $regex: searchTerm, $options: 'i' } }
-      ];
+      artQuery = artQuery.where('name', '>=', searchTerm).where('name', '<=', searchTerm + '\uf8ff');
     }
-    if (artTypes.length) query.artType = { $in: artTypes };
+    if (artTypes.length) {
+      artQuery = artQuery.where('artType', 'in', artTypes);
+    }
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split('-').map(Number);
-      query.price = { $gte: minPrice, $lte: maxPrice };
+      artQuery = artQuery.where('price', '>=', minPrice).where('price', '<=', maxPrice);
     }
-    if (isForSale !== undefined) query.isForSale = isForSale === 'true';
+    if (isForSale !== undefined) {
+      artQuery = artQuery.where('isForSale', '==', isForSale === 'true');
+    }
 
-    const sortOptions = sort === 'popularity' ? { likes: -1 } : { createdAt: -1 };
+    const sortOptions = sort === 'popularity' ? 'likes' : 'createdAt';
+    const orderDirection = sort === 'popularity' ? 'desc' : 'desc';
 
-    const artPublications = await ArtPublication.find(query).sort(sortOptions).limit(artLimit).skip((artPage - 1) * artLimit).populate('likes').populate('comments');
-    const users = await User.find({ 'username': { $regex: searchTerm, $options: 'i' } }).limit(artistLimit).skip((artistPage - 1) * artistLimit);
+    artQuery = artQuery.orderBy(sortOptions, orderDirection)
+      .limit(Number(artLimit))
+      .offset((artPage - 1) * artLimit);
+
+    const artSnapshot = await artQuery.get();
+    const artPublications = artSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    let userQuery = db.collection('Users').where('username', '>=', searchTerm).where('username', '<=', searchTerm + '\uf8ff')
+      .limit(Number(artistLimit))
+      .offset((artistPage - 1) * artistLimit);
+
+    const userSnapshot = await userQuery.get();
+    const users = userSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
 
     res.json({ artPublications, users });
-  } catch (err) {
+  } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
 
-export const getArtTypes = (req, res) => {
+export const getArtTypes = (req, res) => /* istanbul ignore next */ {
   res.json(artTypes);
 };

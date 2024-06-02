@@ -1,15 +1,19 @@
 import request from "supertest";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import app from "../src/app";
-import { User } from "../src/models/UserModel.mjs";
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, collection, deleteDoc, doc, query, where, getDocs } from 'firebase/firestore';
 import bcrypt from "bcrypt";
 
 describe("Signup routes", () => {
   beforeEach(async () => {
-    // Before each test, clear the database
-    await User.deleteMany({});
+    // Clear Firestore users collection before each test
+    const usersQuery = query(collection(global.db, 'users'));
+    const querySnapshot = await getDocs(usersQuery);
+    querySnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
   });
+
   test("POST /signup - Successful signup", async () => {
     const response = await request(app).post("/api/auth/signup").send({
       username: "testuser88",
@@ -20,8 +24,8 @@ describe("Signup routes", () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("token");
 
-    const user = await User.findOne({ email: "testuser88@test.com" });
-    expect(user).not.toBeNull();
+    const userSnapshot = await getDocs(query(collection(global.db, 'users'), where('email', '==', 'testuser88@test.com')));
+    expect(userSnapshot.docs.length).toBe(1);
   });
 
   test("POST /signup - Missing fields", async () => {
@@ -74,6 +78,7 @@ describe("Signup routes", () => {
       ])
     );
   });
+
   test("POST /signup - Duplicate email", async () => {
     await request(app).post("/api/auth/signup").send({
       username: "testuser1",
@@ -111,16 +116,16 @@ describe("Signup routes", () => {
 
 describe("login routes", () => {
   beforeEach(async () => {
-    // Before each test, clear the database
-    await User.deleteMany({});
-  });
-  test("POST /login - Successful login", async () => {
-    const user = new User({
-      username: "testuser",
-      email: "testuser@test.com",
-      password: await bcrypt.hash("StrongTestPassword123!", 10),
+    // Clear Firestore users collection before each test
+    const usersQuery = query(collection(global.db, 'users'));
+    const querySnapshot = await getDocs(usersQuery);
+    querySnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
     });
-    await user.save();
+  });
+
+  test("POST /login - Successful login", async () => {
+    await createUserWithEmailAndPassword(global.auth, "testuser@test.com", "StrongTestPassword123!");
 
     const response = await request(app).post("/api/auth/login").send({
       email: "testuser@test.com",
@@ -152,12 +157,7 @@ describe("login routes", () => {
   });
 
   test("POST /login - Incorrect password", async () => {
-    const user = new User({
-      username: "testuser",
-      email: "testuser@test.com",
-      password: await bcrypt.hash("StrongTestPassword123!", 10),
-    });
-    await user.save();
+    await createUserWithEmailAndPassword(global.auth, "testuser@test.com", "StrongTestPassword123!");
 
     const response = await request(app).post("/api/auth/login").send({
       email: "testuser@test.com",

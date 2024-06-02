@@ -25,7 +25,7 @@ export const validateArtPublication = [
 ];
 
 export const validateArtPublicationId = [
-  check('id').isMongoId().withMessage('Invalid Art Publication ID'),
+  check('id').isLength({ min: 20, max: 20 }).withMessage('Invalid Art Publication ID'),
 
   (req, res, next) => {
     const errors = validationResult(req);

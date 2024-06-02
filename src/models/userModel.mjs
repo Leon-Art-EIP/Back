@@ -22,7 +22,6 @@ const userSchema = new Schema({
   stripeAccountId: { type: String },
   quizz: { type: Schema.Types.ObjectId, ref: 'Quizz' },
   location: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: {
       type: [Number],
       index: '2dsphere'

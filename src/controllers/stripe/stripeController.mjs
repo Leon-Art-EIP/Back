@@ -4,6 +4,7 @@ import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
 import { socketManager } from '../../app.mjs';
+import { refundOrder } from '../order/orderController.mjs';
 
 export const handleStripeWebhook = async (
   req,
@@ -41,7 +42,9 @@ export const handleStripeWebhook = async (
     if (existingPaidOrder) {
       console.log("already existingPaidOrder");
       // Refund the order as the art publication has already been sold
-      await refundOrder(order._id);
+      await refundOrder(order._id); 
+
+
       return res.status(200).json({ received: true, action: "refunded" });
     }
 

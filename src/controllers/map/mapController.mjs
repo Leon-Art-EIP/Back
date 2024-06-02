@@ -11,7 +11,7 @@ export async function getUsersWithArtNearLocation(req, res) {
 
     // Step 1: Find users within the specified radius
     const users = await User.find({
-      location: {
+      'location.coordinates': {
         $geoWithin: {
           $centerSphere: [
             [parseFloat(longitude), parseFloat(latitude)],

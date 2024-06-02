@@ -12,7 +12,6 @@ export async function updateUserLocation(req, res) {
   
       // Update the user's location
       const location = {
-        type: 'Point',
         coordinates: [longitude, latitude],
       };
   

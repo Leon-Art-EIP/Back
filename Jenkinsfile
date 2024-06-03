@@ -62,10 +62,10 @@ pipeline {
                         def semanticOutput = sh(script: "npx semantic-release", returnStdout: true).trim()
                         echo "Semantic Release Output: ${semanticOutput}"
 
-                        // Vérifier si une nouvelle version doit être publiée
-                        def versionMatch = semanticOutput =~ /The next release version is (.+)/
+                        // Extract the version from the semantic-release output
+                        def versionMatch = semanticOutput =~ /(?<=v)[0-9]+\.[0-9]+\.[0-9]+(-dev\.[0-9]+)?/
                         if (versionMatch) {
-                            env.VERSION = versionMatch[0][1]
+                            env.VERSION = versionMatch[0]
                             echo "Next release version: ${env.VERSION}"
                         } else {
                             echo "No release version found. Skipping Docker build and push."

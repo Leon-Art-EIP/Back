@@ -59,7 +59,9 @@ pipeline {
             steps {
                 script {
                     try {
-                        def version = sh(script: "npx semantic-release --dry-run | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
+                        def semanticOutput = sh(script: "npx semantic-release --dry-run", returnStdout: true).trim()
+                        echo "Semantic Release Output: ${semanticOutput}"
+                        def version = sh(script: "echo '${semanticOutput}' | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
                         env.VERSION = version
                         echo "Next release version: ${env.VERSION}"
                     } catch (Exception e) {

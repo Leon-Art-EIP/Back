@@ -61,9 +61,17 @@ pipeline {
                     try {
                         def semanticOutput = sh(script: "npx semantic-release --dry-run", returnStdout: true).trim()
                         echo "Semantic Release Output: ${semanticOutput}"
-                        def version = sh(script: "echo '${semanticOutput}' | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
-                        env.VERSION = version
-                        echo "Next release version: ${env.VERSION}"
+
+                        // Vérifier si une nouvelle version doit être publiée
+                        if (semanticOutput.contains("The next release version is")) {
+                            def version = sh(script: "echo '${semanticOutput}' | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
+                            env.VERSION = version
+                            echo "Next release version: ${env.VERSION}"
+                        } else {
+                            echo "No release version found. Skipping Docker build and push."
+                            currentBuild.result = 'SUCCESS'
+                            return
+                        }
                     } catch (Exception e) {
                         echo "Semantic Release failed: ${e}"
                         currentBuild.result = 'FAILURE'
@@ -76,21 +84,23 @@ pipeline {
         stage('Push to DockerHub') {
             when {
                 branch 'dev'
+                expression {
+                    return env.VERSION != null && env.VERSION != ""
+                }
             }
-            agent any
             steps {
                 script {
                     try {
                         echo "Pushing to DockerHub..."
-                        sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION} ."
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}"
+                        sh "docker build -t ${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${env.BUILD_NUMBER} ."
+                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                        sh "docker push ${DOCKER_REPO_DEV_BACK}:latest"
+                        sh "docker push ${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${env.BUILD_NUMBER}"
 
                         echo "Pushed to DockerHub successfully."
                         echo "Cleaning workspace..."
-                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}"
+                        sh "docker rmi ${DOCKER_REPO_DEV_BACK}:latest"
+                        sh "docker rmi ${DOCKER_REPO_DEV_BACK}:${env.VERSION}"
 
                         cleanWs(cleanWhenNotBuilt: false,
                                 deleteDirs: true,

@@ -10,7 +10,7 @@
         [
             "@semantic-release/commit-analyzer",
             {
-                "preset": "angular",
+                "preset": "conventionalcommits",
                 "releaseRules": [
                     {
                         "type": "[ADD]",
@@ -52,7 +52,18 @@
                         "type": "test",
                         "release": "patch"
                     }
-                ]
+                ],
+                "parserOpts": {
+                    "noteKeywords": [
+                        "BREAKING CHANGE",
+                        "BREAKING CHANGES"
+                    ],
+                    "headerPattern": "^\\[(\\w+)\\] (.*)$",
+                    "headerCorrespondence": [
+                        "type",
+                        "subject"
+                    ]
+                }
             }
         ],
         "@semantic-release/release-notes-generator",

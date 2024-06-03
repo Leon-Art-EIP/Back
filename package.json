@@ -23,6 +23,7 @@
   "dependencies": {
     "@adminjs/express": "^6.0.0",
     "@adminjs/mongoose": "^4.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.0",
     "adminjs": "^7.2.1",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",

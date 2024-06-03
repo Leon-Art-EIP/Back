@@ -17,6 +17,7 @@ pipeline {
 
     environment {
         GITHUB_TOKEN = credentials('bee8aec4-1e4e-441a-82b8-7b2b981237ac')
+        NPM_TOKEN = credentials('npm-token')
     }
 
     stages {

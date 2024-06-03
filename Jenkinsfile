@@ -57,8 +57,15 @@ pipeline {
         stage('Semantic Release') {
             steps {
                 script {
-                    def version = sh(script: "npx semantic-release --dry-run | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
-                    env.VERSION = version
+                    try {
+                        def version = sh(script: "npx semantic-release --dry-run | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
+                        env.VERSION = version
+                        echo "Next release version: ${env.VERSION}"
+                    } catch (Exception e) {
+                        echo "Semantic Release failed: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
                 }
             }
         }
@@ -72,22 +79,22 @@ pipeline {
                 script {
                     try {
                         echo "Pushing to DockerHub..."
-                        sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER} ."
+                        sh "docker build -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION} ."
                         sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
                         sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}"
 
                         echo "Pushed to DockerHub successfully."
                         echo "Cleaning workspace..."
                         sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${BUILD_NUMBER}"
-                        
+                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}"
+
                         cleanWs(cleanWhenNotBuilt: false,
-                            deleteDirs: true,
-                            disableDeferredWipeout: true,
-                            notFailBuild: true,
-                            patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
-                                    [pattern: '.propsfile', type: 'EXCLUDE']])
+                                deleteDirs: true,
+                                disableDeferredWipeout: true,
+                                notFailBuild: true,
+                                patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                                           [pattern: '.propsfile', type: 'EXCLUDE']])
                     } catch(Exception e) {
                         echo "Stage failed due to exception: ${e}"
                         error("Failed to push to DockerHub.")
@@ -104,7 +111,7 @@ pipeline {
                 def branchName = env.BRANCH_NAME
                 def userName = env.CHANGE_AUTHOR
                 def buildNumber = env.BUILD_NUMBER
-                
+
                 discordSend(
                     webhookURL: "https://discord.com/api/webhooks/1123841672338489374/tlaGCd28bNClNt7Q9TRggy2Mep292PSpNkfzVStWRSvY3fepJqeJ70wjuPgyTU8A_Z3D",
                     title: "${env.JOB_NAME}",

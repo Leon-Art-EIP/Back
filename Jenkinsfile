@@ -50,6 +50,15 @@ pipeline {
             }
         }
 
+        stage('Semantic Release') {
+            steps {
+                script {
+                    def version = sh(script: "npx semantic-release --dry-run | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
+                    env.VERSION = version
+                }
+            }
+        }
+
         stage('Push to DockerHub') {
             when {
                 branch 'dev'
@@ -67,7 +76,7 @@ pipeline {
                         echo "Pushed to DockerHub successfully."
                         echo "Cleaning workspace..."
                         sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:latest"
-                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${BUILD_NUMBER}"
+                        sh "docker rmi ${DOCKER_USERNAME}/${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${BUILD_NUMBER}"
                         
                         cleanWs(cleanWhenNotBuilt: false,
                             deleteDirs: true,

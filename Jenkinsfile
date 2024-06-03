@@ -59,13 +59,13 @@ pipeline {
             steps {
                 script {
                     try {
-                        def semanticOutput = sh(script: "npx semantic-release --dry-run", returnStdout: true).trim()
+                        def semanticOutput = sh(script: "npx semantic-release", returnStdout: true).trim()
                         echo "Semantic Release Output: ${semanticOutput}"
 
                         // Vérifier si une nouvelle version doit être publiée
-                        if (semanticOutput.contains("The next release version is")) {
-                            def version = sh(script: "echo '${semanticOutput}' | grep -oP '(?<=The next release version is ).*'", returnStdout: true).trim()
-                            env.VERSION = version
+                        def versionMatch = semanticOutput =~ /The next release version is (.+)/
+                        if (versionMatch) {
+                            env.VERSION = versionMatch[0][1]
                             echo "Next release version: ${env.VERSION}"
                         } else {
                             echo "No release version found. Skipping Docker build and push."
@@ -92,10 +92,10 @@ pipeline {
                 script {
                     try {
                         echo "Pushing to DockerHub..."
-                        sh "docker build -t ${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${env.BUILD_NUMBER} ."
+                        sh "docker build -t ${DOCKER_REPO_DEV_BACK}:latest -t ${DOCKER_REPO_DEV_BACK}:${env.VERSION} ."
                         sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
                         sh "docker push ${DOCKER_REPO_DEV_BACK}:latest"
-                        sh "docker push ${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${env.BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_REPO_DEV_BACK}:${env.VERSION}"
 
                         echo "Pushed to DockerHub successfully."
                         echo "Cleaning workspace..."

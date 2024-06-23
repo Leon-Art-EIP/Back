@@ -1,139 +1,120 @@
-import { Order } from "../../models/orderModel.mjs";
-import { ArtPublication } from "../../models/artPublicationModel.mjs";
-import { createAndSendNotification } from "../notification/notificationController.mjs";
+import db from '../../config/db.mjs';
+import { v4 as uuidv4 } from 'uuid';
 import stripe from '../../utils/stripeClient.mjs';
-import socketManager from '../../utils/socketManager.mjs'; // Assuming you have a socket manager
-import { User } from '../../models/userModel.mjs'; // Ensure the path is correct
+import socketManager from '../../utils/socketManager.mjs';
+import { createAndSendNotification } from "../notification/notificationController.mjs";
 
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  let event;
-
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  let event;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err) {
-    console.log("err.message = " + err.message);
+    console.error(`Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === "checkout.session.completed") {
-    console.log("checkout.session.completed event detected");
-    const session = event.data.object;
+  const session = event.data.object;
+  const account = event.data.object;
 
-    // Find the order by the Stripe session ID
-    const order = await Order.findOne({ stripeSessionId: session.id });
-    if (!order) {
-      return res.status(404).send("Order not found");
+  try {
+    switch (event.type) {
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(session);
+        break;
+      case 'account.updated':
+        await handleAccountUpdated(account);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
     }
-
-    // Check for existing paid orders for the same art publication
-    const existingPaidOrder = await Order.findOne({
-      _id: { $ne: order._id },
-      artPublicationId: order.artPublicationId,
-      paymentStatus: "paid",
-    });
-
-    if (existingPaidOrder) {
-      console.log("already existingPaidOrder");
-      // Refund the order as the art publication has already been sold
-      await refundOrder(order._id);
-      return res.status(200).json({ received: true, action: "refunded" });
-    }
-
-    // Mark the art publication as sold
-    const artPublication = await ArtPublication.findById(order.artPublicationId);
-    if (artPublication && !artPublication.isSold) {
-      artPublication.isSold = true;
-      await artPublication.update({ isSold: true });
-    }
-
-    // Update the order status
-    order.paymentStatus = "paid";
-    order.orderState = "paid";
-    await order.update({ paymentStatus: "paid", orderState: "paid" });
-
-    // Notify the buyer about payment success
-    await createAndSendNotification({
-      recipientId: order.sellerId,
-      type: "payment_success",
-      content: ` `,
-      referenceId: order._id,
-      description: `Someone just bought one of your publication!`,
-      sendPush: true,
-    });
-
-    // Notify the seller about order processing
-    await createAndSendNotification({
-      recipientId: order.buyerId,
-      type: "order_processing",
-      content: ` `,
-      referenceId: order._id,
-      description: `Your Payment has been received. The seller will proceed with the next steps.`,
-      sendPush: true,
-    });
-
-    // Notify the front-end to refresh the orders
-    socketManager.handleRefreshOrders(order.sellerId);
-
     res.status(200).json({ received: true });
-  } else if (event.type === 'account.updated') {
-    const account = event.data.object;
-
-    // Find the user associated with the Stripe account
-    const user = await User.findOne({ 'metadata.userId': account.metadata.userId });
-
-    if (user) {
-      // Update the user with the Stripe account ID
-      user.stripeAccountId = account.id;
-      await user.save();
-      console.log(`User ${user.username} linked Stripe account ${account.id}`);
-    } else {
-      console.log('User not found for the Stripe account');
-    }
-
-    res.status(200).json({ received: true });
-  } else {
-    // Handle other event types
-    console.log(`Unhandled event type ${event.type}`);
-    res.status(200).json({ received: true });
+  } catch (error) {
+    console.error(`Error handling event ${event.type}: ${error.message}`);
+    res.status(500).json({ msg: "Server Error" });
   }
 };
 
+const handleCheckoutSessionCompleted = async (session) => {
+  const orderSnapshot = await db.collection('Orders').where('stripeSessionId', '==', session.id).limit(1).get();
+  if (orderSnapshot.empty) throw new Error("Order not found");
 
-export const createStripeAccountLink = async (req, res) => /* istanbul ignore next */ {
+  const orderRef = orderSnapshot.docs[0].ref;
+  const order = orderSnapshot.docs[0].data();
+
+  const existingPaidOrderSnapshot = await db.collection('Orders')
+    .where('artPublicationId', '==', order.artPublicationId)
+    .where('paymentStatus', '==', 'paid')
+    .where('_id', '!=', order._id)
+    .limit(1)
+    .get();
+
+  if (!existingPaidOrderSnapshot.empty) {
+    await refundOrder(order._id);
+    return;
+  }
+
+  const artPublicationRef = db.collection('ArtPublications').doc(order.artPublicationId);
+  await artPublicationRef.update({ isSold: true });
+
+  await orderRef.update({ paymentStatus: "paid", orderState: "paid" });
+
+  await createAndSendNotification({
+    recipientId: order.sellerId,
+    type: "payment_success",
+    content: ` `,
+    referenceId: order._id,
+    description: `Someone just bought one of your publication!`,
+    sendPush: true,
+  });
+
+  await createAndSendNotification({
+    recipientId: order.buyerId,
+    type: "order_processing",
+    content: ` `,
+    referenceId: order._id,
+    description: `Your Payment has been received. The seller will proceed with the next steps.`,
+    sendPush: true,
+  });
+
+  socketManager.handleRefreshOrders(order.sellerId);
+};
+
+const handleAccountUpdated = async (account) => {
+  const userSnapshot = await db.collection('Users').where('metadata.userId', '==', account.metadata.userId).limit(1).get();
+  if (userSnapshot.empty) throw new Error("User not found for the Stripe account");
+
+  const userRef = userSnapshot.docs[0].ref;
+  await userRef.update({ stripeAccountId: account.id });
+  console.log(`User linked Stripe account ${account.id}`);
+};
+
+export const createStripeAccountLink = async (req, res) => {
   try {
     const userId = req.user.id;
     const source = req.body.source;
-    const user = await User.findById(userId);
+    const userRef = db.collection('Users').doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) return res.status(404).json({ msg: 'User not found' });
 
+    const user = userDoc.data();
     let account;
-    let accountLink;
 
-    // Check if the user already has a Stripe account ID
     if (user.stripeAccountId) {
-      // Retrieve the account details from Stripe
       account = await stripe.accounts.retrieve(user.stripeAccountId);
-
-      // Check if the account is fully set up
       if (account.details_submitted) {
-        // The account is fully set up, return an error
         return res.status(400).json({ msg: 'User already has a Stripe account linked' });
       } else {
-        // The account is incomplete, delete it and create a new one
         await stripe.accounts.del(user.stripeAccountId);
-        user.stripeAccountId = null;
-        await user.save();
+        await userRef.update({ stripeAccountId: null });
       }
     }
 
-    // Create a new Stripe account
     account = await stripe.accounts.create({
       type: 'express',
-      metadata: {
-        userId: userId.toString(),
-      },
+      metadata: { userId: userId.toString() },
       business_type: 'individual',
       capabilities: {
         card_payments: { requested: true },
@@ -141,20 +122,12 @@ export const createStripeAccountLink = async (req, res) => /* istanbul ignore ne
       },
     });
 
-    // Update the user with the new Stripe account ID
-    user.stripeAccountId = account.id;
-    await user.save();
+    await userRef.update({ stripeAccountId: account.id });
 
-    // Define the redirect URLs dynamically based on the source
-    const refreshUrl = source === 'web'
-      ? `${process.env.BASE_WEB_URL}/settings/me`
-      : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
-    const returnUrl = source === 'web'
-      ? `${process.env.BASE_WEB_URL}/settings/me`
-      : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
+    const refreshUrl = source === 'web' ? `${process.env.BASE_WEB_URL}/settings/me` : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
+    const returnUrl = source === 'web' ? `${process.env.BASE_WEB_URL}/settings/me` : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
 
-    // Create an account link for the onboarding process
-    accountLink = await stripe.accountLinks.create({
+    const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: refreshUrl,
       return_url: returnUrl,
@@ -162,32 +135,40 @@ export const createStripeAccountLink = async (req, res) => /* istanbul ignore ne
     });
 
     res.json({ url: accountLink.url });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
 
-export const checkStripeAccountLink = async (req, res) => /* istanbul ignore next */ {
+export const checkStripeAccountLink = async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    const userRef = db.collection('Users').doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) return res.status(404).json({ msg: 'User not found' });
 
+    const user = userDoc.data();
     if (!user.stripeAccountId) {
       return res.status(404).json({ msg: 'User has not linked a Stripe account' });
     }
 
-    // Retrieve the account details from Stripe
     const account = await stripe.accounts.retrieve(user.stripeAccountId);
-
-    // Check if the account is fully set up
-    if (account.details_submitted) {
-      return res.status(200).json({ linked: true });
-    } else {
-      return res.status(200).json({ linked: false });
-    }
-  } catch (err) /* istanbul ignore next */ {
+    res.status(200).json({ linked: account.details_submitted });
+  } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
+};
+
+const refundOrder = async (orderId) => {
+  const orderSnapshot = await db.collection('Orders').doc(orderId).get();
+  if (!orderSnapshot.exists) throw new Error("Order not found");
+
+  const order = orderSnapshot.data();
+  const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
+  if (!session || !session.payment_intent) throw new Error("No payment intent found for this order");
+
+  await stripe.refunds.create({ payment_intent: session.payment_intent });
+  await db.collection('Orders').doc(orderId).update({ paymentStatus: "refunded" });
 };

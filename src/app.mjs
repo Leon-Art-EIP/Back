@@ -32,7 +32,7 @@ import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
 import convertImageRoutes from './routes/convertImageRoutes.mjs';
 import SocketManager from "./utils/socketManager.mjs";
-
+import logger from './admin/logger.mjs';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -107,8 +107,6 @@ app.post('/webhooks/stripe', bodyParser.raw({ type: 'application/json' }), handl
 app.use(express.json({ extended: false }));
 
 // Define Routes
-
-
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
@@ -156,10 +154,21 @@ app.use(
 
 // app.use(admin.options.rootPath, adminRouter);
 
+// Logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 
-
-
+httpServer.listen(process.env.PORT || 5000, () => {
+  logger.info(`Server is running on port ${process.env.PORT || 5000}`);
+});
 
 export default app; // Export app
 export { httpServer }; // Exportez httpServer pour le démarrage

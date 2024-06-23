@@ -1,37 +1,64 @@
-import { User } from "../../models/userModel.mjs";
-import Collection from "../../models/collectionModel.mjs";
-import { ArtPublication } from "../../models/artPublicationModel.mjs";
 import { FieldValue } from 'firebase-admin/firestore';
+import db from '../../config/db.mjs';
+import { v4 as uuid } from 'uuid';
+import { ArtPublication } from '../../models/artPublicationModel.mjs';
+import Collection from '../../models/collectionModel.mjs';
+import { User } from '../../models/userModel.mjs';
+
+const cleanUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+};
 
 export const addToCollection = async (req, res) => {
   try {
     const userId = req.user.id;
     const { collectionName, artPublicationId } = req.body;
 
-    const artPublication = await ArtPublication.findById(artPublicationId);
-    if (!artPublication) {
+    const artPublicationDoc = await db.collection('ArtPublications').doc(artPublicationId).get();
+    if (!artPublicationDoc.exists) {
       return res.status(404).json({ msg: "Art publication not found" });
     }
 
-    // Create or update collection
-    let collection = await Collection.findOneAndUpdate(
-      { name: collectionName, userId: userId },
-      { artPublications: FieldValue.arrayUnion(artPublicationId) },
-      { upsert: true }
-    );
+    const collectionQuery = db.collection('Collections')
+      .where('name', '==', collectionName)
+      .where('userId', '==', userId)
+      .limit(1);
+    const collectionSnapshot = await collectionQuery.get();
 
-    // Update user's collections
-    const user = await User.findById(userId);
+    let collection;
+    if (collectionSnapshot.empty) {
+      const newCollectionData = {
+        name: collectionName,
+        artPublications: [artPublicationId],
+        isPublic: true,
+        userId,
+        _id: uuid()
+      };
+      const collectionRef = db.collection('Collections').doc(newCollectionData._id);
+      await collectionRef.set(newCollectionData);
+      collection = new Collection(newCollectionData);
+    } else {
+      const doc = collectionSnapshot.docs[0];
+      collection = new Collection({ ...doc.data(), _id: doc.id });
+      if (!collection.artPublications.includes(artPublicationId)) {
+        collection.artPublications.push(artPublicationId);
+        const collectionRef = db.collection('Collections').doc(collection._id);
+        await collectionRef.update({ artPublications: FieldValue.arrayUnion(artPublicationId) });
+      }
+    }
+
+    const userDoc = await db.collection('Users').doc(userId).get();
+    const user = new User({ ...userDoc.data(), _id: userDoc.id });
     if (!user.collections.includes(collection._id)) {
       user.collections.push(collection._id);
-      await user.update({ collections: user.collections });
+      await db.collection('Users').doc(userId).update({ collections: FieldValue.arrayUnion(collection._id) });
     }
 
     res.json({
       msg: "Added to collection",
-      collection: collection,
+      collection: collection.toJSON(),
     });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error('Error adding to collection:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
@@ -40,141 +67,100 @@ export const addToCollection = async (req, res) => {
 export const getMyCollections = async (req, res) => {
   try {
     const userId = req.user.id;
-    const userCollections = await Collection.find({ userId: userId });
+    const collectionsSnapshot = await db.collection('Collections').where('userId', '==', userId).get();
+    const collections = collectionsSnapshot.docs.map(doc => new Collection({ ...doc.data(), _id: doc.id }).toJSON());
 
-    // Ajoutez l'ID du document Firestore comme _id dans chaque collection
-    const collectionsWithId = userCollections.map(collection => {
-      return {
-        ...collection,
-        _id: collection._id || collection.id
-      };
-    });
-
-    console.log('User collections:', collectionsWithId);
-    res.json(collectionsWithId);
-  } catch (err) /* istanbul ignore next */ {
+    res.json(collections);
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
-
 
 export const getPublicCollections = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const publicCollections = await Collection.find({ userId: userId, isPublic: true });
+    const collectionsSnapshot = await db.collection('Collections')
+      .where('userId', '==', userId)
+      .where('isPublic', '==', true)
+      .get();
+    const collections = collectionsSnapshot.docs.map(doc => new Collection({ ...doc.data(), _id: doc.id }).toJSON());
 
-    // Ajoutez l'ID du document Firestore comme _id dans chaque collection
-    const collectionsWithId = publicCollections.map(collection => {
-      return {
-        ...collection,
-        _id: collection._id || collection.id
-      };
-    });
-
-    console.log('Public collections:', collectionsWithId);
-    res.json(collectionsWithId);
-  } catch (err) /* istanbul ignore next */ {
+    res.json(collections);
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
 
-
 export const getArtPublicationsInCollection = async (req, res) => {
   try {
     const collectionId = req.params.collectionId;
-    console.log('Collection ID:', collectionId);
-    const collection = await Collection.findById(collectionId);
-    if (!collection) {
+    const collectionDoc = await db.collection('Collections').doc(collectionId).get();
+    if (!collectionDoc.exists) {
       return res.status(404).json({ msg: "Collection not found" });
     }
 
-    console.log('Found collection:', collection);
-
-    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
-    const page = Number(req.query.page) || 1;
-    const offset = (page - 1) * limit;
-
-    // Vérifiez que les artPublications existent
-    console.log('ArtPublications in collection:', collection.artPublications);
-
-    if (collection.artPublications.length === 0) {
-      return res.status(404).json({ msg: "No art publications found in this collection" });
-    }
-
-    // Nouvelle méthode pour récupérer les ArtPublications en utilisant array-contains-any
-    const artPublications = await ArtPublication.findWithArrayContainsAny(
-      '_id',
-      collection.artPublications,
-      'createdAt',
-      'desc',
-      limit,
-      offset
-    );
-
-    console.log('Found artPublications:', artPublications);
+    const collection = new Collection({ ...collectionDoc.data(), _id: collectionDoc.id });
+    const artPublicationsSnapshot = await db.collection('ArtPublications')
+      .where('_id', 'in', collection.artPublications)
+      .get();
+    const artPublications = artPublicationsSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
 
     res.json(artPublications);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error('Server Error:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
-
-
-
-
 
 export const deleteCollection = async (req, res) => {
   try {
     const userId = req.user.id;
     const collectionId = req.params.collectionId;
 
-    const user = await User.findById(userId);
-    if (!user) {
+    const userDoc = await db.collection('Users').doc(userId).get();
+    if (!userDoc.exists) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    const collection = await Collection.findById(collectionId);
-    if (!collection) {
+    const collectionDoc = await db.collection('Collections').doc(collectionId).get();
+    if (!collectionDoc.exists) {
       return res.status(404).json({ msg: 'Collection not found' });
     }
 
-    await Collection.findByIdAndDelete(collectionId); // Delete collection document
-
-    await User.findByIdAndUpdate(userId, {
-      $pull: { collections: collectionId }
+    await db.collection('Collections').doc(collectionId).delete();
+    await db.collection('Users').doc(userId).update({
+      collections: FieldValue.arrayRemove(collectionId)
     });
 
-    return res.json({ msg: 'Collection deleted' });
-  } catch (err) /* istanbul ignore next */ {
+    res.json({ msg: 'Collection deleted' });
+  } catch (err) {
     console.error(err.message);
-    return res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };
 
 export const removeFromCollection = async (req, res) => {
   try {
     const userId = req.user.id;
-    // Retrieve collectionId from URL parameters
     const collectionId = req.params.collectionId;
-    const { artPublicationIds } = req.body; // Array of art publication IDs
+    const { artPublicationIds } = req.body;
 
-    const collection = await Collection.findOne({ _id: collectionId, user: userId });
-    if (!collection) {
+    const collectionDoc = await db.collection('Collections').doc(collectionId).get();
+    if (!collectionDoc.exists) {
       return res.status(404).json({ msg: "Collection not found" });
     }
 
-    // Remove art publications from the collection
+    const collection = new Collection({ ...collectionDoc.data(), _id: collectionDoc.id });
     collection.artPublications = collection.artPublications.filter(
-      (id) => !artPublicationIds.includes(id.toString())
+      (id) => !artPublicationIds.includes(id)
     );
 
-    await collection.save();
+    await db.collection('Collections').doc(collection._id).update({ artPublications: collection.artPublications });
 
-    res.json({ msg: "Art publications removed from collection", collection });
-  } catch (err) /* istanbul ignore next */ {
+    res.json({ msg: "Art publications removed from collection", collection: collection.toJSON() });
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }

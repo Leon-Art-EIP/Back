@@ -1,7 +1,6 @@
-import { User } from '../../models/userModel.mjs';
-import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import db from '../../config/db.mjs';
 import geofire from 'geofire-common';
+import { User } from '../../models/userModel.mjs';
 
 export async function getUsersWithArtNearLocation(req, res) {
   try {
@@ -33,7 +32,7 @@ export async function getUsersWithArtNearLocation(req, res) {
 
     // Filter users within the radius
     users = users.filter(user => {
-      const distance = geofire.distanceBetween([user.latitude, user.longitude], center);
+      const distance = geofire.distanceBetween([user.location.coordinates[1], user.location.coordinates[0]], center);
       return distance <= radiusInM;
     });
 

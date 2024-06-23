@@ -1,9 +1,11 @@
-import { ArtPublication } from "../../models/artPublicationModel.mjs";
-import { Comment } from "../../models/commentModel.mjs";
-import { createAndSendNotification } from "../notification/notificationController.mjs";
-import { format } from 'date-fns';
 import { FieldValue } from 'firebase-admin/firestore';
 import db from '../../config/db.mjs';
+import { v4 as uuidv4 } from 'uuid';
+import { Comment } from '../../models/commentModel.mjs';
+
+const cleanUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+};
 
 export const addComment = async (req, res) => {
   try {
@@ -11,45 +13,32 @@ export const addComment = async (req, res) => {
     const artPublicationId = req.params.id;
     const { text } = req.body;
 
-    // Check if the art publication exists
-    const artPublication = await ArtPublication.findById(artPublicationId);
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+    const newCommentId = uuidv4();
+    const newCommentData = cleanUndefinedFields({
+      userId,
+      artPublicationId,
+      text,
+      createdAt: new Date().toISOString()
+    });
 
-    // Create and save the new comment
-    const newComment = new Comment({ userId, artPublicationId, text });
-    await newComment.save();
+    const commentRef = db.collection('Comments').doc(newCommentId);
+    await commentRef.set(newCommentData);
 
-    console.log('Comment going to be added:', newComment);
-    // Update the art publication to include the new comment ID
-    const updatedComments = [...artPublication.comments, newComment._id];
-    await artPublication.update({ comments: updatedComments });
-
-    // Send notification to the art publication owner
-    if (artPublication.userId.toString() !== userId) {
-      // Don't notify if the user comments on their own publication
-      createAndSendNotification({
-        recipientId: artPublication.userId,
-        type: "comment",
-        content: ` `,
-        referenceId: artPublicationId,
-        description: `A new comment has been added to your publication.`,
-        sendPush: true,
-      });
-    }
+    const artPublicationRef = db.collection('ArtPublications').doc(artPublicationId);
+    await artPublicationRef.update({
+      comments: FieldValue.arrayUnion(newCommentId)
+    });
 
     res.json({
       msg: 'Comment added',
       comment: {
-        id: newComment._id,
-        userId,
-        artPublicationId,
-        text,
-        createdAt: newComment.createdAt
+        id: newCommentId,
+        ...newCommentData
       }
     });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error', details: err.message });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };
 
@@ -58,41 +47,29 @@ export const deleteComment = async (req, res) => {
     const userId = req.user.id;
     const commentId = req.params.commentId;
 
-    console.log(`User ID: ${userId}`);
-    console.log(`Comment ID: ${commentId}`);
-
     const commentDoc = await db.collection('Comments').doc(commentId).get();
-    if (!commentDoc.exists) return res.status(404).json({ msg: 'Comment not found' });
+    if (!commentDoc.exists) {
+      return res.status(404).json({ msg: 'Comment not found' });
+    }
 
     const comment = commentDoc.data();
-    if (String(comment.userId) !== String(userId)) {
-      console.error('Unauthorized attempt to delete comment');
+    if (comment.userId !== userId) {
       return res.status(403).json({ msg: 'Unauthorized' });
     }
 
     await db.collection('Comments').doc(commentId).delete();
 
-    const artPublicationDoc = await db.collection('ArtPublications').doc(comment.artPublicationId).get();
-    if (!artPublicationDoc.exists) {
-      console.error('Art publication not found while deleting comment');
-      return res.status(404).json({ msg: 'Art publication not found' });
-    }
-
-    await db.collection('ArtPublications').doc(comment.artPublicationId).update({
+    const artPublicationRef = db.collection('ArtPublications').doc(comment.artPublicationId);
+    await artPublicationRef.update({
       comments: FieldValue.arrayRemove(commentId)
     });
 
-    res.json({
-      msg: 'Comment deleted',
-      commentId,
-      userId
-    });
-  } catch (err) /* istanbul ignore next */ {
+    res.json({ msg: 'Comment deleted' });
+  } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error', details: err.message });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };
-
 
 export const getCommentsByArtPublicationId = async (req, res) => {
   try {
@@ -101,23 +78,26 @@ export const getCommentsByArtPublicationId = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;
 
-    // Check if the art publication exists
-    const artPublication = await ArtPublication.findById(artPublicationId);
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+    const artPublicationDoc = await db.collection('ArtPublications').doc(artPublicationId).get();
+    if (!artPublicationDoc.exists) {
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
 
-    // Fetch the comments
-    const comments = await Comment.findWithOrder({ artPublicationId }, 'createdAt', 'desc', limit, offset);
+    const commentsQuerySnapshot = await db.collection('Comments')
+      .where('artPublicationId', '==', artPublicationId)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .offset(offset)
+      .get();
 
-    // Format the dates of the comments
-    const formattedComments = comments.map(comment => ({
-      ...comment,
-      createdAt: format(new Date(comment.createdAt), 'yyyy-MM-dd HH:mm:ss') // Format the date as desired
+    const comments = commentsQuerySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
     }));
 
-    // Return the paginated comments
-    res.json(formattedComments);
+    res.json(comments);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: 'Server Error', details: err.message });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };

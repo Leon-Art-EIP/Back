@@ -1,16 +1,16 @@
-import { User } from "../../../models/userModel.mjs";
+import db from '../../../config/db.mjs';
 
 export const getProfile = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const user = await User.findById(userId);
-    if (!user) {
+    const userDoc = await db.collection('Users').doc(userId).get();
+    if (!userDoc.exists) {
       return res.status(404).json({ msg: "User not found" });
     }
 
     // Supprimer les champs que vous ne voulez pas inclure dans la réponse
-    const { password, email, fcmToken, id, ...rest } = user;
-    const userProfile = { ...rest, _id: id };
+    const { password, email, fcmToken, ...userData } = userDoc.data();
+    const userProfile = { ...userData, _id: userDoc.id };
 
     res.json(userProfile);
   } catch (err) /* istanbul ignore next */ {
@@ -19,19 +19,16 @@ export const getProfile = async (req, res) => {
   }
 };
 
-
-
-
 export const updateBiography = async (req, res) => {
   try {
     const userId = req.user.id;
     const { biography } = req.body;
 
     // Mettre à jour l'utilisateur et récupérer les données mises à jour
-    const updatedUser = await User.findByIdAndUpdate(userId, { biography });
+    await db.collection('Users').doc(userId).update({ biography });
+    const updatedUserDoc = await db.collection('Users').doc(userId).get();
 
-    // Manuellement exclure les champs sensibles
-    const userWithoutSensitiveInfo = updatedUser.toJSON();
+    const userWithoutSensitiveInfo = updatedUserDoc.data();
     delete userWithoutSensitiveInfo.password;
     delete userWithoutSensitiveInfo.email;
 
@@ -46,10 +43,10 @@ export const updateAvailability = async (req, res) => {
   try {
     const userId = req.user.id;
     const { availability } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(userId, { availability }, { new: true });
+    await db.collection('Users').doc(userId).update({ availability });
+    const updatedUserDoc = await db.collection('Users').doc(userId).get();
 
-    // Manuellement exclure les champs sensibles
-    const userWithoutSensitiveInfo = updatedUser.toJSON();
+    const userWithoutSensitiveInfo = updatedUserDoc.data();
     delete userWithoutSensitiveInfo.password;
     delete userWithoutSensitiveInfo.email;
 
@@ -64,10 +61,10 @@ export const updateProfilePicture = async (req, res) => {
   try {
     const userId = req.user.id;
     const profilePicture = req.file.path; // getting file path from multer
-    const updatedUser = await User.findByIdAndUpdate(userId, { profilePicture }, { new: true });
+    await db.collection('Users').doc(userId).update({ profilePicture });
+    const updatedUserDoc = await db.collection('Users').doc(userId).get();
 
-    // Manuellement exclure les champs sensibles
-    const userWithoutSensitiveInfo = updatedUser.toJSON();
+    const userWithoutSensitiveInfo = updatedUserDoc.data();
     delete userWithoutSensitiveInfo.password;
     delete userWithoutSensitiveInfo.email;
 
@@ -82,10 +79,10 @@ export const updateBannerPicture = async (req, res) => {
   try {
     const userId = req.user.id;
     const bannerPicture = req.file.path; // getting file path from multer
-    const updatedUser = await User.findByIdAndUpdate(userId, { bannerPicture }, { new: true });
+    await db.collection('Users').doc(userId).update({ bannerPicture });
+    const updatedUserDoc = await db.collection('Users').doc(userId).get();
 
-    // Manuellement exclure les champs sensibles
-    const userWithoutSensitiveInfo = updatedUser.toJSON();
+    const userWithoutSensitiveInfo = updatedUserDoc.data();
     delete userWithoutSensitiveInfo.password;
     delete userWithoutSensitiveInfo.email;
 

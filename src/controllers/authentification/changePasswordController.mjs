@@ -1,4 +1,4 @@
-import { User } from "../../models/userModel.mjs";
+import db from '../../config/db.mjs';
 import bcrypt from "bcrypt";
 
 export const changePassword = async (req, res) => {
@@ -6,20 +6,24 @@ export const changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   try {
-    const user = await User.findById(userId);
-    if (!user) /* istanbul ignore next */ {
+    const userRef = db.collection('Users').doc(userId);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    const userData = userDoc.data();
+    const isMatch = await bcrypt.compare(currentPassword, userData.password);
+
     if (!isMatch) {
       return res.status(400).json({ msg: "Incorrect current password" });
     }
 
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    await user.save();
+    await userRef.update({ password: hashedPassword });
 
     res.json({ msg: "Password changed successfully" });
   } catch (err) /* istanbul ignore next */ {

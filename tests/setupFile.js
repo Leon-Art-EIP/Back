@@ -1,31 +1,32 @@
-import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
+import * as firebase from '@firebase/testing';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const projectId = "leon-art-d8942"; // Remplacez par un ID de projet de test
+const firestoreRules = fs.readFileSync('firestore.rules');
 
 let testEnv;
 
 beforeAll(async () => {
-  // Initialisation de l'environnement de test Firebase
-  testEnv = await initializeTestEnvironment({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    firestore: {
-      host: "localhost",
-      port: 8080,
-      rules: fs.readFileSync('firestore.rules', 'utf8'), // Charger les règles de sécurité Firestore
-    },
+  await firebase.loadFirestoreRules({
+    projectId,
+    rules: firestoreRules,
   });
 
-  // Attendre que l'émulateur soit prêt
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  testEnv = firebase.initializeTestApp({
+    projectId,
+    auth: { uid: "testUser" }
+  });
 
-  // Initialiser les contextes d'authentification et Firestore pour les tests
-  const context = testEnv.unauthenticatedContext();
-  global.db = context.firestore();
-  global.auth = context.auth();
+  global.db = testEnv.firestore();
 }, 30000); // Ajout d'un délai de 30 secondes pour beforeAll
 
 afterAll(async () => {
   // Nettoyage de l'environnement de test Firebase
-  if (testEnv) {
-    await testEnv.cleanup();
-  }
+  await firebase.clearFirestoreData({ projectId });
+  await Promise.all(firebase.apps().map(app => app.delete()));
 });

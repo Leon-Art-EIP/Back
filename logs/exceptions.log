@@ -1,0 +1,14 @@
+2024-06-23 16:19:03 [31merror[39m: Error [ERR_SERVER_ALREADY_LISTEN]: Listen method has been called more than once without closing.
+    at Server.listen (node:net:1988:11)
+    at file:///C:/Users/User/Desktop/EIP/backv2/server.mjs:5:12
+    at ModuleJob.run (node:internal/modules/esm/module_job:222:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:323:24)
+    at async loadESM (node:internal/process/esm_loader:28:7)
+    at async handleMainPromise (node:internal/modules/run_main:113:12)
+2024-06-23 16:19:39 [31merror[39m: Error [ERR_SERVER_ALREADY_LISTEN]: Listen method has been called more than once without closing.
+    at Server.listen (node:net:1988:11)
+    at file:///C:/Users/User/Desktop/EIP/backv2/server.mjs:5:12
+    at ModuleJob.run (node:internal/modules/esm/module_job:222:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:323:24)
+    at async loadESM (node:internal/process/esm_loader:28:7)
+    at async handleMainPromise (node:internal/modules/run_main:113:12)

@@ -1,21 +1,11 @@
-import dotenv from "dotenv";
-dotenv.config();
+import { v4 as uuidv4 } from 'uuid';
 import { Notification } from '../../models/notificationModel.mjs';
-import { User } from "../../models/userModel.mjs";
-import admin from 'firebase-admin';
-import fs from 'fs';
+import adminNotificationApp from '../../config/adminNotification.mjs';
 import db from '../../config/db.mjs';
 
-// Initialize the FCM SDK
-const serviceAccount = JSON.parse(fs.readFileSync(process.env.SERVICE_ACCOUNT_KEY_PATH, 'utf8'));
+const adminFirestore = adminNotificationApp.firestore();
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://leon-art.firebaseio.com",
-}, 'notification');
-
-// Utility function to send push notifications
-async function sendPushNotification(fcmToken, title, body) /* istanbul ignore next */ {
+const sendPushNotification = async (fcmToken, title, body) => {
   const message = {
     notification: {
       title,
@@ -25,32 +15,36 @@ async function sendPushNotification(fcmToken, title, body) /* istanbul ignore ne
   };
 
   try {
-    await admin.messaging().send(message).then((response) => { console.log('Push notification sent successfully !'); }).catch((error) => { console.log('Error sending push notif : ' + error); });
-  } catch (error) /* istanbul ignore next */ {
+    await adminNotificationApp.messaging().send(message);
+    console.log('Push notification sent successfully!');
+  } catch (error) {
     console.error('Error sending push notification:', error);
   }
-}
+};
 
-// Function to create and optionally send a push notification
-async function createAndSendNotification({ recipientId, type, content, referenceId, description, sendPush = false }) {
-  const notification = new Notification({
+export const createAndSendNotification = async ({ recipientId, type, content, referenceId, description, sendPush = false }) => {
+  const notificationData = {
     recipient: recipientId,
     type,
     content,
     referenceId,
-  });
+    read: false,
+    createdAt: new Date().toISOString(),
+    id: uuidv4(),
+  };
 
-  await notification.save();
+  const notificationRef = adminFirestore.collection('Notifications').doc(notificationData.id);
+  await notificationRef.set(notificationData);
 
-  console.log("created notification : " + notification);
+  console.log("Created notification:", notificationData);
 
   if (sendPush) {
-    const recipient = await User.findById(recipientId);
-    if (recipient.fcmToken) {
-      await sendPushNotification(recipient.fcmToken, "New Notification", description);
+    const recipientDoc = await db.collection('Users').doc(recipientId).get();
+    if (recipientDoc.exists && recipientDoc.data().fcmToken) {
+      await sendPushNotification(recipientDoc.data().fcmToken, "New Notification", description);
     }
   }
-}
+};
 
 export const getNotifications = async (req, res) => {
   try {
@@ -59,23 +53,17 @@ export const getNotifications = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;
 
-    const notifications = await Notification.findWithOrder(
-      { recipient: userId },
-      'createdAt',
-      'desc',
-      limit,
-      offset
-    );
+    const querySnapshot = await adminFirestore.collection('Notifications')
+      .where('recipient', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .offset(offset)
+      .get();
 
-    // Transform notifications to replace `id` with `_id`
-    const transformedNotifications = notifications.map(notification => ({
-      ...notification,
-      _id: notification.id,
-      id: undefined // Remove the original `id` field
-    }));
+    const notifications = querySnapshot.docs.map(doc => new Notification({ ...doc.data(), id: doc.id }).toJSON());
 
-    res.json(transformedNotifications);
-  } catch (err) /* istanbul ignore next */ {
+    res.json(notifications);
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
@@ -84,85 +72,64 @@ export const getNotifications = async (req, res) => {
 export const markNotificationRead = async (req, res) => {
   try {
     const notificationId = req.params.id;
+    const notificationRef = adminFirestore.collection('Notifications').doc(notificationId);
 
-    // Récupérer la notification avant de la mettre à jour
-    const notification = await Notification.findById(notificationId);
-    if (!notification) return res.status(404).json({ msg: 'Notification not found' });
+    const notificationDoc = await notificationRef.get();
+    if (!notificationDoc.exists) {
+      return res.status(404).json({ msg: 'Notification not found' });
+    }
 
-    // Mettre à jour la notification
-    await Notification.updateById(notificationId, { read: true });
+    await notificationRef.update({ read: true });
 
-    // Récupérer la notification mise à jour
-    const updatedNotification = await Notification.findById(notificationId);
+    const updatedNotification = new Notification({ ...notificationDoc.data(), id: notificationDoc.id, read: true });
 
     res.json({
       msg: 'Notification marked as read',
-      notification: {
-        _id: updatedNotification.id,
-        recipient: updatedNotification.recipient,
-        type: updatedNotification.type,
-        content: updatedNotification.content,
-        referenceId: updatedNotification.referenceId,
-        read: updatedNotification.read,
-        createdAt: updatedNotification.createdAt,
-        updatedAt: updatedNotification.updatedAt,
-      },
+      notification: updatedNotification.toJSON(),
     });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
-
-
 
 export const getUnreadNotificationCount = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Vérifiez si des notifications non lues existent pour cet utilisateur
-    const notificationsRef = db.collection('Notifications')
+    const querySnapshot = await adminFirestore.collection('Notifications')
       .where('recipient', '==', userId)
-      .where('read', '==', false);
+      .where('read', '==', false)
+      .get();
 
-    const snapshot = await notificationsRef.get();
-
-    if (snapshot.empty) {
-      console.log('No matching documents.');
-      return res.json({ unreadCount: 0 });
-    } else {
-      const unreadCount = snapshot.size;
-      console.log(`Found ${unreadCount} unread notifications.`);
-      return res.json({ unreadCount });
-    }
-  } catch (err) /* istanbul ignore next */ {
+    const unreadCount = querySnapshot.size;
+    res.json({ unreadCount });
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
-
 
 export const updateFcmToken = async (req, res) => {
   const userId = req.user.id;
   const { fcmToken } = req.body;
 
   try {
-    const user = await User.findById(userId);
-    if (!user) {
+    const userRef = db.collection('Users').doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
       return res.status(404).json({ msg: "User not found" });
     }
 
     if (!fcmToken) {
       return res.status(400).json({ msg: "FCM token is required" });
     }
-    user.fcmToken = fcmToken;
-    await user.save();
+
+    await userRef.update({ fcmToken });
 
     res.json({ msg: "FCM token updated successfully" });
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
-
-export { createAndSendNotification };

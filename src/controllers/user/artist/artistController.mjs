@@ -1,4 +1,3 @@
-import { User } from "../../../models/userModel.mjs";
 import db from '../../../config/db.mjs';
 
 export const getLatestArtists = async (req, res) => {
@@ -10,12 +9,14 @@ export const getLatestArtists = async (req, res) => {
     // Créez la requête pour obtenir les artistes
     let query = db.collection('Users')
       .where('is_artist', '==', true)
+      .offset(skip)
+      .limit(limit);
 
     // Exécutez la requête
     const querySnapshot = await query.get();
     const artists = [];
 
-    // Transformez les résultats en instances de `User`
+    // Transformez les résultats en objets avec les champs nécessaires
     querySnapshot.forEach((doc) => {
       const artistData = doc.data();
       const artist = {

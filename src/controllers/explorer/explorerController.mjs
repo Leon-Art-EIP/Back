@@ -1,5 +1,6 @@
 import db from '../../config/db.mjs';
 import artTypes from '../../constants/artTypesData.js';
+import logger from '../../admin/logger.mjs';
 
 export const searchArtworksAndArtists = async (req, res) => {
   try {
@@ -51,7 +52,7 @@ export const searchArtworksAndArtists = async (req, res) => {
 
     res.json({ artPublications, users });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error searching artworks and artists:', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };

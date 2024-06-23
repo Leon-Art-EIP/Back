@@ -1,6 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import db from '../../config/db.mjs';
 import { createAndSendNotification } from '../notification/notificationController.mjs';
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
 
 export const likeArtPublication = async (req, res) => {
   try {
@@ -10,6 +11,7 @@ export const likeArtPublication = async (req, res) => {
     const artPublicationRef = db.collection('ArtPublications').doc(artPublicationId);
     const artPublicationDoc = await artPublicationRef.get();
     if (!artPublicationDoc.exists) {
+      logger.warn("Art publication not found", { artPublicationId });
       return res.status(404).json({ msg: "Art publication not found" });
     }
 
@@ -36,6 +38,8 @@ export const likeArtPublication = async (req, res) => {
       });
     }
 
+    logger.info("Like status updated", { artPublicationId, userId, isLiked: !isLiked });
+
     res.json({
       msg: "Like status updated",
       likeStatus: {
@@ -45,7 +49,7 @@ export const likeArtPublication = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error updating like status', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -54,6 +58,7 @@ export const getPublicationLikeCount = async (req, res) => {
   try {
     const artPublicationDoc = await db.collection('ArtPublications').doc(req.params.id).get();
     if (!artPublicationDoc.exists) {
+      logger.warn("Art publication not found", { artPublicationId: req.params.id });
       return res.status(404).json({ msg: "Art publication not found" });
     }
 
@@ -63,7 +68,7 @@ export const getPublicationLikeCount = async (req, res) => {
       totalLikes: artPublication.likes.length,
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting publication like count', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -76,6 +81,7 @@ export const getUsersWhoLikedPublication = async (req, res) => {
 
     const artPublicationDoc = await db.collection('ArtPublications').doc(req.params.id).get();
     if (!artPublicationDoc.exists) {
+      logger.warn("Art publication not found", { artPublicationId: req.params.id });
       return res.status(404).json({ msg: "Art publication not found" });
     }
 
@@ -91,12 +97,14 @@ export const getUsersWhoLikedPublication = async (req, res) => {
       username: doc.data().username,
     }));
 
+    logger.info("Fetched users who liked the publication", { artPublicationId: req.params.id, count: likedUsers.length });
+
     res.json({
       artPublicationId: artPublication._id,
       users: likedUsers,
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting users who liked publication', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };

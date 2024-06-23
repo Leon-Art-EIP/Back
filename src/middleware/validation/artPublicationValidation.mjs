@@ -1,9 +1,12 @@
 import { check, validationResult } from 'express-validator';
+import logger from '../../config/logger.js';
 
 export const validateArtPublication = [
   (req, res, next) => {
     if (!req.file) {
-      return res.status(422).json({ errors: [{ msg: 'Image is required' }] });
+      const errorMsg = 'Image is required';
+      logger.warn(`Validation error: ${errorMsg}`);
+      return res.status(422).json({ errors: [{ msg: errorMsg }] });
     }
     next();
   },
@@ -14,11 +17,12 @@ export const validateArtPublication = [
   check('isForSale').optional().isBoolean().withMessage('Invalid for-sale status'),
   check('price').optional().isNumeric().withMessage('Invalid price'),
   check('location').optional().isString().withMessage('Invalid location'),
-
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array().map(error => ({ msg: error.msg })) });
+      const errorMessages = errors.array().map(error => ({ msg: error.msg }));
+      logger.warn(`Validation errors: ${JSON.stringify(errorMessages)}`, { errors: errorMessages });
+      return res.status(422).json({ errors: errorMessages });
     }
     next();
   },
@@ -26,11 +30,12 @@ export const validateArtPublication = [
 
 export const validateArtPublicationId = [
   check('id').isLength({ min: 20, max: 20 }).withMessage('Invalid Art Publication ID'),
-
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) /* istanbul ignore next */ {
-      return res.status(422).json({ errors: errors.array().map(error => ({ msg: error.msg })) });
+      const errorMessages = errors.array().map(error => ({ msg: error.msg }));
+      logger.warn(`Validation errors: ${JSON.stringify(errorMessages)}`, { errors: errorMessages });
+      return res.status(422).json({ errors: errorMessages });
     }
     next();
   },

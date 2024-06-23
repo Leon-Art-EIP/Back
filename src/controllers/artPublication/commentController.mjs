@@ -1,7 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import db from '../../config/db.mjs';
 import { v4 as uuidv4 } from 'uuid';
-import { Comment } from '../../models/commentModel.mjs';
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -29,6 +29,8 @@ export const addComment = async (req, res) => {
       comments: FieldValue.arrayUnion(newCommentId)
     });
 
+    logger.info('Comment added successfully', { comment: newCommentData });
+
     res.json({
       msg: 'Comment added',
       comment: {
@@ -37,7 +39,7 @@ export const addComment = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error adding comment', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -64,9 +66,11 @@ export const deleteComment = async (req, res) => {
       comments: FieldValue.arrayRemove(commentId)
     });
 
+    logger.info('Comment deleted successfully', { commentId });
+
     res.json({ msg: 'Comment deleted' });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error deleting comment', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -95,9 +99,11 @@ export const getCommentsByArtPublicationId = async (req, res) => {
       ...doc.data()
     }));
 
+    logger.info('Fetched comments for art publication', { artPublicationId, count: comments.length });
+
     res.json(comments);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error fetching comments for art publication', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };

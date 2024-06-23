@@ -1,13 +1,10 @@
-import express from 'express';
 import { v4 as uuid } from 'uuid';
 import db from '../../config/db.mjs';
 import Conversation from '../../models/conversationModel.mjs';
 import Message from '../../models/messageModel.mjs';
-import { User } from '../../models/userModel.mjs';
+import logger from '../../admin/logger.mjs';
 
-const router = express.Router();
-
-router.get('/:userId', async (req, res) => {
+export const getUserChats = async (req, res) => {
     const userId = req.params.userId;
     try {
         const chatsSnapshot = await db.collection('Conversations')
@@ -19,12 +16,12 @@ router.get('/:userId', async (req, res) => {
 
         res.json({ chats });
     } catch (err) {
-        console.error(err.message);
+        logger.error('Error getting user chats', { error: err.message });
         res.status(500).send('Server error');
     }
-});
+};
 
-router.put('/create', async (req, res) => {
+export const createConversation = async (req, res) => {
     const { UserOneId, UserTwoId } = req.body;
 
     if (!UserOneId || !UserTwoId) {
@@ -67,12 +64,12 @@ router.put('/create', async (req, res) => {
 
         res.status(201).json({ message: "Nouvelle conversation créée", convId: newConversationData._id });
     } catch (err) {
-        console.error(err.message);
+        logger.error('Error creating conversation', { error: err.message });
         res.status(500).json({ error: 'Erreur du serveur' });
     }
-});
+};
 
-router.get('/single/:convId', async (req, res) => {
+export const getSingleConversation = async (req, res) => {
     const convId = req.params.convId;
     try {
         const chatDoc = await db.collection('Conversations').doc(convId).get();
@@ -84,11 +81,12 @@ router.get('/single/:convId', async (req, res) => {
         const chat = new Conversation({ ...chatDoc.data(), _id: chatDoc.id }).toJSON();
         res.json({ chat });
     } catch (err) {
+        logger.error('Error getting single conversation', { error: err.message });
         res.status(500).send('Server error');
     }
-});
+};
 
-router.get('/messages/:chatId', async (req, res) => {
+export const getConversationMessages = async (req, res) => {
     const chatId = req.params.chatId;
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
@@ -108,12 +106,12 @@ router.get('/messages/:chatId', async (req, res) => {
 
         res.json({ messages });
     } catch (err) {
-        console.error(err.message);
+        logger.error('Error getting conversation messages', { error: err.message });
         res.status(500).send('Erreur du serveur');
     }
-});
+};
 
-router.post('/messages/new', async (req, res) => {
+export const addNewMessage = async (req, res) => {
     const { convId, userId, contentType, content } = req.body;
 
     if (!convId || !userId || !contentType || !content) {
@@ -148,9 +146,7 @@ router.post('/messages/new', async (req, res) => {
 
         res.json({ message: messageData });
     } catch (err) {
-        console.error(err.message);
+        logger.error('Error adding new message', { error: err.message });
         res.status(500).json({ success: false, error: 'Erreur du serveur' });
     }
-});
-
-export default router;
+};

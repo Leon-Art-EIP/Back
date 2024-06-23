@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Notification } from '../../models/notificationModel.mjs';
 import adminNotificationApp from '../../config/adminNotification.mjs';
 import db from '../../config/db.mjs';
+import logger from '../../admin/logger.mjs';
 
 const adminFirestore = adminNotificationApp.firestore();
 
@@ -16,9 +17,9 @@ const sendPushNotification = async (fcmToken, title, body) => {
 
   try {
     await adminNotificationApp.messaging().send(message);
-    console.log('Push notification sent successfully!');
+    logger.info('Push notification sent successfully!');
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    logger.error('Error sending push notification:', error);
   }
 };
 
@@ -36,7 +37,7 @@ export const createAndSendNotification = async ({ recipientId, type, content, re
   const notificationRef = adminFirestore.collection('Notifications').doc(notificationData.id);
   await notificationRef.set(notificationData);
 
-  console.log("Created notification:", notificationData);
+  logger.info("Created notification:", notificationData);
 
   if (sendPush) {
     const recipientDoc = await db.collection('Users').doc(recipientId).get();
@@ -64,7 +65,7 @@ export const getNotifications = async (req, res) => {
 
     res.json(notifications);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting notifications:', err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -88,7 +89,7 @@ export const markNotificationRead = async (req, res) => {
       notification: updatedNotification.toJSON(),
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error marking notification as read:', err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -105,7 +106,7 @@ export const getUnreadNotificationCount = async (req, res) => {
     const unreadCount = querySnapshot.size;
     res.json({ unreadCount });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting unread notification count:', err.message);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -129,7 +130,7 @@ export const updateFcmToken = async (req, res) => {
 
     res.json({ msg: "FCM token updated successfully" });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error updating FCM token:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };

@@ -1,4 +1,5 @@
 import db from '../../config/db.mjs';
+import logger from '../../admin/logger.mjs';
 
 export const getArtPublications = async (req, res) => {
   const userId = req.user.id;
@@ -68,7 +69,7 @@ export const getArtPublications = async (req, res) => {
 
     res.json({ foryou: artPublications });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting art publications:', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };

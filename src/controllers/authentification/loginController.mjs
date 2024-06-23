@@ -1,6 +1,7 @@
 import db from '../../config/db.mjs';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
 
 export const login = async (req, res) => {
   const { email, password, fcmToken } = req.body;
@@ -11,6 +12,7 @@ export const login = async (req, res) => {
     const userSnapshot = await userRef.get();
 
     if (userSnapshot.empty) {
+      logger.warn("Email not registered", { email });
       return res.status(401).json({ msg: "Email not registered" });
     }
 
@@ -20,6 +22,7 @@ export const login = async (req, res) => {
     // Compare password
     const isMatch = await bcrypt.compare(password, userData.password);
     if (!isMatch) {
+      logger.warn("Incorrect password", { email });
       return res.status(401).json({ msg: "Incorrect password" });
     }
 
@@ -37,7 +40,7 @@ export const login = async (req, res) => {
       { expiresIn: Number(process.env.JWT_EXPIRATION) || 3600 },
       (err, token) => {
         if (err) {
-          console.error(err.message);
+          logger.error("Error generating token", { error: err.message });
           return res.status(500).json({ msg: "Error generating token" });
         }
         res.json({
@@ -52,10 +55,11 @@ export const login = async (req, res) => {
             collections: userData.collections,
           },
         });
+        logger.info("User logged in successfully", { userId: userDoc.id });
       }
     );
   } catch (err) {
-    console.error(err.message);
+    logger.error("Server Error", { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };

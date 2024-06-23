@@ -1,6 +1,7 @@
 import db from '../../config/db.mjs';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
 
 export const signup = async (req, res) => {
   const { username, email, password, is_artist, fcmToken } = req.body;
@@ -11,6 +12,7 @@ export const signup = async (req, res) => {
     const emailSnapshot = await emailRef.get();
 
     if (!emailSnapshot.empty) {
+      logger.warn('Email already in use', { email });
       return res.status(409).json({ msg: "Email already in use" });
     }
 
@@ -19,6 +21,7 @@ export const signup = async (req, res) => {
     const usernameSnapshot = await usernameRef.get();
 
     if (!usernameSnapshot.empty) {
+      logger.warn('Username already in use', { username });
       return res.status(409).json({ msg: "Username already in use" });
     }
 
@@ -60,9 +63,10 @@ export const signup = async (req, res) => {
       { expiresIn: Number(process.env.JWT_EXPIRATION) || 3600 },
       (err, token) => {
         if (err) {
-          console.error(err.message);
+          logger.error('Error generating token', { error: err.message });
           return res.status(500).json({ msg: "Error generating token" });
         }
+        logger.info('User signed up successfully', { userId: newUserRef.id, username, email });
         res.json({
           token,
           user: {
@@ -78,7 +82,7 @@ export const signup = async (req, res) => {
       }
     );
   } catch (err) {
-    console.error(err.message);
+    logger.error('Server Error', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };

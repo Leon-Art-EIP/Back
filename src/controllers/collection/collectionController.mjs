@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { ArtPublication } from '../../models/artPublicationModel.mjs';
 import Collection from '../../models/collectionModel.mjs';
 import { User } from '../../models/userModel.mjs';
+import logger from '../../admin/logger.mjs';
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -59,7 +60,7 @@ export const addToCollection = async (req, res) => {
       collection: collection.toJSON(),
     });
   } catch (err) {
-    console.error('Error adding to collection:', err.message);
+    logger.error('Error adding to collection:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -72,7 +73,7 @@ export const getMyCollections = async (req, res) => {
 
     res.json(collections);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting my collections:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -88,7 +89,7 @@ export const getPublicCollections = async (req, res) => {
 
     res.json(collections);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting public collections:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -109,7 +110,7 @@ export const getArtPublicationsInCollection = async (req, res) => {
 
     res.json(artPublications);
   } catch (err) {
-    console.error('Server Error:', err.message);
+    logger.error('Error getting art publications in collection:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -136,7 +137,7 @@ export const deleteCollection = async (req, res) => {
 
     res.json({ msg: 'Collection deleted' });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error deleting collection:', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -161,7 +162,7 @@ export const removeFromCollection = async (req, res) => {
 
     res.json({ msg: "Art publications removed from collection", collection: collection.toJSON() });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error removing from collection:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 };

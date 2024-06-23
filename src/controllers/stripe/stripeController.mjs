@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import stripe from '../../utils/stripeClient.mjs';
 import socketManager from '../../utils/socketManager.mjs';
 import { createAndSendNotification } from "../notification/notificationController.mjs";
+import logger from '../../admin/logger.mjs';
 
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
@@ -12,7 +13,7 @@ export const handleStripeWebhook = async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err) {
-    console.error(`Webhook Error: ${err.message}`);
+    logger.error(`Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -28,11 +29,11 @@ export const handleStripeWebhook = async (req, res) => {
         await handleAccountUpdated(account);
         break;
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        logger.info(`Unhandled event type ${event.type}`);
     }
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error(`Error handling event ${event.type}: ${error.message}`);
+    logger.error(`Error handling event ${event.type}: ${error.message}`);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -88,7 +89,7 @@ const handleAccountUpdated = async (account) => {
 
   const userRef = userSnapshot.docs[0].ref;
   await userRef.update({ stripeAccountId: account.id });
-  console.log(`User linked Stripe account ${account.id}`);
+  logger.info(`User linked Stripe account ${account.id}`);
 };
 
 export const createStripeAccountLink = async (req, res) => {
@@ -136,7 +137,7 @@ export const createStripeAccountLink = async (req, res) => {
 
     res.json({ url: accountLink.url });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -156,7 +157,7 @@ export const checkStripeAccountLink = async (req, res) => {
     const account = await stripe.accounts.retrieve(user.stripeAccountId);
     res.status(200).json({ linked: account.details_submitted });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };

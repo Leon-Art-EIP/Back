@@ -1,10 +1,13 @@
 import db from '../../../config/db.mjs';
+import logger from '../../../admin/logger.mjs';
 
 export const getLatestArtists = async (req, res) => {
   try {
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const skip = (page - 1) * limit;
+
+    logger.info(`Fetching latest artists with limit: ${limit}, page: ${page}`);
 
     // Créez la requête pour obtenir les artistes
     let query = db.collection('Users')
@@ -27,9 +30,11 @@ export const getLatestArtists = async (req, res) => {
       artists.push(artist);
     });
 
+    logger.info(`Fetched ${artists.length} artists`);
+
     res.json({ artists });
   } catch (err) /* istanbul ignore next */ {
-    console.error('Error fetching artists:', err);
+    logger.error('Error fetching artists:', err);
     res.status(500).json({ msg: 'Server Error' });
   }
 };

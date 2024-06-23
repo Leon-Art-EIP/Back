@@ -1,6 +1,7 @@
 import db from '../../config/db.mjs';
 import geofire from 'geofire-common';
 import { User } from '../../models/userModel.mjs';
+import logger from '../../admin/logger.mjs';
 
 export async function getUsersWithArtNearLocation(req, res) {
   try {
@@ -36,7 +37,7 @@ export async function getUsersWithArtNearLocation(req, res) {
       return distance <= radiusInM;
     });
 
-    console.log("users =", users);
+    logger.info("Users found within radius:", { users });
 
     // Step 2: Filter users who have art publications
     const userIds = users.map(user => user.id);
@@ -60,11 +61,11 @@ export async function getUsersWithArtNearLocation(req, res) {
       }
     });
 
-    console.log("usersWithArtPublications =", usersWithArtPublications);
+    logger.info("Users with art publications:", { usersWithArtPublications });
 
     const filteredUsers = users.filter(user => usersWithArtPublications.includes(user.id));
 
-    console.log("filteredUsers =", filteredUsers);
+    logger.info("Filtered users:", { filteredUsers });
 
     // Step 3: Send back the necessary user details
     const result = filteredUsers.map(user => ({
@@ -75,7 +76,7 @@ export async function getUsersWithArtNearLocation(req, res) {
 
     res.json(result);
   } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    logger.error('Error getting users with art near location:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 }

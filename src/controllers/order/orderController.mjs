@@ -2,6 +2,7 @@ import { Order } from "../../models/orderModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import stripe from '../../utils/stripeClient.mjs';
 import db from "../../config/db.mjs";
+import logger from '../../admin/logger.mjs';
 
 export const createOrder = async (req, res) => {
   const BASE_WEB_URL = process.env.BASE_WEB_URL || "localhost:3000";
@@ -65,7 +66,7 @@ export const createOrder = async (req, res) => {
       url: session.url,
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error creating order:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -104,7 +105,7 @@ export const updateOrderToShipping = async (req, res) => {
 
     res.json({ msg: "Order updated to shipping state", order: { ...order, orderState: "shipping" } });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error updating order to shipping:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -148,7 +149,7 @@ export const getLatestBuyOrders = async (req, res) => {
 
     res.json(formattedOrders);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting latest buy orders:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -192,7 +193,7 @@ export const getLatestSellOrders = async (req, res) => {
 
     res.json(formattedOrders);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting latest sell orders:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -238,7 +239,7 @@ export const getBuyOrderById = async (req, res) => {
 
     res.json(formattedOrder);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting buy order by id:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -284,7 +285,7 @@ export const getSellOrderById = async (req, res) => {
 
     res.json(formattedOrder);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error getting sell order by id:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -348,7 +349,7 @@ export const cancelOrder = async (req, res) => {
 
     res.json({ msg: "Order cancelled successfully", order });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error cancelling order:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -402,7 +403,7 @@ export const confirmDeliveryAndRateOrder = async (req, res) => {
 
     res.json({ msg: "Order completed and rated successfully", order: { ...order, orderState: "completed", orderRating: rating } });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error confirming delivery and rating order:', err.message);
     res.status(500).json({ msg: "Server Error" });
   }
 };

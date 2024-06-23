@@ -1,13 +1,14 @@
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import { FieldValue } from 'firebase-admin/firestore';
 import db from '../../config/db.mjs';
+import logger from '../../config/logger.js';
 
 export const followUser = async (req, res) => {
   const userId = req.user.id;
   const targetUserId = req.params.targetUserId;
 
-  // Vérification simple de la validité de l'ID
   if (!targetUserId) {
+    logger.warn(`Invalid user id: ${targetUserId}`);
     return res.status(400).json({ msg: "Invalid user id." });
   }
 
@@ -19,9 +20,11 @@ export const followUser = async (req, res) => {
     const targetUserDoc = await targetUserRef.get();
 
     if (!targetUserDoc.exists) {
+      logger.warn(`User to follow not found: ${targetUserId}`);
       return res.status(404).json({ msg: "User to follow not found." });
     }
     if (userId === targetUserId) {
+      logger.warn(`User tried to follow themselves: ${userId}`);
       return res.status(400).json({ msg: "You cannot follow yourself." });
     }
 
@@ -38,6 +41,7 @@ export const followUser = async (req, res) => {
         subscribers: FieldValue.arrayRemove(userId),
         subscribersCount: Math.max(0, targetUserData.subscribersCount - 1)
       });
+      logger.info(`User ${userId} unfollowed ${targetUserId}`);
       return res.status(200).json({ msg: "Successfully unfollowed user." });
     } else {
       await userRef.update({
@@ -57,10 +61,11 @@ export const followUser = async (req, res) => {
         sendPush: true,
       });
 
+      logger.info(`User ${userId} followed ${targetUserId}`);
       return res.status(200).json({ msg: "Successfully followed user." });
     }
-  } catch (error) /* istanbul ignore next */ {
-    console.error(error);
+  } catch (error) {
+    logger.error(`Error in followUser: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -73,6 +78,7 @@ export const getUsersFollowing = async (req, res) => {
 
     const userDoc = await db.collection('Users').doc(userId).get();
     if (!userDoc.exists) {
+      logger.warn(`User not found: ${userId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
@@ -89,7 +95,7 @@ export const getUsersFollowing = async (req, res) => {
 
     res.json({ subscriptions, total: userData.subscriptions.length });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getUsersFollowing: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -102,6 +108,7 @@ export const getUserFollowers = async (req, res) => {
 
     const userDoc = await db.collection('Users').doc(userId).get();
     if (!userDoc.exists) {
+      logger.warn(`User not found: ${userId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
@@ -118,7 +125,7 @@ export const getUserFollowers = async (req, res) => {
 
     res.json({ subscribers, total: userData.subscribersCount });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getUserFollowers: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -131,6 +138,7 @@ export const getFollowersOfSpecificUser = async (req, res) => {
 
     const userDoc = await db.collection('Users').doc(targetUserId).get();
     if (!userDoc.exists) {
+      logger.warn(`User not found: ${targetUserId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
@@ -147,7 +155,7 @@ export const getFollowersOfSpecificUser = async (req, res) => {
 
     res.json({ subscribers, total: userData.subscribersCount });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getFollowersOfSpecificUser: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -160,6 +168,7 @@ export const getFollowedUsersOfSpecificUser = async (req, res) => {
 
     const userDoc = await db.collection('Users').doc(targetUserId).get();
     if (!userDoc.exists) {
+      logger.warn(`User not found: ${targetUserId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
@@ -176,7 +185,7 @@ export const getFollowedUsersOfSpecificUser = async (req, res) => {
 
     res.json({ subscriptions, total: userData.subscriptions.length });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getFollowedUsersOfSpecificUser: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };

@@ -1,4 +1,5 @@
 import db from '../../config/db.mjs';
+import logger from '../../admin/logger.mjs';
 
 export async function updateUserLocation(req, res) {
   try {
@@ -21,7 +22,7 @@ export async function updateUserLocation(req, res) {
 
     res.status(200).json({ msg: "Location updated successfully" });
   } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    logger.error('Error updating user location:', { error: err.message });
     res.status(500).json({ msg: "Server Error" });
   }
 }

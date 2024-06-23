@@ -25,7 +25,7 @@ import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
-import chatsRoutes from "./controllers/chat/chats.mjs";
+import chatsRoutes from "./routes/chatRoutes.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
 import { handleStripeWebhook } from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';

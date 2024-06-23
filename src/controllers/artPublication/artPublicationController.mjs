@@ -3,6 +3,7 @@ import { User } from '../../models/userModel.mjs';
 import { Order } from '../../models/orderModel.mjs';
 import db from '../../config/db.mjs';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
 
 const cleanUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
@@ -39,12 +40,14 @@ export const createArtPublication = async (req, res) => {
     const artPublicationRef = db.collection('ArtPublications').doc(newPublicationData._id);
     await artPublicationRef.set(newPublicationData);
 
+    logger.info('Art publication created successfully', { artPublication: newPublicationData });
+
     res.json({
       msg: 'Art publication created successfully!',
       artPublication: newPublicationData,
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error creating art publication', { error: err.message });
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -81,9 +84,11 @@ export const deleteArtPublication = async (req, res) => {
       });
     });
 
+    logger.info('Art publication deleted successfully', { publicationId: id });
+
     res.json({ msg: 'Art publication deleted successfully' });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error deleting art publication', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -112,13 +117,15 @@ export const getArtPublicationById = async (req, res) => {
       })
     ).then(results => results.filter(result => result !== null));
 
+    logger.info('Fetched art publication by id', { publicationId: id });
+
     res.json({
       ...artPublication,
       likes,
       comments
     });
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error fetching art publication by id', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -136,9 +143,12 @@ export const getLatestArtPublications = async (req, res) => {
       .get();
 
     const artPublications = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+
+    logger.info('Fetched latest art publications', { count: artPublications.length });
+
     res.json(artPublications);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error fetching latest art publications', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -161,9 +171,12 @@ export const getFollowedArtPublications = async (req, res) => {
       .get();
 
     const artPublications = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+
+    logger.info('Fetched followed art publications', { count: artPublications.length });
+
     res.json(artPublications);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error fetching followed art publications', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -183,9 +196,12 @@ export const getArtPublicationsByUser = async (req, res) => {
       .get();
 
     const artPublications = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+
+    logger.info('Fetched art publications by user', { userId, count: artPublications.length });
+
     res.json(artPublications);
   } catch (err) {
-    console.error(err.message);
+    logger.error('Error fetching art publications by user', { error: err.message });
     res.status(500).json({ msg: 'Server Error' });
   }
 };

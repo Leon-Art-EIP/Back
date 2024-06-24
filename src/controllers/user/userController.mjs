@@ -1,6 +1,6 @@
 import { User } from "../../models/userModel.mjs";
 import db from "../../config/db.mjs";
-import logger from "../../config/logger.js";
+import logger from "../../admin/logger.mjs";
 
 export const checkUsernameAvailability = async (req, res) => {
   const username = req.params.username;

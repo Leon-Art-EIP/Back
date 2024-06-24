@@ -1,5 +1,5 @@
 import fs from 'fs';
-import logger from '../../config/logger.js'; // Assurez-vous que le chemin est correct
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
 
 export const getConditions = async (req, res) => {
     try {

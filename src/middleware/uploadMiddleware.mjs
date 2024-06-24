@@ -1,6 +1,6 @@
 import multer from "multer";
 import path from "path";
-import logger from "../config/logger.js"; // Assurez-vous que le chemin est correct pour votre logger
+import logger from "../admin/logger.mjs"; // Assurez-vous que le chemin est correct pour votre logger
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

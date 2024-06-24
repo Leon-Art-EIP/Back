@@ -1,6 +1,6 @@
 import { check, validationResult } from "express-validator";
 import zxcvbn from "zxcvbn";
-import logger from "../../config/logger.js";
+import logger from "../../admin/logger.mjs";
 
 export const validateChangePassword = [
   check("currentPassword")

@@ -1,5 +1,5 @@
 import { check, validationResult } from 'express-validator';
-import logger from '../../config/logger.js';  // Assurez-vous d'importer votre logger correctement
+import logger from '../../admin/logger.mjs';  // Assurez-vous d'importer votre logger correctement
 
 export const validateCollection = [
   check('artPublicationId').isLength({ min: 1 }).withMessage('Invalid art publication ID'),

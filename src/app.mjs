@@ -67,7 +67,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"], // Changed the file extension to .mjs
+  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -80,27 +80,7 @@ app.use(
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 
-// webhooks :
-
-/**
- * @swagger
- * /webhooks/stripe:
- *   post:
- *     summary: Stripe webhook endpoint
- *     description: Endpoint for handling Stripe webhook events.
- *     tags: [Webhook]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *     responses:
- *       200:
- *         description: Webhook event received and processed successfully.
- *       400:
- *         description: Bad request, invalid webhook event.
- *       500:
- *         description: Server error.
- */
+// webhooks
 app.post('/webhooks/stripe', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Init Middleware
@@ -134,7 +114,7 @@ app.use("/api/map", mapRoutes);
 
 // const admin = new AdminJS(adminOptions);
 // const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-//   authenticate: async (email, password) => /* istanbul ignore next */ {
+//   authenticate: async (email, password) => {
 //     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
 //       return { email: ADMIN_EMAIL };
 //     }
@@ -144,13 +124,13 @@ app.use("/api/map", mapRoutes);
 //   cookiePassword: 'super-secret-and-long-cookie-password',
 // });
 
-app.use(
-  expressSession({
-    secret: "some-secret",
-    resave: true,
-    saveUninitialized: true,
-  })
-);
+// app.use(
+//   expressSession({
+//     secret: "some-secret",
+//     resave: true,
+//     saveUninitialized: true,
+//   })
+// );
 
 // app.use(admin.options.rootPath, adminRouter);
 
@@ -166,9 +146,5 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-httpServer.listen(process.env.PORT || 5000, () => {
-  logger.info(`Server is running on port ${process.env.PORT || 5000}`);
-});
-
-export default app; // Export app
-export { httpServer }; // Exportez httpServer pour le démarrage
+export default app;
+export { httpServer };

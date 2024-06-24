@@ -1,5 +1,5 @@
 import { query, validationResult } from 'express-validator';
-import logger from '../../config/logger.js';  // Assurez-vous d'importer votre logger correctement
+import logger from '../../admin/logger.mjs';  // Assurez-vous d'importer votre logger correctement
 
 export const validateSearch = [
   query('searchTerm').optional().isString().withMessage('Invalid search term'),

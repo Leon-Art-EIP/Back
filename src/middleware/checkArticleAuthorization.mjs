@@ -1,6 +1,6 @@
 import db from '../config/db.mjs'; // Assurez-vous que c'est le chemin correct pour votre instance Firestore
 import { User } from '../models/userModel.mjs';
-import logger from '../config/logger.js'; // Assurez-vous que le chemin est correct pour votre logger
+import logger from '../admin/logger.mjs'; // Assurez-vous que le chemin est correct pour votre logger
 
 export const checkArticleAuthorization = async (req, res, next) => {
   try {

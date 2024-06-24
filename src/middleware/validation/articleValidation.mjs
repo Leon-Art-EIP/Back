@@ -1,5 +1,5 @@
 import { check, validationResult } from 'express-validator';
-import logger from '../../config/logger.js';
+import logger from '../../admin/logger.mjs';
 
 export const validateArticle = [
   check('title').notEmpty().withMessage('Title is required'),

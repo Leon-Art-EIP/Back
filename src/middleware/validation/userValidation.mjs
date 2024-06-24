@@ -1,5 +1,5 @@
 import { check, validationResult } from 'express-validator';
-import logger from '../../config/logger.js'; // Assurez-vous d'importer votre logger correctement
+import logger from '../../admin/logger.mjs'; // Assurez-vous d'importer votre logger correctement
 
 export const validateUserId = [
   check('userId').isUUID().withMessage('Invalid User ID'),

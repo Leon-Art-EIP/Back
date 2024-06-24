@@ -1,5 +1,5 @@
 import { verify } from "jsonwebtoken";
-import logger from "../config/logger.js"; // Assurez-vous d'importer correctement votre logger
+import logger from '../admin/logger.mjs' // Assurez-vous d'importer correctement votre logger
 
 export function authenticate(req, res, next) /* istanbul ignore next */ {
   let token = req.header("Authorization");

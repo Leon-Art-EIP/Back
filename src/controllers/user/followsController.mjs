@@ -1,7 +1,7 @@
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import { FieldValue } from 'firebase-admin/firestore';
 import db from '../../config/db.mjs';
-import logger from '../../config/logger.js';
+import logger from '../../admin/logger.mjs';
 
 export const followUser = async (req, res) => {
   const userId = req.user.id;

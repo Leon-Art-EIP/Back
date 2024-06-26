@@ -1,10 +1,24 @@
 import request from 'supertest';
 import app from '../src/app';
-import { getDocs, collection, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
+
+let db;
+
+beforeAll(() => {
+  db = global.firestore;
+  global.db = db;
+});
+
+beforeEach(async () => {
+  const usersCollection = collection(global.db, 'users');
+  const querySnapshot = await getDocs(usersCollection);
+  const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+  await Promise.all(deletePromises);
+});
 
 describe('User Availability Routes', () => {
   const createUser = async (username, email, password) => {
-    const userRef = doc(collection(global.db, 'users'), username);
+    const userRef = doc(global.db, 'users', username);
     await setDoc(userRef, { email, password });
   };
 
@@ -19,13 +33,6 @@ describe('User Availability Routes', () => {
     expect(response.status).toBe(expectedStatus);
     expect(response.body).toHaveProperty('msg', expectedMsg);
   };
-
-  beforeEach(async () => {
-    const usersCollection = collection(global.db, 'users');
-    const querySnapshot = await getDocs(usersCollection);
-    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
-    await Promise.all(deletePromises);
-  });
 
   describe('GET /api/user/check-username/:username', () => {
     it('should return 400 for invalid username', async () => {

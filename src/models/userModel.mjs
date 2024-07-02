@@ -1,33 +1,49 @@
-import mongoose from "mongoose";
+import { v4 as uuidv4 } from 'uuid';
 
-const { Schema } = mongoose;
+class User {
+  constructor(data) {
+    this.id = data.id || uuidv4();
+    this.username = data.username;
+    this.email = data.email;
+    this.password = data.password;
+    this.is_artist = data.is_artist || false;
+    this.biography = data.biography || '';
+    this.availability = data.availability || 'unavailable';
+    this.subscription = data.subscription || 'standard';
+    this.collections = data.collections || [];
+    this.subscriptions = data.subscriptions || [];
+    this.subscribers = data.subscribers || [];
+    this.subscribersCount = data.subscribersCount || 0;
+    this.likedPublications = data.likedPublications || [];
+    this.canPostArticles = data.canPostArticles || true;
+    this.fcmToken = data.fcmToken || '';
+    this.profilePicture = data.profilePicture || 'uploads/static/default-profile-pic.png';
+    this.bannerPicture = data.bannerPicture || 'uploads/static/default-banner-pic.png';
+    this.stripeAccountId = data.stripeAccountId || '';
+  }
 
-const userSchema = new Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  is_artist: { type: Boolean, default: false },
-  biography: String,
-  availability: { type: String, default: "unavailable" },
-  subscription: { type: String, default: "standard" },
-  collections: [{ type: Schema.Types.ObjectId, ref: 'Collection' }],
-  subscriptions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  subscribers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  subscribersCount: { type: Number, default: 0 },
-  likedPublications: [{ type: Schema.Types.ObjectId, ref: 'ArtPublication' }],
-  canPostArticles: { type: Boolean, default: true },
-  fcmToken: String, // FCM token for push notifications
-  profilePicture: { type: String, default: 'uploads/static/default-profile-pic.png' },
-  bannerPicture: { type: String, default: 'uploads/static/default-banner-pic.png' },
-  stripeAccountId: { type: String },
-  quizz: { type: Schema.Types.ObjectId, ref: 'Quizz' },
-  location: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
-    coordinates: {
-      type: [Number],
-      index: '2dsphere'
-    },
-  },
-});
+  toJSON() {
+    return {
+      id: this.id,
+      username: this.username,
+      email: this.email,
+      password: this.password,
+      is_artist: this.is_artist,
+      biography: this.biography,
+      availability: this.availability,
+      subscription: this.subscription,
+      collections: this.collections,
+      subscriptions: this.subscriptions,
+      subscribers: this.subscribers,
+      subscribersCount: this.subscribersCount,
+      likedPublications: this.likedPublications,
+      canPostArticles: this.canPostArticles,
+      fcmToken: this.fcmToken,
+      profilePicture: this.profilePicture,
+      bannerPicture: this.bannerPicture,
+      stripeAccountId: this.stripeAccountId
+    };
+  }
+}
 
-export const User = mongoose.model("User", userSchema);
+export { User };

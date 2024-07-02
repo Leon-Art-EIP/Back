@@ -1,19 +1,39 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+class ArtPublication {
+  constructor(data) {
+    this._id = data._id || uuidv4();
+    this.userId = data.userId;
+    this.image = data.image || 'uploads/static/default-image-art.jpg';
+    this.artType = data.artType;
+    this.name = data.name;
+    this.description = data.description || '';
+    this.dimension = data.dimension || '';
+    this.isForSale = data.isForSale || false;
+    this.isSold = data.isSold || false;
+    this.price = data.price;
+    this.location = data.location || '';
+    this.likes = data.likes || [];
+    this.comments = data.comments || [];
+    this.createdAt = data.createdAt || new Date();
+  }
 
-const artPublicationSchema = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  image: { type: String, default: 'uploads/static/default-image-art.jpg', required: true },
-  artType: { type: String, required: true },
-  name: { type: String, required: true },
-  description: { type: String },
-  dimension: { type: String },
-  isForSale: { type: Boolean, default: false },
-  isSold: { type: Boolean, default: false },
-  price: { type: Number },
-  location: { type: String },
-  likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
-});
+  toJSON() {
+    return {
+      _id: this._id,
+      userId: this.userId,
+      image: this.image,
+      artType: this.artType,
+      name: this.name,
+      description: this.description,
+      dimension: this.dimension,
+      isForSale: this.isForSale,
+      isSold: this.isSold,
+      price: this.price,
+      location: this.location,
+      likes: this.likes,
+      comments: this.comments,
+      createdAt: this.createdAt
+    };
+  }
+}
 
-export const ArtPublication = mongoose.model('ArtPublication', artPublicationSchema);
+export { ArtPublication };

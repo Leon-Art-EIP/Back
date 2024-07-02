@@ -25,15 +25,14 @@ import notificationRoutes from "./routes/notificationRoutes.mjs";
 import uploadRoutes from "./routes/uploadRoutes.mjs";
 import explorerRoutes from './routes/explorerRoutes.mjs';
 import orderRoutes from './routes/orderRoutes.mjs';
-import chatsRoutes from "./controllers/chat/chats.mjs";
+import chatsRoutes from "./routes/chatRoutes.mjs";
 import conditionRoute from "./routes/conditionsRoutes.mjs";
-import {handleStripeWebhook} from "./controllers/stripe/stripeController.mjs"
+import { handleStripeWebhook } from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
+import convertImageRoutes from './routes/convertImageRoutes.mjs';
 import SocketManager from "./utils/socketManager.mjs";
-
-
-
+import logger from './admin/logger.mjs';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -68,7 +67,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"], // Changed the file extension to .mjs
+  apis: ["./src/routes/*.mjs", "./src/controllers/*.mjs", "./src/controllers/chat/*.mjs"],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -81,35 +80,13 @@ app.use(
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 
-// webhooks :
-
-/**
- * @swagger
- * /webhooks/stripe:
- *   post:
- *     summary: Stripe webhook endpoint
- *     description: Endpoint for handling Stripe webhook events.
- *     tags: [Webhook]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *     responses:
- *       200:
- *         description: Webhook event received and processed successfully.
- *       400:
- *         description: Bad request, invalid webhook event.
- *       500:
- *         description: Server error.
- */
-app.post('/webhooks/stripe', bodyParser.raw({type: 'application/json'}), handleStripeWebhook);
+// webhooks
+app.post('/webhooks/stripe', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Init Middleware
 app.use(express.json({ extended: false }));
 
 // Define Routes
-
-
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api/quizz", quizzRoutes);
@@ -127,40 +104,47 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/conversations', chatsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/foryou', foryouRoutes);
+app.use('/api/', convertImageRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/api/map", mapRoutes);
 
-
 // AdminJS CONFIG
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+// const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+// const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-const admin = new AdminJS(adminOptions);
-const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-  authenticate: async (email, password) => /* istanbul ignore next */ {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      return { email: ADMIN_EMAIL };
-    }
-    return false;
-  },
-  cookieName: 'adminjs',
-  cookiePassword: 'super-secret-and-long-cookie-password',
+// const admin = new AdminJS(adminOptions);
+// const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
+//   authenticate: async (email, password) => {
+//     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+//       return { email: ADMIN_EMAIL };
+//     }
+//     return false;
+//   },
+//   cookieName: 'adminjs',
+//   cookiePassword: 'super-secret-and-long-cookie-password',
+// });
+
+// app.use(
+//   expressSession({
+//     secret: "some-secret",
+//     resave: true,
+//     saveUninitialized: true,
+//   })
+// );
+
+// app.use(admin.options.rootPath, adminRouter);
+
+// Logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
 });
 
-app.use(
-  expressSession({
-    secret: "some-secret",
-    resave: true,
-    saveUninitialized: true,
-  })
-);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 
-app.use(admin.options.rootPath, adminRouter);
-
-
-
-
-
-
-export default app; // Export app
-export { httpServer }; // Exportez httpServer pour le démarrage
+export default app;
+export { httpServer };

@@ -1,6 +1,11 @@
-import { ArtPublication } from "../../models/artPublicationModel.mjs";
-import { Comment } from "../../models/commentModel.mjs";
-import { createAndSendNotification } from "../notification/notificationController.mjs";
+import { FieldValue } from 'firebase-admin/firestore';
+import db from '../../config/db.mjs';
+import { v4 as uuidv4 } from 'uuid';
+import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
+
+const cleanUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+};
 
 export const addComment = async (req, res) => {
   try {
@@ -8,41 +13,34 @@ export const addComment = async (req, res) => {
     const artPublicationId = req.params.id;
     const { text } = req.body;
 
-    const artPublication = await ArtPublication.findById(artPublicationId);
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+    const newCommentId = uuidv4();
+    const newCommentData = cleanUndefinedFields({
+      userId,
+      artPublicationId,
+      text,
+      createdAt: new Date().toISOString()
+    });
 
-    const newComment = new Comment({ userId, artPublicationId, text });
-    await newComment.save();
+    const commentRef = db.collection('Comments').doc(newCommentId);
+    await commentRef.set(newCommentData);
 
-    artPublication.comments.push(newComment._id);
-    await artPublication.save();
+    const artPublicationRef = db.collection('ArtPublications').doc(artPublicationId);
+    await artPublicationRef.update({
+      comments: FieldValue.arrayUnion(newCommentId)
+    });
 
-        // Send notification to the art publication owner
-    if (artPublication.userId.toString() !== userId) {
-      // Don't notify if the user comments on their own publication
-      createAndSendNotification({
-        recipientId: artPublication.userId,
-        type: "comment",
-        content: ` `,
-        referenceId: artPublicationId,
-        description: `A new comment has been added to your publication.`,
-        sendPush: true,
-      });
-    }
+    logger.info('Comment added successfully', { comment: newCommentData });
 
-    res.json({ 
-        msg: 'Comment added',
-        comment: {
-          id: newComment._id,
-          userId,
-          artPublicationId,
-          text,
-          createdAt: newComment.createdAt
-        }
-      });
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Server Error', details: err.message });
+    res.json({
+      msg: 'Comment added',
+      comment: {
+        id: newCommentId,
+        ...newCommentData
+      }
+    });
+  } catch (err) {
+    logger.error('Error adding comment', { error: err.message });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };
 
@@ -51,45 +49,61 @@ export const deleteComment = async (req, res) => {
     const userId = req.user.id;
     const commentId = req.params.commentId;
 
-    const comment = await Comment.findById(commentId);
-    if (!comment) return res.status(404).json({ msg: 'Comment not found' });
+    const commentDoc = await db.collection('Comments').doc(commentId).get();
+    if (!commentDoc.exists) {
+      return res.status(404).json({ msg: 'Comment not found' });
+    }
 
-    if (String(comment.userId) !== String(userId)) return res.status(403).json({ msg: 'Unauthorized' });
+    const comment = commentDoc.data();
+    if (comment.userId !== userId) {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
 
-    await Comment.findByIdAndRemove(commentId);
+    await db.collection('Comments').doc(commentId).delete();
 
-    const artPublication = await ArtPublication.findById(comment.artPublicationId);
-    artPublication.comments.pull(commentId);
-    await artPublication.save();
+    const artPublicationRef = db.collection('ArtPublications').doc(comment.artPublicationId);
+    await artPublicationRef.update({
+      comments: FieldValue.arrayRemove(commentId)
+    });
 
-    res.json({ 
-        msg: 'Comment deleted',
-        commentId,
-        userId
-      });
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Server Error', details: err.message });
+    logger.info('Comment deleted successfully', { commentId });
+
+    res.json({ msg: 'Comment deleted' });
+  } catch (err) {
+    logger.error('Error deleting comment', { error: err.message });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };
 
 export const getCommentsByArtPublicationId = async (req, res) => {
   try {
     const artPublicationId = req.params.id;
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
+    const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
+    const offset = (page - 1) * limit;
 
-    // Check if the art publication exists
-    const artPublication = await ArtPublication.findById(artPublicationId);
-    if (!artPublication) return res.status(404).json({ msg: 'Art publication not found' });
+    const artPublicationDoc = await db.collection('ArtPublications').doc(artPublicationId).get();
+    if (!artPublicationDoc.exists) {
+      return res.status(404).json({ msg: 'Art publication not found' });
+    }
 
-    // Fetch the comments
-    const comments = await Comment.find({ artPublicationId }).sort({ createdAt: -1 }).limit(limit).skip((page - 1) * limit);
+    const commentsQuerySnapshot = await db.collection('Comments')
+      .where('artPublicationId', '==', artPublicationId)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .offset(offset)
+      .get();
 
-    // Return the paginated comments
+    const comments = commentsQuerySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    logger.info('Fetched comments for art publication', { artPublicationId, count: comments.length });
+
     res.json(comments);
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Server Error', details: err.message });
+  } catch (err) {
+    logger.error('Error fetching comments for art publication', { error: err.message });
+    res.status(500).json({ msg: 'Server Error' });
   }
 };

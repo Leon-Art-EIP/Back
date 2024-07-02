@@ -1,57 +1,37 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import { v4 as uuidv4 } from 'uuid';
 
-const OrderSchema = new Schema({
-  artPublicationId: {
-    type: Schema.Types.ObjectId,
-    ref: 'ArtPublication',
-    required: true
-  },
-  buyerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  sellerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  orderState: {
-    type: String,
-    enum: ["pending", "paid", "cancelled", "shipping", "completed"],
-    default: "pending",
-    required: true
-  },
-  paymentStatus: {
-    type: String,
-    enum: ["pending", "paid", "refunded"],
-    default: "pending"
-  },
-  orderRating: {
-    type: Number,
-    min: 1,
-    max: 5
-  },
-  stripePaymentIntentId: String,
-  orderPrice: {
-    type: Number,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
-  stripeSessionId: String
-});
+class Order {
+  constructor(data) {
+    this.id = data.id || uuidv4();
+    this.artPublicationId = data.artPublicationId;
+    this.buyerId = data.buyerId;
+    this.sellerId = data.sellerId;
+    this.orderState = data.orderState || 'pending';
+    this.paymentStatus = data.paymentStatus || 'pending';
+    this.orderRating = data.orderRating !== undefined ? data.orderRating : 0;
+    this.stripePaymentIntentId = data.stripePaymentIntentId || null;
+    this.orderPrice = data.orderPrice || null;
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.updatedAt = data.updatedAt || new Date().toISOString();
+    this.stripeSessionId = data.stripeSessionId || null;
+  }
 
-OrderSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+  toJSON() {
+    return {
+      id: this.id,
+      artPublicationId: this.artPublicationId,
+      buyerId: this.buyerId,
+      sellerId: this.sellerId,
+      orderState: this.orderState,
+      paymentStatus: this.paymentStatus,
+      orderRating: this.orderRating,
+      stripePaymentIntentId: this.stripePaymentIntentId,
+      orderPrice: this.orderPrice,
+      createdAt: this.createdAt,
+      updatedAt: new Date().toISOString(),
+      stripeSessionId: this.stripeSessionId,
+    };
+  }
+}
 
-export const Order = mongoose.model('Order', OrderSchema);
+export { Order };

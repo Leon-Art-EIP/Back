@@ -1,13 +1,27 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
+import { v4 as uuidv4 } from 'uuid';
 
-const notificationSchema = new Schema({
-  recipient: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, required: true }, // e.g., 'like', 'comment', 'order'
-  content: { type: String, required: true }, // Custom message for the notification
-  referenceId: { type: Schema.Types.ObjectId, required: false }, // ID of the related item (e.g., ArtPublication, Order)
-  read: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-});
+class Notification {
+  constructor(data) {
+    this.recipient = data.recipient;
+    this.type = data.type;
+    this.content = data.content;
+    this.referenceId = data.referenceId || null;
+    this.read = data.read || false;
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.id = data.id || uuidv4();
+  }
 
-export const Notification = mongoose.model("Notification", notificationSchema);
+  toJSON() {
+    return {
+      recipient: this.recipient,
+      type: this.type,
+      content: this.content,
+      referenceId: this.referenceId,
+      read: this.read,
+      createdAt: this.createdAt,
+      id: this.id,
+    };
+  }
+}
+
+export { Notification };

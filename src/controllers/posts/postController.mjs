@@ -16,7 +16,7 @@ export const createPost = async (req, res) => {
     const newPost = new Post({
       userId,
       text,
-      artPublicationId,
+      artPublicationId: artPublicationId || null,
     });
 
     await newPost.save();

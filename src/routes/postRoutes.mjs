@@ -46,7 +46,6 @@ const router = express.Router();
  *                   type: string
  *                 post:
  *                   type: object
- *                   $ref: '#/components/schemas/Post'
  *       400:
  *         description: Validation error or user has posted within the last hour.
  *       401:

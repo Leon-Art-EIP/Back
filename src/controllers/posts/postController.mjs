@@ -21,12 +21,23 @@ export const createPost = async (req, res) => {
 
     await newPost.save();
 
-    return res.json({ msg: 'Post created successfully!', post: newPost });
+    // Fetch user data
+    const user = await User.findById(userId).select('username profilePicture');
+
+    return res.json({
+      msg: 'Post created successfully!',
+      post: newPost,
+      user: {
+        username: user.username,
+        profilePicture: user.profilePicture,
+      },
+    });
   } catch (err) /* istanbul ignore next */ {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 export const deletePost = async (req, res) => {
   try {

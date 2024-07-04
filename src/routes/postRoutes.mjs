@@ -46,6 +46,13 @@ const router = express.Router();
  *                   type: string
  *                 post:
  *                   type: object
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     username:
+ *                       type: string
+ *                     profilePicture:
+ *                       type: string
  *       400:
  *         description: Validation error or user has posted within the last hour.
  *       401:
@@ -54,6 +61,7 @@ const router = express.Router();
  *         description: Server Error.
  */
 router.post('/', authenticate, createPost);
+
 
 /**
  * @swagger

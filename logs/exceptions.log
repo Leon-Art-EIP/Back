@@ -1,0 +1,6 @@
+2024-07-09 08:11:49 [31merror[39m: Error: SERVICE_ACCOUNT_KEY_PATH is not defined in environment variables.
+    at file:///C:/Users/User/Desktop/EIP/Back/src/config/adminNotification.mjs:14:11
+    at ModuleJob.run (node:internal/modules/esm/module_job:222:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:323:24)
+    at async loadESM (node:internal/process/esm_loader:28:7)
+    at async handleMainPromise (node:internal/modules/run_main:113:12)

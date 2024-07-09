@@ -1,23 +1,44 @@
 import { Article } from "../../models/articleModel.mjs";
-import mongoose from 'mongoose';
+import { User } from "../../models/userModel.mjs";
+import db from '../../config/db.mjs';
+import logger from '../../admin/logger.mjs';
 
 export const postArticle = async (req, res) => {
   try {
     const { title, content } = req.body;
     const userId = req.user.id;
-    const mainImage = req.file ? req.file.path : null; // Get the path of the uploaded image
+    const mainImage = req.file ? req.file.path : null;
 
-    const article = new Article({
+    const maxPositionSnapshot = await db.collection('Articles').orderBy('position', 'desc').limit(1).get();
+    const maxPosition = maxPositionSnapshot.empty ? 0 : maxPositionSnapshot.docs[0].data().position;
+    const position = maxPosition + 1;
+
+    const articleData = {
       title,
       mainImage,
       content,
-      author: userId,
-    });
+      authorId: userId,
+      createdAt: new Date().toISOString(),
+      position
+    };
 
-    await article.save();
-    res.status(201).json(article);
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    const articleRef = db.collection('Articles').doc();
+    await articleRef.set(articleData);
+    const articleId = articleRef.id;
+
+    const author = await User.findById(userId);
+
+    logger.info(`Article created: ${articleId} by user: ${userId}`);
+
+    res.status(201).json({
+      _id: articleId,
+      ...articleData,
+      author: {
+        username: author.username
+      }
+    });
+  } catch (err) {
+    logger.error('Error posting article', err);
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -26,39 +47,88 @@ export const getArticleById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: 'Invalid article ID' });
-    }
-
-    const article = await Article.findById(id).populate('author', 'username');
-
-    if (!article) {
+    const doc = await db.collection('Articles').doc(id).get();
+    if (!doc.exists) {
       return res.status(404).json({ msg: 'Article not found' });
     }
 
-    res.json(article);
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    const article = { ...doc.data(), _id: doc.id };
+    const author = await User.findById(article.authorId);
+
+    logger.info(`Fetched article: ${id}`);
+
+    res.json({
+      ...article,
+      author: {
+        username: author.username
+      }
+    });
+  } catch (err) {
+    logger.error('Error getting article by ID', err);
     res.status(500).json({ msg: "Server Error" });
   }
 };
 
-
 export const getLatestArticles = async (req, res) => {
   try {
-    const limit = Number(req.query.limit) || process.env.DEFAULT_PAGE_LIMIT;
-    const page = Number(req.query.page) || 1;
-    const skip = (page - 1) * limit;
+    const querySnapshot = await db.collection('Articles').orderBy('createdAt', 'desc').get();
+    const articles = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
 
-    const articles = await Article.find()
-      .sort({ _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('author', 'username'); // Populating author's username
+    const result = await Promise.all(articles.map(async article => {
+      const author = await User.findById(article.authorId);
+      return {
+        ...article,
+        author: {
+          username: author.username
+        }
+      };
+    }));
 
-    res.json(articles);
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+    logger.info('Fetched latest articles');
+
+    res.json(result);
+  } catch (err) {
+    logger.error('Error getting latest articles', err);
     res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+export const updateArticle = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const articleRef = db.collection('Articles').doc(id);
+    await articleRef.update({
+      ...updateData,
+      updatedAt: new Date().toISOString()
+    });
+
+    const updatedArticle = await articleRef.get();
+
+    logger.info(`Article updated: ${id}`);
+
+    res.json({
+      _id: id,
+      ...updatedArticle.data()
+    });
+  } catch (err) {
+    logger.error('Error updating article', err);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
+export const deleteArticle = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await db.collection('Articles').doc(id).delete();
+
+    logger.info(`Article deleted: ${id}`);
+
+    res.status(204).send();
+  } catch (err) {
+    logger.error('Error deleting article', err);
+    res.status(500).json({ msg: 'Server Error' });
   }
 };

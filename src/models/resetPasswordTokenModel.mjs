@@ -1,10 +1,17 @@
-import mongoose, { model } from "mongoose";
-const { Schema } = mongoose;
+class ResetToken {
+  constructor(data) {
+    this.email = data.email;
+    this.token = data.token;
+    this.expire_at = data.expire_at || new Date();
+  }
 
-const resetTokenSchema = new Schema({
-  email: { type: String, required: true, unique: true },
-  token: { type: String, required: true },
-  expire_at: { type: Date, default: Date.now, index: { expires: "1h" } }, // The token expires after 1 hour.
-});
+  toJSON() {
+    return {
+      email: this.email,
+      token: this.token,
+      expire_at: this.expire_at
+    };
+  }
+}
 
-export const ResetToken = model("ResetToken", resetTokenSchema);
+export { ResetToken };

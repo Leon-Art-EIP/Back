@@ -1,31 +1,23 @@
-import mongoose from 'mongoose';
-
-const MessageSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    ref: 'Conversation',
-    required: true
-  },
-  senderId: {
-    type: String,
-    required: true
-  },
-  contentType: {
-    type: String,
-    required: true
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  dateTime: {
-    type: String,
-    required: true
-  },
-  read: {
-    type: Boolean,
-    default: false
+class Message {
+  constructor(data) {
+    this.id = data.id;
+    this.senderId = data.senderId;
+    this.contentType = data.contentType;
+    this.content = data.content;
+    this.dateTime = data.dateTime;
+    this.read = data.read || false;
   }
-});
 
-export default mongoose.model('Message', MessageSchema);
+  toJSON() {
+    return {
+      id: this.id,
+      senderId: this.senderId,
+      contentType: this.contentType,
+      content: this.content,
+      dateTime: this.dateTime,
+      read: this.read
+    };
+  }
+}
+
+export default Message;

@@ -1,44 +1,29 @@
-import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
+class Conversation {
+  constructor(data) {
+    this._id = data._id;
+    this.lastMessage = data.lastMessage;
+    this.unreadMessages = data.unreadMessages || false;
+    this.UserOneId = data.UserOneId;
+    this.UserOneName = data.UserOneName;
+    this.UserOnePicture = data.UserOnePicture;
+    this.UserTwoId = data.UserTwoId;
+    this.UserTwoName = data.UserTwoName;
+    this.UserTwoPicture = data.UserTwoPicture;
+  }
 
-// Schéma de conversation actualisé pour inclure des références aux utilisateurs
-const ConversationSchema = new Schema({
-  lastMessage: {
-    type: String,
-    required: true
-  },
-  unreadMessages: {
-    type: Boolean,
-    default: false
-  },
-  UserOneId: {
-    type: String,
-    required: true
-  },
-  UserOneName: {
-    type: String,
-    required: true
-  },
-  UserOnePicture: {
-    type: String,
-    required: true
-  },
-  UserTwoId: {
-    type: String,
-    required: true
-  },
-  UserTwoName: {
-    type: String,
-    required: true
-  },
-  UserTwoPicture: {
-    type: String,
-    required: true
-  },
-});
-
-// Créer le modèle de conversation avec le schéma actualisé
-const Conversation = mongoose.model('Conversation', ConversationSchema);
+  toJSON() {
+    return {
+      _id: this._id,
+      lastMessage: this.lastMessage,
+      unreadMessages: this.unreadMessages,
+      UserOneId: this.UserOneId,
+      UserOneName: this.UserOneName,
+      UserOnePicture: this.UserOnePicture,
+      UserTwoId: this.UserTwoId,
+      UserTwoName: this.UserTwoName,
+      UserTwoPicture: this.UserTwoPicture
+    };
+  }
+}
 
 export default Conversation;
-

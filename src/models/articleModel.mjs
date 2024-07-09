@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
+class Article {
+  constructor(data) {
+    this._id = data._id;
+    this.title = data.title;
+    this.mainImage = data.mainImage;
+    this.content = data.content;
+    this.authorId = data.authorId;
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.position = data.position;
+  }
+}
 
-const { Schema } = mongoose;
-
-const articleSchema = new Schema({
-  title: { type: String, required: true },
-  mainImage: { type: String, required: true },
-  content: { type: String, required: true }, // Stores the rich text content (HTML)
-  author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
-export const Article = mongoose.model("Article", articleSchema);
+export { Article };

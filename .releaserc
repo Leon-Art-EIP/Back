@@ -1,0 +1,90 @@
+{
+    "branches": [
+        "main",
+        {
+            "name": "dev",
+            "prerelease": true
+        }
+    ],
+    "plugins": [
+        [
+            "@semantic-release/commit-analyzer",
+            {
+                "preset": "angular",
+                "releaseRules": [
+                    {
+                        "type": "[ADD]",
+                        "release": "major"
+                    },
+                    {
+                        "type": "[FIX]",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "[UPDATE]",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "[BREAKING]",
+                        "release": "major"
+                    },
+                    {
+                        "type": "chore",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "docs",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "style",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "refactor",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "perf",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "test",
+                        "release": "patch"
+                    }
+                ],
+                "parserOpts": {
+                    "noteKeywords": [
+                        "BREAKING CHANGE",
+                        "BREAKING CHANGES"
+                    ],
+                    "headerPattern": "^\\[(\\w+)\\] (.*)$",
+                    "headerCorrespondence": [
+                        "type",
+                        "subject"
+                    ]
+                }
+            }
+        ],
+        "@semantic-release/release-notes-generator",
+        [
+            "@semantic-release/changelog",
+            {
+                "changelogFile": "CHANGELOG.md"
+            }
+        ],
+        "@semantic-release/npm",
+        "@semantic-release/github",
+        [
+            "@semantic-release/git",
+            {
+                "assets": [
+                    "package.json",
+                    "CHANGELOG.md",
+                    "npm-shrinkwrap.json"
+                ],
+                "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+            }
+        ]
+    ]
+}

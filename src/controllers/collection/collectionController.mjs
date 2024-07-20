@@ -60,7 +60,7 @@ export const addToCollection = async (req, res) => {
       collection: collection.toJSON(),
     });
   } catch (err) {
-    logger.error('Error adding to collection:', { error: err.message });
+    logger.error('Error adding to collection:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -73,7 +73,7 @@ export const getMyCollections = async (req, res) => {
 
     res.json(collections);
   } catch (err) {
-    logger.error('Error getting my collections:', { error: err.message });
+    logger.error('Error getting my collections:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -89,7 +89,7 @@ export const getPublicCollections = async (req, res) => {
 
     res.json(collections);
   } catch (err) {
-    logger.error('Error getting public collections:', { error: err.message });
+    logger.error('Error getting public collections:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -110,7 +110,7 @@ export const getArtPublicationsInCollection = async (req, res) => {
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error getting art publications in collection:', { error: err.message });
+    logger.error('Error getting art publications in collection:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -137,7 +137,7 @@ export const deleteCollection = async (req, res) => {
 
     res.json({ msg: 'Collection deleted' });
   } catch (err) {
-    logger.error('Error deleting collection:', { error: err.message });
+    logger.error('Error deleting collection:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -162,7 +162,7 @@ export const removeFromCollection = async (req, res) => {
 
     res.json({ msg: "Art publications removed from collection", collection: collection.toJSON() });
   } catch (err) {
-    logger.error('Error removing from collection:', { error: err.message });
+    logger.error('Error removing from collection:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };

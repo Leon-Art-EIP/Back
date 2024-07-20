@@ -16,7 +16,7 @@ export const getUserChats = async (req, res) => {
 
         res.json({ chats });
     } catch (err) {
-        logger.error('Error getting user chats', { error: err.message });
+        logger.error('Error getting user chats', { error: err.message, stack: err.stack});
         res.status(500).send('Server error');
     }
 };
@@ -64,7 +64,7 @@ export const createConversation = async (req, res) => {
 
         res.status(201).json({ message: "Nouvelle conversation créée", convId: newConversationData._id });
     } catch (err) {
-        logger.error('Error creating conversation', { error: err.message });
+        logger.error('Error creating conversation', { error: err.message, stack: err.stack});
         res.status(500).json({ error: 'Erreur du serveur' });
     }
 };
@@ -81,7 +81,7 @@ export const getSingleConversation = async (req, res) => {
         const chat = new Conversation({ ...chatDoc.data(), _id: chatDoc.id }).toJSON();
         res.json({ chat });
     } catch (err) {
-        logger.error('Error getting single conversation', { error: err.message });
+        logger.error('Error getting single conversation', { error: err.message, stack: err.stack});
         res.status(500).send('Server error');
     }
 };
@@ -106,7 +106,7 @@ export const getConversationMessages = async (req, res) => {
 
         res.json({ messages });
     } catch (err) {
-        logger.error('Error getting conversation messages', { error: err.message });
+        logger.error('Error getting conversation messages', { error: err.message, stack: err.stack});
         res.status(500).send('Erreur du serveur');
     }
 };
@@ -146,7 +146,7 @@ export const addNewMessage = async (req, res) => {
 
         res.json({ message: messageData });
     } catch (err) {
-        logger.error('Error adding new message', { error: err.message });
+        logger.error('Error adding new message', { error: err.message, stack: err.stack});
         res.status(500).json({ success: false, error: 'Erreur du serveur' });
     }
 };

@@ -31,7 +31,7 @@ export const changePassword = async (req, res) => {
     logger.info("Password changed successfully", { userId });
     res.json({ msg: "Password changed successfully" });
   } catch (err) /* istanbul ignore next */ {
-    logger.error('Server Error', { error: err.message });
+    logger.error('Server Error', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };

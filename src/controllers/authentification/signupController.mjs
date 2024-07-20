@@ -67,7 +67,7 @@ export const signup = async (req, res) => {
       { expiresIn: Number(process.env.JWT_EXPIRATION) || 3600 },
       (err, token) => {
         if (err) {
-          logger.error('Error generating token', { error: err.message });
+          logger.error('Error generating token', { error: err.message, stack: err.stack});
           return res.status(500).json({ msg: "Error generating token" });
         }
         logger.info('User signed up successfully', { userId: newUserRef.id, username, email });

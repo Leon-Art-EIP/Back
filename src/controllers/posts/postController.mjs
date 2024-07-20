@@ -46,7 +46,7 @@ export const createPost = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Error creating post', { error: err.message });
+    logger.error('Error creating post', { error: err.message, stack: err.stack});
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -69,7 +69,7 @@ export const deletePost = async (req, res) => {
 
     res.json({ msg: 'Post deleted successfully' });
   } catch (err) {
-    logger.error('Error deleting post', { error: err.message });
+    logger.error('Error deleting post', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -125,7 +125,7 @@ export const getPosts = async (req, res) => {
 
     res.json(posts);
   } catch (err) {
-    logger.error('Error fetching posts', { error: err.message });
+    logger.error('Error fetching posts', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -162,7 +162,7 @@ export const likePost = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Error updating like status', { error: err.message });
+    logger.error('Error updating like status', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -179,7 +179,7 @@ export const getPostLikeCount = async (req, res) => {
       totalLikes: post.likes.length,
     });
   } catch (err) {
-    logger.error('Error fetching like count', { error: err.message });
+    logger.error('Error fetching like count', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };

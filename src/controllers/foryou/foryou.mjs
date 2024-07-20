@@ -69,7 +69,7 @@ export const getArtPublications = async (req, res) => {
 
     res.json({ foryou: artPublications });
   } catch (err) {
-    logger.error('Error getting art publications:', { error: err.message });
+    logger.error('Error getting art publications:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };

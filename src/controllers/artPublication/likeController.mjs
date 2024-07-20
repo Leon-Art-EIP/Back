@@ -49,7 +49,7 @@ export const likeArtPublication = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Error updating like status', { error: err.message });
+    logger.error('Error updating like status', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -68,7 +68,7 @@ export const getPublicationLikeCount = async (req, res) => {
       totalLikes: artPublication.likes.length,
     });
   } catch (err) {
-    logger.error('Error getting publication like count', { error: err.message });
+    logger.error('Error getting publication like count', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -104,7 +104,7 @@ export const getUsersWhoLikedPublication = async (req, res) => {
       users: likedUsers,
     });
   } catch (err) {
-    logger.error('Error getting users who liked publication', { error: err.message });
+    logger.error('Error getting users who liked publication', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };

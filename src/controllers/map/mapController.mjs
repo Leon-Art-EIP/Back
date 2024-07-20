@@ -76,7 +76,7 @@ export async function getUsersWithArtNearLocation(req, res) {
 
     res.json(result);
   } catch (err) /* istanbul ignore next */ {
-    logger.error('Error getting users with art near location:', { error: err.message });
+    logger.error('Error getting users with art near location:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }

@@ -22,7 +22,7 @@ export async function updateUserLocation(req, res) {
 
     res.status(200).json({ msg: "Location updated successfully" });
   } catch (err) /* istanbul ignore next */ {
-    logger.error('Error updating user location:', { error: err.message });
+    logger.error('Error updating user location:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }

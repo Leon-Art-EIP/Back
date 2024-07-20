@@ -39,7 +39,7 @@ export const addComment = async (req, res) => {
       }
     });
   } catch (err) {
-    logger.error('Error adding comment', { error: err.message });
+    logger.error('Error adding comment', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -70,7 +70,7 @@ export const deleteComment = async (req, res) => {
 
     res.json({ msg: 'Comment deleted' });
   } catch (err) {
-    logger.error('Error deleting comment', { error: err.message });
+    logger.error('Error deleting comment', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -103,7 +103,7 @@ export const getCommentsByArtPublicationId = async (req, res) => {
 
     res.json(comments);
   } catch (err) {
-    logger.error('Error fetching comments for art publication', { error: err.message });
+    logger.error('Error fetching comments for art publication', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };

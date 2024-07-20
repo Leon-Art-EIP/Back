@@ -47,7 +47,7 @@ export const createArtPublication = async (req, res) => {
       artPublication: newPublicationData,
     });
   } catch (err) {
-    logger.error('Error creating art publication', { error: err.message });
+    logger.error('Error creating art publication', { error: err.message, stack: err.stack});
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -88,7 +88,7 @@ export const deleteArtPublication = async (req, res) => {
 
     res.json({ msg: 'Art publication deleted successfully' });
   } catch (err) {
-    logger.error('Error deleting art publication', { error: err.message });
+    logger.error('Error deleting art publication', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -125,7 +125,7 @@ export const getArtPublicationById = async (req, res) => {
       comments
     });
   } catch (err) {
-    logger.error('Error fetching art publication by id', { error: err.message });
+    logger.error('Error fetching art publication by id', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -148,7 +148,7 @@ export const getLatestArtPublications = async (req, res) => {
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error fetching latest art publications', { error: err.message });
+    logger.error('Error fetching latest art publications', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -176,7 +176,7 @@ export const getFollowedArtPublications = async (req, res) => {
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error fetching followed art publications', { error: err.message });
+    logger.error('Error fetching followed art publications', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -201,7 +201,7 @@ export const getArtPublicationsByUser = async (req, res) => {
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error fetching art publications by user', { error: err.message });
+    logger.error('Error fetching art publications by user', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };

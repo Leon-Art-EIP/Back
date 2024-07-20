@@ -30,6 +30,7 @@ import conditionRoute from "./routes/conditionsRoutes.mjs";
 import { handleStripeWebhook } from "./controllers/stripe/stripeController.mjs"
 import stripeRoutes from './routes/stripeRoutes.mjs';
 import foryouRoutes from './routes/foryouRoutes.mjs';
+import postRoutes from './routes/postRoutes.mjs';
 import convertImageRoutes from './routes/convertImageRoutes.mjs';
 import SocketManager from "./utils/socketManager.mjs";
 import logger from './admin/logger.mjs';
@@ -107,6 +108,8 @@ app.use('/api/foryou', foryouRoutes);
 app.use('/api/', convertImageRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/api/map", mapRoutes);
+app.use('/api/posts', postRoutes);
+
 
 // AdminJS CONFIG
 // const ADMIN_EMAIL = process.env.ADMIN_EMAIL;

@@ -52,7 +52,7 @@ export const searchArtworksAndArtists = async (req, res) => {
 
     res.json({ artPublications, users });
   } catch (err) {
-    logger.error('Error searching artworks and artists:', { error: err.message });
+    logger.error('Error searching artworks and artists:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };

@@ -49,7 +49,7 @@ export async function requestReset(req, res) {
       res.json({ msg: "Reset email sent" });
     });
   } catch (err) {
-    logger.error("Server Error", { error: err.message });
+    logger.error("Server Error", { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }
@@ -66,7 +66,7 @@ export async function validateResetToken(req, res) {
 
     res.json({ msg: "Valid token" });
   } catch (err) {
-    logger.error("Server Error", { error: err.message });
+    logger.error("Server Error", { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }
@@ -103,7 +103,7 @@ export async function resetPassword(req, res) {
       { expiresIn: Number(process.env.JWT_EXPIRATION) || 3600 },
       (err, token) => {
         if (err) {
-          logger.error("Error generating token", { error: err.message });
+          logger.error("Error generating token", { error: err.message, stack: err.stack});
           return res.status(500).json({ msg: "Error generating token" });
         }
         res.json({ token, msg: "Password reset successfully" });
@@ -111,7 +111,7 @@ export async function resetPassword(req, res) {
       }
     );
   } catch (err) {
-    logger.error("Server Error", { error: err.message });
+    logger.error("Server Error", { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }

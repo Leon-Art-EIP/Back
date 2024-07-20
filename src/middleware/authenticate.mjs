@@ -20,7 +20,7 @@ export function authenticate(req, res, next) /* istanbul ignore next */ {
     req.user = decoded.user;
     next();
   } catch (err) {
-    logger.error("Invalid token", { error: err.message });
+    logger.error("Invalid token", { error: err.message, stack: err.stack});
     res.status(401).json({ msg: "Token is not valid" });
   }
 }

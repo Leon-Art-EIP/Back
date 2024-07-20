@@ -1,0 +1,6 @@
+version: '3'
+services:
+  back:
+    build: .
+    ports:
+      - "3333:3333"

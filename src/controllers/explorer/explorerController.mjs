@@ -1,7 +1,6 @@
-import { ArtPublication } from '../../models/artPublicationModel.mjs';
-import { User } from '../../models/userModel.mjs';
-import artTypes from '../../constants/artTypesData.js';
 import db from '../../config/db.mjs';
+import artTypes from '../../constants/artTypesData.js';
+import logger from '../../admin/logger.mjs';
 
 export const searchArtworksAndArtists = async (req, res) => {
   try {
@@ -17,14 +16,14 @@ export const searchArtworksAndArtists = async (req, res) => {
       artistLimit = process.env.DEFAULT_PAGE_LIMIT
     } = req.query;
 
-    const artTypes = req.query.artType ? req.query.artType.split(',') : [];
+    const artTypesArray = artType ? artType.split(',') : [];
 
     let artQuery = db.collection('ArtPublications');
     if (searchTerm) {
       artQuery = artQuery.where('name', '>=', searchTerm).where('name', '<=', searchTerm + '\uf8ff');
     }
-    if (artTypes.length) {
-      artQuery = artQuery.where('artType', 'in', artTypes);
+    if (artTypesArray.length) {
+      artQuery = artQuery.where('artType', 'in', artTypesArray);
     }
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split('-').map(Number);
@@ -35,7 +34,7 @@ export const searchArtworksAndArtists = async (req, res) => {
     }
 
     const sortOptions = sort === 'popularity' ? 'likes' : 'createdAt';
-    const orderDirection = sort === 'popularity' ? 'desc' : 'desc';
+    const orderDirection = 'desc';
 
     artQuery = artQuery.orderBy(sortOptions, orderDirection)
       .limit(Number(artLimit))
@@ -52,12 +51,12 @@ export const searchArtworksAndArtists = async (req, res) => {
     const users = userSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
 
     res.json({ artPublications, users });
-  } catch (err) /* istanbul ignore next */ {
-    console.error(err.message);
+  } catch (err) {
+    logger.error('Error searching artworks and artists:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
 
-export const getArtTypes = (req, res) => /* istanbul ignore next */ {
+export const getArtTypes = (req, res) => {
   res.json(artTypes);
 };

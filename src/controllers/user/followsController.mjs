@@ -1,14 +1,14 @@
-import { User } from "../../models/userModel.mjs";
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import { FieldValue } from 'firebase-admin/firestore';
 import db from '../../config/db.mjs';
+import logger from '../../admin/logger.mjs';
 
 export const followUser = async (req, res) => {
   const userId = req.user.id;
   const targetUserId = req.params.targetUserId;
 
-  // Vérification simple de la validité de l'ID
   if (!targetUserId) {
+    logger.warn(`Invalid user id: ${targetUserId}`);
     return res.status(400).json({ msg: "Invalid user id." });
   }
 
@@ -20,9 +20,11 @@ export const followUser = async (req, res) => {
     const targetUserDoc = await targetUserRef.get();
 
     if (!targetUserDoc.exists) {
+      logger.warn(`User to follow not found: ${targetUserId}`);
       return res.status(404).json({ msg: "User to follow not found." });
     }
     if (userId === targetUserId) {
+      logger.warn(`User tried to follow themselves: ${userId}`);
       return res.status(400).json({ msg: "You cannot follow yourself." });
     }
 
@@ -39,6 +41,7 @@ export const followUser = async (req, res) => {
         subscribers: FieldValue.arrayRemove(userId),
         subscribersCount: Math.max(0, targetUserData.subscribersCount - 1)
       });
+      logger.info(`User ${userId} unfollowed ${targetUserId}`);
       return res.status(200).json({ msg: "Successfully unfollowed user." });
     } else {
       await userRef.update({
@@ -54,15 +57,15 @@ export const followUser = async (req, res) => {
         recipientId: targetUserId,
         type: "follow",
         content: `${userData.username}`,
-        referenceId: userId, // Optional: use the follower's ID as reference
         description: `Someone just followed your profile`,
         sendPush: true,
       });
 
+      logger.info(`User ${userId} followed ${targetUserId}`);
       return res.status(200).json({ msg: "Successfully followed user." });
     }
-  } catch (error) /* istanbul ignore next */ {
-    console.error(error);
+  } catch (error) {
+    logger.error(`Error in followUser: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -73,14 +76,16 @@ export const getUsersFollowing = async (req, res) => {
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(userId);
-    if (!user) {
+    const userDoc = await db.collection('Users').doc(userId).get();
+    if (!userDoc.exists) {
+      logger.warn(`User not found: ${userId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
+    const userData = userDoc.data();
     const subscriptions = [];
-    for (let i = (page - 1) * limit; i < Math.min(user.subscriptions.length, page * limit); i++) {
-      const subscriptionId = user.subscriptions[i];
+    for (let i = (page - 1) * limit; i < Math.min(userData.subscriptions.length, page * limit); i++) {
+      const subscriptionId = userData.subscriptions[i];
       const subscriptionDoc = await db.collection('Users').doc(subscriptionId).get();
       if (subscriptionDoc.exists) {
         const subscriptionData = subscriptionDoc.data();
@@ -88,9 +93,9 @@ export const getUsersFollowing = async (req, res) => {
       }
     }
 
-    res.json({ subscriptions, total: user.subscriptions.length });
+    res.json({ subscriptions, total: userData.subscriptions.length });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getUsersFollowing: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -101,14 +106,16 @@ export const getUserFollowers = async (req, res) => {
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(userId);
-    if (!user) {
+    const userDoc = await db.collection('Users').doc(userId).get();
+    if (!userDoc.exists) {
+      logger.warn(`User not found: ${userId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
+    const userData = userDoc.data();
     const subscribers = [];
-    for (let i = (page - 1) * limit; i < Math.min(user.subscribers.length, page * limit); i++) {
-      const subscriberId = user.subscribers[i];
+    for (let i = (page - 1) * limit; i < Math.min(userData.subscribers.length, page * limit); i++) {
+      const subscriberId = userData.subscribers[i];
       const subscriberDoc = await db.collection('Users').doc(subscriberId).get();
       if (subscriberDoc.exists) {
         const subscriberData = subscriberDoc.data();
@@ -116,9 +123,9 @@ export const getUserFollowers = async (req, res) => {
       }
     }
 
-    res.json({ subscribers, total: user.subscribersCount });
+    res.json({ subscribers, total: userData.subscribersCount });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getUserFollowers: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -129,14 +136,16 @@ export const getFollowersOfSpecificUser = async (req, res) => {
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(targetUserId);
-    if (!user) {
+    const userDoc = await db.collection('Users').doc(targetUserId).get();
+    if (!userDoc.exists) {
+      logger.warn(`User not found: ${targetUserId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
+    const userData = userDoc.data();
     const subscribers = [];
-    for (let i = (page - 1) * limit; i < Math.min(user.subscribers.length, page * limit); i++) {
-      const subscriberId = user.subscribers[i];
+    for (let i = (page - 1) * limit; i < Math.min(userData.subscribers.length, page * limit); i++) {
+      const subscriberId = userData.subscribers[i];
       const subscriberDoc = await db.collection('Users').doc(subscriberId).get();
       if (subscriberDoc.exists) {
         const subscriberData = subscriberDoc.data();
@@ -144,9 +153,9 @@ export const getFollowersOfSpecificUser = async (req, res) => {
       }
     }
 
-    res.json({ subscribers, total: user.subscribersCount });
+    res.json({ subscribers, total: userData.subscribersCount });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getFollowersOfSpecificUser: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };
@@ -157,14 +166,16 @@ export const getFollowedUsersOfSpecificUser = async (req, res) => {
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT);
     const page = Number(req.query.page) || 1;
 
-    const user = await User.findById(targetUserId);
-    if (!user) {
+    const userDoc = await db.collection('Users').doc(targetUserId).get();
+    if (!userDoc.exists) {
+      logger.warn(`User not found: ${targetUserId}`);
       return res.status(404).json({ msg: "User not found." });
     }
 
+    const userData = userDoc.data();
     const subscriptions = [];
-    for (let i = (page - 1) * limit; i < Math.min(user.subscriptions.length, page * limit); i++) {
-      const subscriptionId = user.subscriptions[i];
+    for (let i = (page - 1) * limit; i < Math.min(userData.subscriptions.length, page * limit); i++) {
+      const subscriptionId = userData.subscriptions[i];
       const subscriptionDoc = await db.collection('Users').doc(subscriptionId).get();
       if (subscriptionDoc.exists) {
         const subscriptionData = subscriptionDoc.data();
@@ -172,9 +183,9 @@ export const getFollowedUsersOfSpecificUser = async (req, res) => {
       }
     }
 
-    res.json({ subscriptions, total: user.subscriptions.length });
+    res.json({ subscriptions, total: userData.subscriptions.length });
   } catch (error) {
-    console.error(error);
+    logger.error(`Error in getFollowedUsersOfSpecificUser: ${error.message}`, { error });
     return res.status(500).json({ msg: "Server error." });
   }
 };

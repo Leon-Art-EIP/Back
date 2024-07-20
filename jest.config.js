@@ -1,12 +1,12 @@
 export default {
   transform: {},
   collectCoverageFrom: ['src/**', '!src/admin/*', '!src/utils/*', '!src/config/*'],
-  globalTeardown: "<rootDir>/tests/global-teardown.js",
+  globalTeardown: '<rootDir>/tests/global-teardown.js',
   setupFilesAfterEnv: [
-    "<rootDir>/tests/setupFile.js"
+    '<rootDir>/tests/setupTests.js',
   ],
   reporters: [
-    "default",
-    ["jest-junit", { "outputDirectory": "./test-results", "outputName": "junit.xml" }]
-  ]
+    'default',
+    ['jest-junit', { 'outputDirectory': './test-results', 'outputName': 'junit.xml' }],
+  ],
 };

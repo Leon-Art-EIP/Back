@@ -1,4 +1,5 @@
 import { verify } from "jsonwebtoken";
+import logger from '../admin/logger.mjs' // Assurez-vous d'importer correctement votre logger
 
 export function authenticate(req, res, next) /* istanbul ignore next */ {
   let token = req.header("Authorization");
@@ -9,6 +10,7 @@ export function authenticate(req, res, next) /* istanbul ignore next */ {
 
   // Check if token exists
   if (!token) {
+    logger.warn("Authorization denied: No token provided");
     return res.status(401).json({ msg: "No token, authorization denied" });
   }
 
@@ -18,7 +20,7 @@ export function authenticate(req, res, next) /* istanbul ignore next */ {
     req.user = decoded.user;
     next();
   } catch (err) {
-    console.error(err.message);
+    logger.error("Invalid token", { error: err.message, stack: err.stack});
     res.status(401).json({ msg: "Token is not valid" });
   }
 }

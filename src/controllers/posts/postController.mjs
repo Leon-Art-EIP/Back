@@ -28,6 +28,7 @@ export const createPost = async (req, res) => {
       text,
       artPublicationId: artPublicationId || null,
       createdAt: new Date(),
+      likes: [],
       id: uuidv4(),
     });
 
@@ -46,10 +47,11 @@ export const createPost = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Error creating post', { error: err.message, stack: err.stack});
+    logger.error('Error creating post', { error: err.message, stack: err.stack });
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 export const deletePost = async (req, res) => {
   try {
@@ -136,11 +138,10 @@ export const likePost = async (req, res) => {
     const postId = req.params.id;
 
     const postDoc = await db.collection('Posts').doc(postId).get();
-    const userDoc = await db.collection('Users').doc(userId).get();
-
     if (!postDoc.exists) return res.status(404).json({ msg: 'Post not found' });
 
     const post = postDoc.data();
+    post.likes = post.likes || [];
     let isLiked;
 
     if (post.likes.includes(userId)) {
@@ -162,10 +163,11 @@ export const likePost = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Error updating like status', { error: err.message, stack: err.stack});
+    logger.error('Error updating like status', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 export const getPostLikeCount = async (req, res) => {
   try {

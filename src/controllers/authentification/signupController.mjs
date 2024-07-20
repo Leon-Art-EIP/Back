@@ -1,13 +1,13 @@
 import db from '../../config/db.mjs';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import logger from '../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
+import logger from '../../admin/logger.mjs';
 
 export const signup = async (req, res) => {
   const { username, email, password, is_artist, fcmToken } = req.body;
 
   try {
-    // Check if email already exists
+    console.log("Checking if email already exists");
     const emailRef = db.collection('Users').where('email', '==', email).limit(1);
     const emailSnapshot = await emailRef.get();
 
@@ -15,8 +15,9 @@ export const signup = async (req, res) => {
       logger.warn('Email already in use', { email });
       return res.status(409).json({ msg: "Email already in use" });
     }
+    console.log("Email check passed");
 
-    // Check if username already exists
+    console.log("Checking if username already exists");
     const usernameRef = db.collection('Users').where('username', '==', username).limit(1);
     const usernameSnapshot = await usernameRef.get();
 
@@ -24,12 +25,13 @@ export const signup = async (req, res) => {
       logger.warn('Username already in use', { username });
       return res.status(409).json({ msg: "Username already in use" });
     }
+    console.log("Username check passed");
 
-    // Hash password
+    console.log("Hashing password");
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
+    console.log("Creating new user");
     const newUserRef = db.collection('Users').doc();
     const user = {
       id: newUserRef.id,
@@ -51,12 +53,14 @@ export const signup = async (req, res) => {
       stripeAccountId: '',
     };
 
+    console.log("Saving user to database");
     await newUserRef.set(user);
 
-    // Generate and return jwt token
+    console.log("Generating JWT token");
     const payload = {
       user: { id: newUserRef.id },
     };
+
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
@@ -82,7 +86,7 @@ export const signup = async (req, res) => {
       }
     );
   } catch (err) {
-    logger.error('Server Error', { error: err.message });
+    logger.error('Server Error', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: "Server Error" });
   }
 };

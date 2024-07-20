@@ -9,5 +9,7 @@ admin.initializeApp({
 
 logger.info("Firebase connected...");
 const db = admin.firestore();
+db.settings({ ignoreUndefinedProperties: true });
+
 
 export default db;

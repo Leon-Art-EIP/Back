@@ -66,22 +66,54 @@ export const getUserRatings = async (req, res) => {
       .offset(skip)
       .get();
 
-    const ratings = ratingsSnapshot.docs.map(doc => {
+    if (ratingsSnapshot.empty) {
+      return res.json([]);
+    }
+
+    const ratings = [];
+    const buyerIds = new Set();
+
+    ratingsSnapshot.docs.forEach(doc => {
       const order = doc.data();
-      return {
+      ratings.push({
         orderId: order.id,
         rating: order.orderRating,
         comment: order.ratingComment,
         completedAt: order.completedAt,
-      };
+        buyerId: order.buyerId,
+      });
+      buyerIds.add(order.buyerId);
     });
 
-    res.json(ratings);
+    const buyerDataPromises = Array.from(buyerIds).map(async (buyerId) => {
+      const userDoc = await db.collection('Users').doc(buyerId).get();
+      if (userDoc.exists) {
+        const user = userDoc.data();
+        return {
+          id: user.id,
+          username: user.username,
+          profilePicture: user.profilePicture,
+        };
+      }
+      return null;
+    });
+
+    const buyerData = await Promise.all(buyerDataPromises);
+    const buyerDataMap = new Map(buyerData.filter(user => user !== null).map(user => [user.id, user]));
+
+    const ratingsWithUserData = ratings.map(rating => ({
+      ...rating,
+      buyerUsername: buyerDataMap.get(rating.buyerId)?.username || 'Unknown',
+      buyerProfilePicture: buyerDataMap.get(rating.buyerId)?.profilePicture || 'uploads/static/default-profile-pic.png',
+    }));
+
+    res.json(ratingsWithUserData);
   } catch (err) {
-    logger.error('Error fetching user ratings:', { error: err.message, stack: err.stack});
+    logger.error('Error fetching user ratings:', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const getUserAverageRating = async (req, res) => {
   try {

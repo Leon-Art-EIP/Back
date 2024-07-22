@@ -297,7 +297,6 @@ router.post('/cancel/:id', authenticate, cancelOrder);
  *         description: Server error.
  */
 router.post('/confirm-delivery-rate', authenticate, confirmDeliveryAndRateOrder);
-
 /**
  * @swagger
  * /api/order/user/{id}/ratings:
@@ -347,6 +346,10 @@ router.post('/confirm-delivery-rate', authenticate, confirmDeliveryAndRateOrder)
  *                   completedAt:
  *                     type: string
  *                     format: date-time
+ *                   buyerUsername:
+ *                     type: string
+ *                   buyerProfilePicture:
+ *                     type: string
  *       404:
  *         description: User not found.
  *       500:

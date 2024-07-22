@@ -39,21 +39,32 @@ export const handleStripeWebhook = async (req, res) => {
 };
 
 const handleCheckoutSessionCompleted = async (session) => {
+  if (!session || !session.id) {
+    throw new Error("Invalid session data");
+  }
+
   const orderSnapshot = await db.collection('Orders').where('stripeSessionId', '==', session.id).limit(1).get();
   if (orderSnapshot.empty) throw new Error("Order not found");
 
   const orderRef = orderSnapshot.docs[0].ref;
   const order = orderSnapshot.docs[0].data();
 
+  logger.info(`Session ID: ${session.id}`);
+logger.info(`Order Data: ${JSON.stringify(order)}`);
+
+  if (!order.artPublicationId || !order.id) {
+    throw new Error("Invalid order data");
+  }
+
   const existingPaidOrderSnapshot = await db.collection('Orders')
     .where('artPublicationId', '==', order.artPublicationId)
     .where('paymentStatus', '==', 'paid')
-    .where('_id', '!=', order._id)
+    .where('_id', '!=', order.id)
     .limit(1)
     .get();
 
   if (!existingPaidOrderSnapshot.empty) {
-    await refundOrder(order._id);
+    await refundOrder(order.id);
     return;
   }
 
@@ -66,7 +77,7 @@ const handleCheckoutSessionCompleted = async (session) => {
     recipientId: order.sellerId,
     type: "payment_success",
     content: ` `,
-    referenceId: order._id,
+    referenceId: order.id,
     description: `Someone just bought one of your publication!`,
     sendPush: true,
   });
@@ -75,13 +86,15 @@ const handleCheckoutSessionCompleted = async (session) => {
     recipientId: order.buyerId,
     type: "order_processing",
     content: ` `,
-    referenceId: order._id,
+    referenceId: order.id,
     description: `Your Payment has been received. The seller will proceed with the next steps.`,
     sendPush: true,
   });
 
   socketManager.handleRefreshOrders(order.sellerId);
 };
+
+
 
 const handleAccountUpdated = async (account) => {
   const userSnapshot = await db.collection('Users').where('metadata.userId', '==', account.metadata.userId).limit(1).get();

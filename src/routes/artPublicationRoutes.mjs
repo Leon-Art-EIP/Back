@@ -3,7 +3,7 @@ const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
 import { createArtPublication, deleteArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
 import { likeArtPublication, getPublicationLikeCount, getUsersWhoLikedPublication } from '../controllers/artPublication/likeController.mjs';
-import { addComment, deleteComment, getCommentsByArtPublicationId } from '../controllers/artPublication/commentController.mjs';
+import { addComment, deleteComment, likeComment, getCommentsByArtPublicationId } from '../controllers/artPublication/commentController.mjs';
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
 import { validateArtPublication, validateArtPublicationId } from '../middleware/validation/artPublicationValidation.mjs';
 import { validateUserId } from '../middleware/validation/userValidation.mjs';
@@ -155,6 +155,9 @@ router.delete('/:id', authenticate, validateArtPublicationId, deleteArtPublicati
  *               text:
  *                 type: string
  *                 description: Comment text.
+ *               parentCommentId:
+ *                 type: string
+ *                 description: ID of the parent comment (optional).
  *     responses:
  *       200:
  *         description: Comment added.
@@ -199,6 +202,50 @@ router.delete('/comment/:commentId', authenticate, deleteComment);
 
 /**
  * @swagger
+ * /api/art-publication/comment/{commentId}/like:
+ *   post:
+ *     summary: Like or unlike a comment on an art publication
+ *     description: Allows an authenticated user to like or unlike a comment by ID.
+ *     tags: [ArtPublication Comment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the comment to like or unlike.
+ *     responses:
+ *       200:
+ *         description: Like status updated along with total like count.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                 likeStatus:
+ *                   type: object
+ *                   properties:
+ *                     commentId:
+ *                       type: string
+ *                     isLiked:
+ *                       type: boolean
+ *                     totalLikes:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Comment not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post('/comment/:commentId/like', authenticate, likeComment);
+
+/**
+ * @swagger
  * /api/art-publication/comment/{id}:
  *   get:
  *     summary: Get comments for an art publication
@@ -223,6 +270,16 @@ router.delete('/comment/:commentId', authenticate, deleteComment);
  *         schema:
  *           type: integer
  *         description: Page number to fetch (optional).
+ *       - in: query
+ *         name: nestedLimit
+ *         schema:
+ *           type: integer
+ *         description: Number of nested comments to return per page (optional).
+ *       - in: query
+ *         name: nestedPage
+ *         schema:
+ *           type: integer
+ *         description: Page number for nested comments pagination (optional).
  *     responses:
  *       200:
  *         description: List of comments.
@@ -246,6 +303,30 @@ router.delete('/comment/:commentId', authenticate, deleteComment);
  *                     type: string
  *                     format: date-time
  *                     description: Date and time when the comment was created.
+ *                   likes:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Array of user IDs who liked the comment.
+ *                   parentCommentId:
+ *                     type: string
+ *                     description: ID of the parent comment (if it's a reply).
+ *                   nestedComments:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         userId:
+ *                           type: string
+ *                         text:
+ *                           type: string
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                         likes:
+ *                           type: array
+ *                           items:
+ *                             type: string
  *       401:
  *         description: Unauthorized.
  *       404:
@@ -253,7 +334,7 @@ router.delete('/comment/:commentId', authenticate, deleteComment);
  *       500:
  *         description: Server error.
  */
-router.get('/comment/:id', getCommentsByArtPublicationId);
+router.get('/comment/:id', authenticate, getCommentsByArtPublicationId);
 
 /**
  * @swagger

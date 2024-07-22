@@ -5,10 +5,10 @@ import {
     getLatestSellOrders,
     getBuyOrderById,
     getSellOrderById,
-    cancelOrder, 
-    confirmDeliveryAndRateOrder,
+    cancelOrder,
     updateOrderToShipping
 } from '../controllers/order/orderController.mjs';
+import { confirmDeliveryAndRateOrder, getUserRatings, getUserAverageRating } from '../controllers/order/ratingsController.mjs';
 import { authenticate } from "../middleware/authenticate.mjs";
 
 const router = express.Router();
@@ -255,7 +255,6 @@ router.get('/sell/:id', authenticate, getSellOrderById);
  */
 router.post('/cancel/:id', authenticate, cancelOrder);
 
-
 /**
  * @swagger
  * /api/order/confirm-delivery-rate:
@@ -274,6 +273,7 @@ router.post('/cancel/:id', authenticate, cancelOrder);
  *             required:
  *               - orderId
  *               - rating
+ *               - comment
  *             properties:
  *               orderId:
  *                 type: string
@@ -283,6 +283,9 @@ router.post('/cancel/:id', authenticate, cancelOrder);
  *                 minimum: 1
  *                 maximum: 5
  *                 description: Rating for the order (1-5).
+ *               comment:
+ *                 type: string
+ *                 description: Comment for the rating.
  *     responses:
  *       200:
  *         description: Order completed and rated successfully.
@@ -294,5 +297,98 @@ router.post('/cancel/:id', authenticate, cancelOrder);
  *         description: Server error.
  */
 router.post('/confirm-delivery-rate', authenticate, confirmDeliveryAndRateOrder);
+/**
+ * @swagger
+ * /api/order/user/{id}/ratings:
+ *   get:
+ *     summary: Get user ratings
+ *     description: Retrieve ratings for a specific user with pagination.
+ *     tags: [Rating]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user.
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Limit of ratings to retrieve.
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination.
+ *     responses:
+ *       200:
+ *         description: List of ratings retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   orderId:
+ *                     type: string
+ *                   rating:
+ *                     type: number
+ *                   comment:
+ *                     type: string
+ *                   completedAt:
+ *                     type: string
+ *                     format: date-time
+ *                   buyerUsername:
+ *                     type: string
+ *                   buyerProfilePicture:
+ *                     type: string
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/user/:id/ratings', authenticate, getUserRatings);
+
+/**
+ * @swagger
+ * /api/order/user/{id}/average-rating:
+ *   get:
+ *     summary: Get user average rating
+ *     description: Retrieve the average rating for a specific user.
+ *     tags: [Rating]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user.
+ *     responses:
+ *       200:
+ *         description: Average rating retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 averageRating:
+ *                   type: number
+ *                   description: Average rating of the user.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Server error.
+ */
+router.get('/user/:id/average-rating', authenticate, getUserAverageRating);
 
 export default router;

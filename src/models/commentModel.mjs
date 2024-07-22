@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 class Comment {
   constructor(data) {
     this._id = data._id || uuidv4();
@@ -5,6 +7,8 @@ class Comment {
     this.artPublicationId = data.artPublicationId;
     this.text = data.text;
     this.createdAt = data.createdAt || new Date().toISOString();
+    this.likes = data.likes || [];
+    this.parentCommentId = data.parentCommentId || null; // For nested comments
   }
 
   toJSON() {
@@ -13,7 +17,9 @@ class Comment {
       userId: this.userId,
       artPublicationId: this.artPublicationId,
       text: this.text,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
+      likes: this.likes,
+      parentCommentId: this.parentCommentId
     };
   }
 }

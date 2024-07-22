@@ -20,6 +20,7 @@ class User {
     this.profilePicture = data.profilePicture || 'uploads/static/default-profile-pic.png';
     this.bannerPicture = data.bannerPicture || 'uploads/static/default-banner-pic.png';
     this.stripeAccountId = data.stripeAccountId || '';
+    this.averageRating = data.averageRating || null;
   }
 
   toJSON() {
@@ -41,7 +42,8 @@ class User {
       fcmToken: this.fcmToken,
       profilePicture: this.profilePicture,
       bannerPicture: this.bannerPicture,
-      stripeAccountId: this.stripeAccountId
+      stripeAccountId: this.stripeAccountId,
+      averageRating: this.averageRating
     };
   }
 }

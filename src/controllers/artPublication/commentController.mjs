@@ -106,6 +106,7 @@ export const likeComment = async (req, res) => {
 
 export const getCommentsByArtPublicationId = async (req, res) => {
   try {
+    const userId = req.user.id;
     const artPublicationId = req.params.id;
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
@@ -119,28 +120,32 @@ export const getCommentsByArtPublicationId = async (req, res) => {
       .offset(offset)
       .get();
 
-    const comments = commentsQuerySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const comments = await Promise.all(commentsQuerySnapshot.docs.map(async doc => {
+      const comment = doc.data();
+      comment.isLiked = comment.likes.includes(userId);
+      comment.id = doc.id;
 
-    // Fetch nested comments with pagination
-    const nestedCommentsLimit = Number(req.query.nestedLimit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
-    const nestedCommentsPage = Number(req.query.nestedPage) || 1;
-    const nestedOffset = (nestedCommentsPage - 1) * nestedCommentsLimit;
+      // Fetch nested comments with pagination
+      const nestedCommentsLimit = Number(req.query.nestedLimit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
+      const nestedCommentsPage = Number(req.query.nestedPage) || 1;
+      const nestedOffset = (nestedCommentsPage - 1) * nestedCommentsLimit;
 
-    for (let comment of comments) {
       const nestedCommentsSnapshot = await db.collection('Comments')
         .where('parentCommentId', '==', comment.id)
         .orderBy('createdAt', 'desc')
         .limit(nestedCommentsLimit)
         .offset(nestedOffset)
         .get();
-      comment.nestedComments = nestedCommentsSnapshot.docs.map(nestedDoc => ({
-        id: nestedDoc.id,
-        ...nestedDoc.data()
-      }));
-    }
+
+      comment.nestedComments = nestedCommentsSnapshot.docs.map(nestedDoc => {
+        const nestedComment = nestedDoc.data();
+        nestedComment.isLiked = nestedComment.likes.includes(userId);
+        nestedComment.id = nestedDoc.id;
+        return nestedComment;
+      });
+
+      return comment;
+    }));
 
     logger.info('Fetched comments for art publication', { artPublicationId, count: comments.length });
 

@@ -308,6 +308,9 @@ router.post('/comment/:commentId/like', authenticate, likeComment);
  *                     items:
  *                       type: string
  *                     description: Array of user IDs who liked the comment.
+ *                   isLiked:
+ *                     type: boolean
+ *                     description: Whether the authenticated user has liked the comment.
  *                   parentCommentId:
  *                     type: string
  *                     description: ID of the parent comment (if it's a reply).
@@ -327,6 +330,8 @@ router.post('/comment/:commentId/like', authenticate, likeComment);
  *                           type: array
  *                           items:
  *                             type: string
+ *                         isLiked:
+ *                           type: boolean
  *       401:
  *         description: Unauthorized.
  *       404:

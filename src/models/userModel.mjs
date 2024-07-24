@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 class User {
   constructor(data) {
     this.id = data.id || uuidv4();
@@ -20,6 +18,13 @@ class User {
     this.profilePicture = data.profilePicture || 'uploads/static/default-profile-pic.png';
     this.bannerPicture = data.bannerPicture || 'uploads/static/default-banner-pic.png';
     this.stripeAccountId = data.stripeAccountId || '';
+    this.averageRating = data.averageRating || null;
+    this.socialMediaLinks = {
+      instagram: data.socialMediaLinks?.instagram || '',
+      twitter: data.socialMediaLinks?.twitter || '',
+      facebook: data.socialMediaLinks?.facebook || '',
+      tiktok: data.socialMediaLinks?.tiktok || '',
+    };
   }
 
   toJSON() {
@@ -41,7 +46,9 @@ class User {
       fcmToken: this.fcmToken,
       profilePicture: this.profilePicture,
       bannerPicture: this.bannerPicture,
-      stripeAccountId: this.stripeAccountId
+      stripeAccountId: this.stripeAccountId,
+      averageRating: this.averageRating,
+      socialMediaLinks: this.socialMediaLinks,
     };
   }
 }

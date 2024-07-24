@@ -65,7 +65,7 @@ export const getNotifications = async (req, res) => {
 
     res.json(notifications);
   } catch (err) {
-    logger.error('Error getting notifications:', err.message);
+    logger.error('Error getting notifications:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -89,7 +89,7 @@ export const markNotificationRead = async (req, res) => {
       notification: updatedNotification.toJSON(),
     });
   } catch (err) {
-    logger.error('Error marking notification as read:', err.message);
+    logger.error('Error marking notification as read:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -106,7 +106,7 @@ export const getUnreadNotificationCount = async (req, res) => {
     const unreadCount = querySnapshot.size;
     res.json({ unreadCount });
   } catch (err) {
-    logger.error('Error getting unread notification count:', err.message);
+    logger.error('Error getting unread notification count:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -130,7 +130,7 @@ export const updateFcmToken = async (req, res) => {
 
     res.json({ msg: "FCM token updated successfully" });
   } catch (err) {
-    logger.error('Error updating FCM token:', err.message);
+    logger.error('Error updating FCM token:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 };

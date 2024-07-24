@@ -22,7 +22,7 @@ export async function submitQuizz(req, res) {
 
     res.status(200).json({ msg: "Quizz submitted successfully" });
   } catch (err) {
-    logger.error('Error submitting quizz:', err.message);
+    logger.error('Error submitting quizz:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }
@@ -37,7 +37,7 @@ export async function getQuizzById(req, res) {
     }
     res.json(doc.data());
   } catch (err) {
-    logger.error('Error getting quizz by id:', err.message);
+    logger.error('Error getting quizz by id:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }
@@ -49,7 +49,7 @@ export async function updateQuizz(req, res) {
     await db.collection('Quizzes').doc(quizzId).update(updateData);
     res.status(200).json({ msg: "Quizz updated successfully" });
   } catch (err) {
-    logger.error('Error updating quizz:', err.message);
+    logger.error('Error updating quizz:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }
@@ -60,7 +60,7 @@ export async function deleteQuizz(req, res) {
     await db.collection('Quizzes').doc(quizzId).delete();
     res.status(200).json({ msg: "Quizz deleted successfully" });
   } catch (err) {
-    logger.error('Error deleting quizz:', err.message);
+    logger.error('Error deleting quizz:', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: "Server Error" });
   }
 }

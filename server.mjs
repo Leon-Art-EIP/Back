@@ -1,3 +1,4 @@
+import './envSetup.mjs';
 import app, { httpServer } from './src/app.mjs';
 import logger from './src/admin/logger.mjs';
 

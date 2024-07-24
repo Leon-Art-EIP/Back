@@ -1,7 +1,14 @@
 import { Article } from "../../models/articleModel.mjs";
-import { User } from "../../models/userModel.mjs";
 import db from '../../config/db.mjs';
 import logger from '../../admin/logger.mjs';
+
+const getUserById = async (userId) => {
+  const userDoc = await db.collection('Users').doc(userId).get();
+  if (!userDoc.exists) {
+    throw new Error('User not found');
+  }
+  return userDoc.data();
+};
 
 export const postArticle = async (req, res) => {
   try {
@@ -26,7 +33,7 @@ export const postArticle = async (req, res) => {
     await articleRef.set(articleData);
     const articleId = articleRef.id;
 
-    const author = await User.findById(userId);
+    const author = await getUserById(userId);
 
     logger.info(`Article created: ${articleId} by user: ${userId}`);
 
@@ -53,7 +60,7 @@ export const getArticleById = async (req, res) => {
     }
 
     const article = { ...doc.data(), _id: doc.id };
-    const author = await User.findById(article.authorId);
+    const author = await getUserById(article.authorId);
 
     logger.info(`Fetched article: ${id}`);
 
@@ -75,7 +82,7 @@ export const getLatestArticles = async (req, res) => {
     const articles = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
 
     const result = await Promise.all(articles.map(async article => {
-      const author = await User.findById(article.authorId);
+      const author = await getUserById(article.authorId);
       return {
         ...article,
         author: {

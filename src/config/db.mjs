@@ -7,9 +7,17 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccountJson)
 });
 
+if (process.env.FIRESTORE_EMULATOR_HOST) {
+  const firestore = admin.firestore();
+  firestore.settings({
+    host: process.env.FIRESTORE_EMULATOR_HOST,
+    ssl: false,
+    ignoreUndefinedProperties: true
+  });
+}
+
 logger.info("Firebase connected...");
 const db = admin.firestore();
 db.settings({ ignoreUndefinedProperties: true });
-
 
 export default db;

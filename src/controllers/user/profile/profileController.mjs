@@ -1,5 +1,21 @@
 import db from '../../../config/db.mjs';
-import logger from '../../../admin/logger.mjs'; // Assurez-vous que le chemin est correct
+import logger from '../../../admin/logger.mjs';
+
+const allowedSocialMediaDomains = {
+  instagram: 'www.instagram.com',
+  twitter: 'twitter.com',
+  facebook: 'www.facebook.com',
+  tiktok: 'www.tiktok.com',
+};
+
+const validateSocialMediaLink = (url, platform) => {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.hostname === allowedSocialMediaDomains[platform];
+  } catch (error) {
+    return false;
+  }
+};
 
 export const getProfile = async (req, res) => {
   try {
@@ -11,13 +27,12 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    // Supprimer les champs que vous ne voulez pas inclure dans la réponse
     const { password, email, fcmToken, ...userData } = userDoc.data();
     const userProfile = { ...userData, _id: userDoc.id };
 
     res.json(userProfile);
     logger.info(`Profile fetched successfully for user ID: ${userId}`);
-  } catch (err) /* istanbul ignore next */ {
+  } catch (err) {
     logger.error(`Error fetching profile for user ID: ${req.params.userId} - ${err.message}`);
     res.status(500).json({ msg: "Server Error" });
   }
@@ -29,7 +44,6 @@ export const updateBiography = async (req, res) => {
     const { biography } = req.body;
     logger.info(`Updating biography for user ID: ${userId}`);
 
-    // Mettre à jour l'utilisateur et récupérer les données mises à jour
     await db.collection('Users').doc(userId).update({ biography });
     const updatedUserDoc = await db.collection('Users').doc(userId).get();
 
@@ -68,7 +82,7 @@ export const updateAvailability = async (req, res) => {
 export const updateProfilePicture = async (req, res) => {
   try {
     const userId = req.user.id;
-    const profilePicture = req.file.path; // getting file path from multer
+    const profilePicture = req.file.path; 
     logger.info(`Updating profile picture for user ID: ${userId}`);
     await db.collection('Users').doc(userId).update({ profilePicture });
     const updatedUserDoc = await db.collection('Users').doc(userId).get();
@@ -88,7 +102,7 @@ export const updateProfilePicture = async (req, res) => {
 export const updateBannerPicture = async (req, res) => {
   try {
     const userId = req.user.id;
-    const bannerPicture = req.file.path; // getting file path from multer
+    const bannerPicture = req.file.path; 
     logger.info(`Updating banner picture for user ID: ${userId}`);
     await db.collection('Users').doc(userId).update({ bannerPicture });
     const updatedUserDoc = await db.collection('Users').doc(userId).get();
@@ -101,6 +115,50 @@ export const updateBannerPicture = async (req, res) => {
     logger.info(`Banner picture updated successfully for user ID: ${userId}`);
   } catch (err) {
     logger.error(`Error updating banner picture for user ID: ${userId} - ${err.message}`);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+export const updateSocialMediaLinks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { instagram, twitter, facebook, tiktok } = req.body;
+
+    const socialMediaLinks = {};
+
+    if (instagram && validateSocialMediaLink(instagram, 'instagram')) {
+      socialMediaLinks.instagram = instagram;
+    } else if (instagram) {
+      return res.status(400).json({ msg: "Invalid Instagram URL" });
+    }
+    if (twitter && validateSocialMediaLink(twitter, 'twitter')) {
+      socialMediaLinks.twitter = twitter;
+    } else if (twitter) {
+      return res.status(400).json({ msg: "Invalid Twitter URL" });
+    }
+    if (facebook && validateSocialMediaLink(facebook, 'facebook')) {
+      socialMediaLinks.facebook = facebook;
+    } else if (facebook) {
+      return res.status(400).json({ msg: "Invalid Facebook URL" });
+    }
+    if (tiktok && validateSocialMediaLink(tiktok, 'tiktok')) {
+      socialMediaLinks.tiktok = tiktok;
+    } else if (tiktok) {
+      return res.status(400).json({ msg: "Invalid TikTok URL" });
+    }
+
+    logger.info(`Updating social media links for user ID: ${userId}`);
+    await db.collection('Users').doc(userId).update({ socialMediaLinks });
+    const updatedUserDoc = await db.collection('Users').doc(userId).get();
+
+    const userWithoutSensitiveInfo = updatedUserDoc.data();
+    delete userWithoutSensitiveInfo.password;
+    delete userWithoutSensitiveInfo.email;
+
+    res.json(userWithoutSensitiveInfo);
+    logger.info(`Social media links updated successfully for user ID: ${userId}`);
+  } catch (err) {
+    logger.error(`Error updating social media links for user ID: ${userId} - ${err.message}`);
     res.status(500).json({ msg: "Server Error" });
   }
 };

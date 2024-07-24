@@ -10,6 +10,7 @@ import {
   updateAvailability,
   updateProfilePicture,
   updateBannerPicture,
+  updateSocialMediaLinks,
 } from "../controllers/user/profile/profileController.mjs";
 import {
   uploadProfilePicture,
@@ -122,6 +123,38 @@ router.get("/user/check-email/:email", limiter, checkEmailAvailability);
  *     responses:
  *       200:
  *         description: User profile details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 is_artist:
+ *                   type: boolean
+ *                 biography:
+ *                   type: string
+ *                 availability:
+ *                   type: string
+ *                 subscription:
+ *                   type: string
+ *                 profilePicture:
+ *                   type: string
+ *                 bannerPicture:
+ *                   type: string
+ *                 socialMediaLinks:
+ *                   type: object
+ *                   properties:
+ *                     instagram:
+ *                       type: string
+ *                     twitter:
+ *                       type: string
+ *                     facebook:
+ *                       type: string
+ *                     tiktok:
+ *                       type: string
  *       401:
  *         description: Unauthorized.
  *       404:
@@ -212,6 +245,38 @@ router.post("/user/profile/availability", authenticate, updateAvailability);
  *     responses:
  *       200:
  *         description: Uploaded successfully and returns the updated user profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 is_artist:
+ *                   type: boolean
+ *                 biography:
+ *                   type: string
+ *                 availability:
+ *                   type: string
+ *                 subscription:
+ *                   type: string
+ *                 profilePicture:
+ *                   type: string
+ *                 bannerPicture:
+ *                   type: string
+ *                 socialMediaLinks:
+ *                   type: object
+ *                   properties:
+ *                     instagram:
+ *                       type: string
+ *                     twitter:
+ *                       type: string
+ *                     facebook:
+ *                       type: string
+ *                     tiktok:
+ *                       type: string
  *       400:
  *         description: Invalid image format.
  *       401:
@@ -244,6 +309,38 @@ router.post("/user/profile/profile-pic", authenticate, uploadProfilePicture, upd
  *     responses:
  *       200:
  *         description: Uploaded successfully and returns the updated user profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 is_artist:
+ *                   type: boolean
+ *                 biography:
+ *                   type: string
+ *                 availability:
+ *                   type: string
+ *                 subscription:
+ *                   type: string
+ *                 profilePicture:
+ *                   type: string
+ *                 bannerPicture:
+ *                   type: string
+ *                 socialMediaLinks:
+ *                   type: object
+ *                   properties:
+ *                     instagram:
+ *                       type: string
+ *                     twitter:
+ *                       type: string
+ *                     facebook:
+ *                       type: string
+ *                     tiktok:
+ *                       type: string
  *       400:
  *         description: Invalid image format.
  *       401:
@@ -252,5 +349,77 @@ router.post("/user/profile/profile-pic", authenticate, uploadProfilePicture, upd
  *         description: Server error.
  */
 router.post("/user/profile/banner-pic", authenticate, uploadBannerPicture, updateBannerPicture);
+
+/**
+ * @swagger
+ * /api/user/profile/social-links:
+ *   post:
+ *     summary: Update user social media links
+ *     description: Updates the social media links of the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               instagram:
+ *                 type: string
+ *                 description: Instagram profile link.
+ *               twitter:
+ *                 type: string
+ *                 description: Twitter profile link.
+ *               facebook:
+ *                 type: string
+ *                 description: Facebook profile link.
+ *               tiktok:
+ *                 type: string
+ *                 description: TikTok profile link.
+ *     responses:
+ *       200:
+ *         description: Updated user profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 is_artist:
+ *                   type: boolean
+ *                 biography:
+ *                   type: string
+ *                 availability:
+ *                   type: string
+ *                 subscription:
+ *                   type: string
+ *                 profilePicture:
+ *                   type: string
+ *                 bannerPicture:
+ *                   type: string
+ *                 socialMediaLinks:
+ *                   type: object
+ *                   properties:
+ *                     instagram:
+ *                       type: string
+ *                     twitter:
+ *                       type: string
+ *                     facebook:
+ *                       type: string
+ *                     tiktok:
+ *                       type: string
+ *       400:
+ *         description: Invalid social media link format.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/user/profile/social-links", authenticate, updateSocialMediaLinks);
 
 export default router;

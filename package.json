@@ -39,7 +39,7 @@
     "express-session": "^1.17.3",
     "express-validator": "^7.1.0",
     "firebase-admin": "^12.2.0",
-    "firebase-tools": "^13.11.4",
+    "firebase-tools": "^13.13.3",
     "fireorm": "^0.23.3",
     "firestore-sequelize": "^0.8.0",
     "formidable": "^3.5.1",

@@ -33,12 +33,14 @@ export const createArtPublication = async (req, res) => {
       isForSale,
       price,
       location,
+      likes: [],
       createdAt: new Date(),
       _id: uuidv4(),
     });
 
     const artPublicationRef = db.collection('ArtPublications').doc(newPublicationData._id);
     await artPublicationRef.set(newPublicationData);
+
 
     logger.info('Art publication created successfully', { artPublication: newPublicationData });
 
@@ -95,26 +97,31 @@ export const deleteArtPublication = async (req, res) => {
 
 export const getArtPublicationById = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { _id } = req.params;
 
     const doc = await db.collection('ArtPublications').doc(_id).get();
     if (!doc.exists) {
+      logger.info('Art publication not found', { _id });
       return res.status(404).json({ msg: 'Art publication not found' });
     }
 
     const artPublication = doc.data();
     artPublication._id = doc.id;
-
     const totalLikes = artPublication.likes ? artPublication.likes.length : 0;
+    const isLiked = artPublication.likes.includes(userId); // Determine if the user has liked the publication
 
     res.json({
       ...artPublication,
-      totalLikes
+      totalLikes,
+      isLiked
     });
   } catch (err) {
+    logger.error('Error retrieving art publication', { error: err.message, stack: err.stack});
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 };
+
 
 
 export const getLatestArtPublications = async (req, res) => {

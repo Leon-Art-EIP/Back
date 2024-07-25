@@ -16,6 +16,9 @@ export const likeArtPublication = async (req, res) => {
     }
 
     const artPublication = artPublicationDoc.data();
+    if (!artPublication.likes) {
+      artPublication.likes = []; // Initialize likes as an empty array if it doesn't exist
+    }
     const isLiked = artPublication.likes.includes(userId);
 
     if (isLiked) {

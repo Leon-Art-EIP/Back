@@ -95,40 +95,27 @@ export const deleteArtPublication = async (req, res) => {
 
 export const getArtPublicationById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { _id } = req.params;
 
-    const doc = await db.collection('ArtPublications').doc(id).get();
+    const doc = await db.collection('ArtPublications').doc(_id).get();
     if (!doc.exists) {
       return res.status(404).json({ msg: 'Art publication not found' });
     }
 
-    const artPublication = { ...doc.data(), _id: doc.id };
-    const likes = await Promise.all(
-      artPublication.likes.map(async userId => {
-        const userDoc = await db.collection('Users').doc(userId).get();
-        return userDoc.exists ? { _id: userDoc.id, ...userDoc.data() } : null;
-      })
-    ).then(results => results.filter(result => result !== null));
+    const artPublication = doc.data();
+    artPublication._id = doc.id;
 
-    const comments = await Promise.all(
-      artPublication.comments.map(async commentId => {
-        const commentDoc = await db.collection('Comments').doc(commentId).get();
-        return commentDoc.exists ? { id: commentId, ...commentDoc.data() } : null;
-      })
-    ).then(results => results.filter(result => result !== null));
-
-    logger.info('Fetched art publication by id', { publicationId: id });
+    const totalLikes = artPublication.likes ? artPublication.likes.length : 0;
 
     res.json({
       ...artPublication,
-      likes,
-      comments
+      totalLikes
     });
   } catch (err) {
-    logger.error('Error fetching art publication by id', { error: err.message, stack: err.stack});
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 };
+
 
 export const getLatestArtPublications = async (req, res) => {
   try {

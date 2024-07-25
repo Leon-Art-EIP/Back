@@ -29,13 +29,11 @@ export const validateArtPublication = [
 ];
 
 export const validateArtPublicationId = [
-  check('id').isLength({ min: 20, max: 20 }).withMessage('Invalid Art Publication ID'),
+  check('_id').isUUID().withMessage('Invalid Art Publication ID'),
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) /* istanbul ignore next */ {
-      const errorMessages = errors.array().map(error => ({ msg: error.msg }));
-      logger.warn(`Validation errors: ${JSON.stringify(errorMessages)}`, { errors: errorMessages });
-      return res.status(422).json({ errors: errorMessages });
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array().map(error => ({ msg: error.msg })) });
     }
     next();
   },

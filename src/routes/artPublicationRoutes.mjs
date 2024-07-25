@@ -343,23 +343,70 @@ router.get('/comment/:id', authenticate, getCommentsByArtPublicationId);
 
 /**
  * @swagger
- * /api/art-publication/{id}:
+ * /api/art-publication/{_id}:
  *   get:
  *     summary: Retrieve an Art Publication by ID
- *     description: Allows an authenticated user to retrieve details of an art publication using its ID.
+ *     description: Allows an authenticated user to retrieve details of an art publication using its unique identifier (_id).
  *     tags: [ArtPublication]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: _id
  *         required: true
  *         schema:
  *           type: string
- *         description: Art publication ID.
+ *         description: The unique identifier (_id) of the art publication.
  *     responses:
  *       200:
- *         description: Returns the requested art publication.
+ *         description: Returns the requested art publication, including the total number of likes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: The unique identifier of the art publication.
+ *                 userId:
+ *                   type: string
+ *                   description: The ID of the user who posted the art publication.
+ *                 image:
+ *                   type: string
+ *                   description: URL to the image of the art.
+ *                 artType:
+ *                   type: string
+ *                   description: The type of art.
+ *                 name:
+ *                   type: string
+ *                   description: The name of the art.
+ *                 description:
+ *                   type: string
+ *                   description: A short description of the art.
+ *                 dimension:
+ *                   type: string
+ *                   description: Dimensions of the art.
+ *                 isForSale:
+ *                   type: boolean
+ *                   description: Whether the art is for sale.
+ *                 price:
+ *                   type: number
+ *                   description: Price of the art if it is for sale.
+ *                 location:
+ *                   type: string
+ *                   description: The location where the art can be viewed or purchased.
+ *                 likes:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of user IDs who liked the publication.
+ *                 totalLikes:
+ *                   type: integer
+ *                   description: Total number of likes the art publication has received.
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: The date and time when the art publication was created.
  *       401:
  *         description: No token provided or token is invalid.
  *       404:
@@ -367,7 +414,7 @@ router.get('/comment/:id', authenticate, getCommentsByArtPublicationId);
  *       500:
  *         description: Server Error.
  */
-router.get('/:id', authenticate, validateArtPublicationId, getArtPublicationById);
+router.get('/:_id', authenticate, validateArtPublicationId, getArtPublicationById);
 
 /**
  * @swagger

@@ -28,6 +28,12 @@ export const getProfile = async (req, res) => {
     }
 
     const { password, email, fcmToken, ...userData } = userDoc.data();
+
+    // Ensure socialMediaLinks is always present
+    if (!userData.socialMediaLinks) {
+      userData.socialMediaLinks = {};
+    }
+
     const userProfile = { ...userData, _id: userDoc.id };
 
     res.json(userProfile);
@@ -37,6 +43,7 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const updateBiography = async (req, res) => {
   try {

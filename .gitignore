@@ -14,3 +14,4 @@ leon-art-d8942-firebase-adminsdk-zkdcu-115fd03559.json
 *.log
 firebase.json
 .firebaserc
+exported-emu-dev-data/

@@ -84,7 +84,7 @@ router.post('/', authenticate, uploadArtImage, validateArtPublication, createArt
 
 /**
  * @swagger
- * /api/art-publication/{id}:
+ * /api/art-publication/{_id}:
  *   delete:
  *     summary: Delete an Art Publication
  *     description: |
@@ -94,7 +94,7 @@ router.post('/', authenticate, uploadArtImage, validateArtPublication, createArt
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: _id
  *         required: true
  *         schema:
  *           type: string
@@ -127,7 +127,7 @@ router.post('/', authenticate, uploadArtImage, validateArtPublication, createArt
  *       500:
  *         description: Server Error.
  */
-router.delete('/:id', authenticate, validateArtPublicationId, deleteArtPublication);
+router.delete('/:_id', authenticate, validateArtPublicationId, deleteArtPublication);
 
 /**
  * @swagger

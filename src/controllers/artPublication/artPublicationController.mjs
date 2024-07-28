@@ -56,9 +56,9 @@ export const createArtPublication = async (req, res) => {
 
 export const deleteArtPublication = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { _id } = req.params;
 
-    const artPublicationDoc = await db.collection('ArtPublications').doc(id).get();
+    const artPublicationDoc = await db.collection('ArtPublications').doc(_id).get();
     if (!artPublicationDoc.exists) {
       return res.status(404).json({ msg: 'Art publication not found' });
     }
@@ -68,25 +68,29 @@ export const deleteArtPublication = async (req, res) => {
       return res.status(403).json({ msg: 'User not authorized to delete this publication' });
     }
 
-    const pendingOrder = await Order.findOne({ artPublicationId: id, orderState: { $ne: 'completed' } });
-    if (pendingOrder) {
+    const pendingOrderSnapshot = await db.collection('Orders')
+      .where('artPublicationId', '==', _id)
+      .where('orderState', '!=', 'completed')
+      .get();
+
+    if (!pendingOrderSnapshot.empty) {
       return res.status(400).json({ msg: 'Cannot delete publication with unfinished orders' });
     }
 
     await db.runTransaction(async (transaction) => {
-      const artPublicationRef = db.collection('ArtPublications').doc(id);
+      const artPublicationRef = db.collection('ArtPublications').doc(_id);
       transaction.delete(artPublicationRef);
 
-      const collectionsSnapshot = await db.collection('Collections').where('artPublications', 'array-contains', id).get();
+      const collectionsSnapshot = await db.collection('Collections').where('artPublications', 'array-contains', _id).get();  // Changed to _id
       collectionsSnapshot.forEach((collectionDoc) => {
         const collectionRef = db.collection('Collections').doc(collectionDoc.id);
         transaction.update(collectionRef, {
-          artPublications: FieldValue.arrayRemove(id)
+          artPublications: FieldValue.arrayRemove(_id)
         });
       });
     });
 
-    logger.info('Art publication deleted successfully', { publicationId: id });
+    logger.info('Art publication deleted successfully', { publicationId: _id });
 
     res.json({ msg: 'Art publication deleted successfully' });
   } catch (err) {

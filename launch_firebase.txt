@@ -1,0 +1,1 @@
+npx firebase emulators:start --import=./exported-emu-dev-data --export-on-exit=./exported-emu-dev-data

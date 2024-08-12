@@ -3,7 +3,7 @@ import logger from '../../admin/logger.mjs'; // Assurez-vous d'importer votre lo
 
 export const validateUserId = [
   //check userId length = 20
-  check('userId').isLength({ min: 20, max: 30 }).withMessage('User ID must be between 20 and 30 characters long'),
+  check('userId').isLength({ min: 20, max: 40 }).withMessage('User ID must be between 20 and 30 characters long'),
 
   (req, res, next) => {
     const errors = validationResult(req);

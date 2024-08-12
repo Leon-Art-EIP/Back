@@ -49,7 +49,7 @@ export const createArtPublication = async (req, res) => {
       artPublication: newPublicationData,
     });
   } catch (err) {
-    logger.error('Error creating art publication', { error: err.message, stack: err.stack});
+    logger.error('Error creating art publication', { error: err.message, stack: err.stack });
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -94,7 +94,7 @@ export const deleteArtPublication = async (req, res) => {
 
     res.json({ msg: 'Art publication deleted successfully' });
   } catch (err) {
-    logger.error('Error deleting art publication', { error: err.message, stack: err.stack});
+    logger.error('Error deleting art publication', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -121,7 +121,7 @@ export const getArtPublicationById = async (req, res) => {
       isLiked
     });
   } catch (err) {
-    logger.error('Error retrieving art publication', { error: err.message, stack: err.stack});
+    logger.error('Error retrieving art publication', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 };
@@ -140,13 +140,20 @@ export const getLatestArtPublications = async (req, res) => {
       .offset(offset)
       .get();
 
-    const artPublications = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+    const artPublications = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        _id: doc.id,
+        createdAt: data.createdAt.toDate(), // Conversion de Firestore Timestamp en objet Date
+      };
+    });
 
     logger.info('Fetched latest art publications', { count: artPublications.length });
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error fetching latest art publications', { error: err.message, stack: err.stack});
+    logger.error('Error fetching latest art publications', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -168,13 +175,20 @@ export const getFollowedArtPublications = async (req, res) => {
       .offset(offset)
       .get();
 
-    const artPublications = querySnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+    const artPublications = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        _id: doc.id,
+        createdAt: data.createdAt.toDate(),
+      };
+    });
 
     logger.info('Fetched followed art publications', { count: artPublications.length });
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error fetching followed art publications', { error: err.message, stack: err.stack});
+    logger.error('Error fetching followed art publications', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -199,7 +213,7 @@ export const getArtPublicationsByUser = async (req, res) => {
 
     res.json(artPublications);
   } catch (err) {
-    logger.error('Error fetching art publications by user', { error: err.message, stack: err.stack});
+    logger.error('Error fetching art publications by user', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error' });
   }
 };

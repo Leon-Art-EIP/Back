@@ -11,6 +11,7 @@ RUN npm ci --only=production && npm cache clean --force
 COPY src ./src
 COPY uploads/static ./uploads/static
 COPY server.mjs ./
+COPY envSetup.mjs ./ 
 # Ajoutez ici d'autres fichiers ou dossiers nécessaires
 
 # Stage final

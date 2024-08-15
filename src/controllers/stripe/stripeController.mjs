@@ -1,7 +1,7 @@
 import db from '../../config/db.mjs';
 import { v4 as uuidv4 } from 'uuid';
 import stripe from '../../utils/stripeClient.mjs';
-import socketManager from '../../utils/socketManager.mjs';
+import { socketManager } from '../../app.mjs';
 import { createAndSendNotification } from "../notification/notificationController.mjs";
 import logger from '../../admin/logger.mjs';
 

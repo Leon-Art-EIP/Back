@@ -101,7 +101,7 @@ export const createConversation = async (req, res) => {
 
         if (!conversationSnapshot.empty) {
             const conversationDoc = conversationSnapshot.docs[0];
-            return res.status(409).json({ message: "Conversation existante trouvée", convId: conversationDoc.id });
+            return res.status(200).json({ message: "Conversation existante trouvée", convId: conversationDoc.id });
         }
 
         const UserOne = await db.collection('Users').doc(UserOneId).get();

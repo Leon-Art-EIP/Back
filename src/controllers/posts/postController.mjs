@@ -14,15 +14,27 @@ export const createPost = async (req, res) => {
     const userId = req.user.id;
     const { text, artPublicationId } = req.body;
 
-    // Check if the user has already posted in the last hour
+    // Fetch cooldown from environment variable or use 10 minutes as default
+    const POST_COOLDOWN = parseInt(process.env.POST_COOLDOWN_MINUTES || 10) * 60000; // Convert minutes to milliseconds
+
+    // Check if the user has already posted within the cooldown period
     const postsSnapshot = await db.collection('Posts').where('userId', '==', userId).orderBy('createdAt', 'desc').limit(1).get();
     if (!postsSnapshot.empty) {
       const lastPost = postsSnapshot.docs[0].data();
-      if (Date.now() - new Date(lastPost.createdAt).getTime() < 3600000) {
-        return res.status(400).json({ msg: 'You can only post once per hour' });
+      if (lastPost.createdAt) {
+        const lastPostTime = new Date(lastPost.createdAt.toDate()).getTime(); // Convert Firestore Timestamp to Date
+        const currentTime = Date.now();
+        
+        if (currentTime - lastPostTime < POST_COOLDOWN) {
+          const waitTime = Math.ceil((POST_COOLDOWN - (currentTime - lastPostTime)) / 60000);
+          return res.status(400).json({ msg: `Please wait ${waitTime} more minute(s) before creating a new post.` });
+        }
+      } else {
+        console.error('No valid createdAt timestamp found for the last post.');
       }
     }
 
+    // Proceed with creating the post if cooldown is respected
     const newPostData = cleanUndefinedFields({
       userId,
       text,
@@ -47,10 +59,12 @@ export const createPost = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error('Error creating post', err);
     logger.error('Error creating post', { error: err.message, stack: err.stack });
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 
 export const deletePost = async (req, res) => {

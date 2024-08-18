@@ -103,6 +103,12 @@ export const getArtPublicationsInCollection = async (req, res) => {
     }
 
     const collection = new Collection({ ...collectionDoc.data(), _id: collectionDoc.id });
+
+    // Check if there are any art publications in the collection
+    if (collection.artPublications.length === 0) {
+      return res.json([]); // Return an empty array immediately if no art publications are associated
+    }
+
     const artPublicationsSnapshot = await db.collection('ArtPublications')
       .where('_id', 'in', collection.artPublications)
       .get();
@@ -114,6 +120,7 @@ export const getArtPublicationsInCollection = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
 
 export const deleteCollection = async (req, res) => {
   try {

@@ -1,3 +1,5 @@
+# [1.0.0-dev.13](https://github.com/Leon-Art-EIP/Back/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2024-08-18)
+
 # [1.0.0-dev.12](https://github.com/Leon-Art-EIP/Back/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2024-08-16)
 
 # [1.0.0-dev.11](https://github.com/Leon-Art-EIP/Back/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2024-08-15)

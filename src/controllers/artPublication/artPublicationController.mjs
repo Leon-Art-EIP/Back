@@ -28,6 +28,7 @@ export const createArtPublication = async (req, res) => {
       image,
       artType,
       name,
+      name_lowercase: name.toLowerCase(),
       description,
       dimension,
       isForSale,
@@ -41,7 +42,6 @@ export const createArtPublication = async (req, res) => {
     const artPublicationRef = db.collection('ArtPublications').doc(newPublicationData._id);
     await artPublicationRef.set(newPublicationData);
 
-
     logger.info('Art publication created successfully', { artPublication: newPublicationData });
 
     res.json({
@@ -53,6 +53,7 @@ export const createArtPublication = async (req, res) => {
     return res.status(500).json({ msg: 'Server Error' });
   }
 };
+
 
 export const deleteArtPublication = async (req, res) => {
   try {

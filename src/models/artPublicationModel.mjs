@@ -5,6 +5,7 @@ class ArtPublication {
     this.image = data.image || 'uploads/static/default-image-art.jpg';
     this.artType = data.artType;
     this.name = data.name;
+    this.name_lowercase = data.name.toLowerCase();
     this.description = data.description || '';
     this.dimension = data.dimension || '';
     this.isForSale = data.isForSale || false;
@@ -23,6 +24,7 @@ class ArtPublication {
       image: this.image,
       artType: this.artType,
       name: this.name,
+      name_lowercase: this.name_lowercase,
       description: this.description,
       dimension: this.dimension,
       isForSale: this.isForSale,

@@ -2,6 +2,7 @@ class User {
   constructor(data) {
     this.id = data.id || uuidv4();
     this.username = data.username;
+    this.username_lowercase = data.username.toLowerCase();
     this.email = data.email;
     this.password = data.password;
     this.is_artist = data.is_artist || false;
@@ -31,6 +32,7 @@ class User {
     return {
       id: this.id,
       username: this.username,
+      username_lowercase: this.username_lowercase,
       email: this.email,
       password: this.password,
       is_artist: this.is_artist,

@@ -31,20 +31,29 @@ import logger from '../../admin/logger.mjs';
  */
 export const getUserChats = async (req, res) => {
     const userId = req.params.userId;
+
     try {
-        const chatsSnapshot = await db.collection('Conversations')
+        
+        const userOneChatsSnapshot = await db.collection('Conversations')
             .where('UserOneId', '==', userId)
+            .get();
+
+        const userTwoChatsSnapshot = await db.collection('Conversations')
             .where('UserTwoId', '==', userId)
             .get();
 
-        const chats = chatsSnapshot.docs.map(doc => new Conversation({ ...doc.data(), _id: doc.id }).toJSON());
+        const chats = [
+            ...userOneChatsSnapshot.docs.map(doc => new Conversation({ ...doc.data(), _id: doc.id }).toJSON()),
+            ...userTwoChatsSnapshot.docs.map(doc => new Conversation({ ...doc.data(), _id: doc.id }).toJSON())
+        ];
 
         res.json({ chats });
     } catch (err) {
-        logger.error('Error getting user chats', { error: err.message, stack: err.stack});
+        logger.error('Error getting user chats', { error: err.message, stack: err.stack });
         res.status(500).send('Server error');
     }
 };
+
 
 /**
  * @swagger

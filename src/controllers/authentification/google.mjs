@@ -17,7 +17,9 @@ passport.use(
             try {
                 // Recherche de l'utilisateur dans Firestore par le username
                 const username = profile.displayName.toLowerCase();
-                const userRef = db.collection('Users').where('username_lowercase', '==', username).limit(1);
+                // Recherche de l'utilisateur dans Firestore par le username et l'email
+                const email = profile.emails[0].value;
+                const userRef = db.collection('Users').where('username_lowercase', '==', username).where('email', '==', email).limit(1);
                 const userSnapshot = await userRef.get();
 
                 logger.info('Google login attempt', { username, email: profile.emails[0].value, profiles: profile });

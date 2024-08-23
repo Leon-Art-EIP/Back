@@ -13,7 +13,7 @@ passport.use(
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: process.env.GOOGLE_CALLBACK_URL,
         },
-        async (accessToken, refreshToken, profile, done) => {
+        async (profile, done) => {
             try {
                 // Recherche de l'utilisateur dans Firestore par le username
                 const username = profile.displayName.toLowerCase();

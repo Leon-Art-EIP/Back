@@ -13,7 +13,8 @@ router.get('/auth/google/callback', (req, res, next) => {
         }
         const { user, token } = data;
         // Rediriger ou envoyer le token au client
-        res.redirect(`http://localhost:8081/login?token=${token}&username=${user.username}`);
+        let redirectbaseUrl = process.env.GOOGLE_REDIRECT_URL || 'http://localhost:8081';
+        res.redirect(`${redirectbaseUrl}/login?token=${token}&username=${user.username}`);
     })(req, res, next);
 });
 

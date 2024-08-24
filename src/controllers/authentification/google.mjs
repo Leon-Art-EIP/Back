@@ -16,7 +16,7 @@ passport.use(
         async (profile, done) => {
             try {
                 // Recherche de l'utilisateur dans Firestore par le username
-                const username = profile.displayName.toLowerCase();
+                const username = profile.displayName;
                 // Recherche de l'utilisateur dans Firestore par le username et l'email
                 const email = profile.emails[0].value;
                 const userRef = db.collection('Users').where('username_lowercase', '==', username).where('email', '==', email).limit(1);
@@ -32,7 +32,7 @@ passport.use(
                     const userData = {
                         id: newUserRef.id,
                         username: profile.displayName,
-                        username_lowercase: username,
+                        username_lowercase: username.toLowerCase(),
                         email: profile.emails[0].value,
                         profilePicture: profile.photos[0].value,
                         password: uuidv4().toString(),

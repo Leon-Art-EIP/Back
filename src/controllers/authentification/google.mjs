@@ -12,17 +12,23 @@ passport.use(
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: process.env.GOOGLE_CALLBACK_URL,
+            passReqToCallback: true,
         },
-        async (profile, done) => {
+        async (request, accessToken, refreshToken, profile, done) => {
             try {
-                // Recherche de l'utilisateur dans Firestore par le username
-                const username = profile.displayName;
-                // Recherche de l'utilisateur dans Firestore par le username et l'email
+                // Vérification que l'email existe dans le profil
+                if (!profile.emails || !profile.emails[0].value) {
+                    throw new Error('Email not provided by Google');
+                }
+
                 const email = profile.emails[0].value;
-                const userRef = db.collection('Users').where('username_lowercase', '==', username).where('email', '==', email).limit(1);
+                const username = profile.displayName;
+
+                // Recherche de l'utilisateur dans Firestore par l'email
+                const userRef = db.collection('Users').where('email', '==', email).limit(1);
                 const userSnapshot = await userRef.get();
 
-                logger.info('Google login attempt', { username, email: profile.emails[0].value, profiles: profile });
+                logger.info('Google login attempt', { username, email, profiles: profile });
 
                 let user;
 

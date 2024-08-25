@@ -72,7 +72,13 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-app.use(cors());
+const allowedOrigin = process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:3000';
+
+app.use(cors({
+  origin: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+}));
 
 app.use(
   "/api-docs",

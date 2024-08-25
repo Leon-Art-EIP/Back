@@ -1,6 +1,6 @@
 import express from 'express';
 import passport from 'passport';
-import { googleLogin } from '../controllers/authentification/google.mjs';
+import { googleLogin, googleCallback } from '../controllers/authentification/google.mjs';
 
 const router = express.Router();
 
@@ -66,16 +66,7 @@ router.get('/auth/google', googleLogin);
  *                   type: string
  *                   description: Error message.
  */
-router.get('/auth/google/callback', (req, res, next) => {
-    passport.authenticate('google', (err, data) => {
-        if (err || !data) {
-            return res.status(401).json({ message: 'Authentication failed' });
-        }
-        const { user, token } = data;
-        let redirectbaseUrl = process.env.GOOGLE_REDIRECT_URL || 'http://localhost:8081';
-        res.redirect(`${redirectbaseUrl}/login?token=${token}&username=${user.username}`);
-    })(req, res, next);
-});
+router.get('/auth/google/callback', googleCallback);
 
 /**
  * @swagger

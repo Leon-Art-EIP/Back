@@ -104,6 +104,6 @@ export const googleCallback = (req, res, next) => {
         }
         const { user, token } = data;
         const redirectUrl = process.env.GOOGLE_REDIRECT_URL || 'http://localhost:3000';
-        res.redirect(`${redirectUrl}/login?token=${token}&username=${user.username}`);
+        res.redirect(`${redirectUrl}/login?token=${token}&username=${user.username}&email=${user.email}&id=${user.id}`);
     })(req, res, next);
 };

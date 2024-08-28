@@ -71,7 +71,7 @@ router.get('/auth/google/callback', uploadProfilePicture, handleFileUploadErrors
 
 /**
  * @swagger
- * /api/mobile/google:
+ * /api/auth/mobile/google:
  *   post:
  *     summary: Google authentication for mobile
  *     description: Authenticates a mobile user with Google, creates a new user if necessary, and returns a JWT token. Optionally, the user can upload a profile picture.
@@ -152,7 +152,7 @@ router.get('/auth/google/callback', uploadProfilePicture, handleFileUploadErrors
  *                   description: Detailed error information.
  */
 
-router.post('/api/mobile/google', uploadProfilePicture, handleFileUploadErrors, mobileLogin);
+router.post('/auth/mobile/google', uploadProfilePicture, handleFileUploadErrors, mobileLogin);
 
 
 export default router;

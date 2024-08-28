@@ -5,7 +5,7 @@
   "description": "[![Node.js](https://img.shields.io/badge/Node.js-v16.13.1-green.svg)](https://nodejs.org/)\r [![Express.js](https://img.shields.io/badge/Express.js-v4.17.1-blue.svg)](https://expressjs.com/)\r [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --experimental-json-modules server.mjs",
+    "start": "nodemon --experimental-json-modules  server.mjs",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest --coverage --runInBand --forceExit --detectOpenHandles"
   },
   "repository": {

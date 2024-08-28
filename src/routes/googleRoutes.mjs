@@ -1,7 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import { googleLogin, googleCallback, mobileLogin } from '../controllers/authentification/google.mjs';
-import { handleFileUploadErrors } from '../middleware/uploadMiddleware.mjs';
+import { handleFileUploadErrors, uploadProfilePicture } from '../middleware/uploadMiddleware.mjs';
 
 const router = express.Router();
 

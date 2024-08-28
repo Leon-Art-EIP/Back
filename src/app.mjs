@@ -75,7 +75,7 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 const allowedOrigin = process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:3000';
 
 app.use(cors({
-  origin: '*',
+  origin: allowedOrigin,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 200,

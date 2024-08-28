@@ -84,7 +84,7 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, user.id);P
 });
 
 passport.deserializeUser(async (id, done) => {
@@ -122,7 +122,9 @@ export const googleCallback = (req, res, next) => {
         }
 
         const redirectUrl = process.env.GOOGLE_REDIRECT_URL || 'http://localhost:3000';
-        res.redirect(`${redirectUrl}/login?token=${token}&username=${user.username}&email=${user.email}&id=${user.id}`);
+        
+        // Redirection avec le token et le nom d'utilisateur
+        res.redirect(`${redirectUrl}/login?token=${token}&username=${user.username}`);
     })(req, res, next);
 };
 

@@ -16,6 +16,9 @@ export const likeArtPublication = async (req, res) => {
     }
 
     const artPublication = artPublicationDoc.data();
+    if (!artPublication.likes) {
+      artPublication.likes = []; // Initialize likes as an empty array if it doesn't exist
+    }
     const isLiked = artPublication.likes.includes(userId);
 
     if (isLiked) {
@@ -49,7 +52,7 @@ export const likeArtPublication = async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Error updating like status', { error: err.message, stack: err.stack});
+    logger.error('Error updating like status', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -68,16 +71,22 @@ export const getPublicationLikeCount = async (req, res) => {
       totalLikes: artPublication.likes.length,
     });
   } catch (err) {
-    logger.error('Error getting publication like count', { error: err.message, stack: err.stack});
+    logger.error('Error getting publication like count', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
+import admin from 'firebase-admin';
 
 export const getUsersWhoLikedPublication = async (req, res) => {
   try {
     const limit = Number(req.query.limit) || parseInt(process.env.DEFAULT_PAGE_LIMIT, 10);
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;
+
+    if (req.params.id === undefined) {
+      return res.status(400).json({ msg: "Missing art publication ID" });
+    }
 
     const artPublicationDoc = await db.collection('ArtPublications').doc(req.params.id).get();
     if (!artPublicationDoc.exists) {
@@ -86,16 +95,24 @@ export const getUsersWhoLikedPublication = async (req, res) => {
     }
 
     const artPublication = artPublicationDoc.data();
+    if (!artPublication.likes || artPublication.likes.length === 0) {
+      return res.status(200).json({ artPublicationId: artPublication._id, users: [] });
+    }
+
+    console.log('artPublication.likes', artPublication.likes);
+
+    // Utiliser admin.firestore.FieldPath.documentId() pour Firebase Admin SDK
     const likedUsersSnapshot = await db.collection('Users')
-      .where('_id', 'in', artPublication.likes)
+      .where(admin.firestore.FieldPath.documentId(), 'in', artPublication.likes)
       .limit(limit)
-      .offset(offset)
       .get();
 
     const likedUsers = likedUsersSnapshot.docs.map(doc => ({
-      _id: doc.id,
+      _id: doc.id,  // Identifiant du document
       username: doc.data().username,
     }));
+
+    console.log('likedUsers', likedUsers);
 
     logger.info("Fetched users who liked the publication", { artPublicationId: req.params.id, count: likedUsers.length });
 
@@ -104,7 +121,7 @@ export const getUsersWhoLikedPublication = async (req, res) => {
       users: likedUsers,
     });
   } catch (err) {
-    logger.error('Error getting users who liked publication', { error: err.message, stack: err.stack});
+    logger.error('Error getting users who liked publication', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: "Server Error" });
   }
 };

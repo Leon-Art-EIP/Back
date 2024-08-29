@@ -141,6 +141,8 @@ export const getCommentsByArtPublicationId = async (req, res) => {
         const nestedComment = nestedDoc.data();
         nestedComment.isLiked = nestedComment.likes.includes(userId);
         nestedComment.id = nestedDoc.id;
+        // nestedComment.createdAt = nestedComment.createdAt.toDate().toISOString();
+        // just... why ?
         return nestedComment;
       });
 

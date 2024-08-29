@@ -17,10 +17,11 @@ export const searchArtworksAndArtists = async (req, res) => {
     } = req.query;
 
     const artTypesArray = artType ? artType.split(',') : [];
+    const lowercaseSearchTerm = searchTerm.toLowerCase();
 
     let artQuery = db.collection('ArtPublications');
     if (searchTerm) {
-      artQuery = artQuery.where('name', '>=', searchTerm).where('name', '<=', searchTerm + '\uf8ff');
+      artQuery = artQuery.where('name_lowercase', '>=', lowercaseSearchTerm).where('name_lowercase', '<=', lowercaseSearchTerm + '\uf8ff');
     }
     if (artTypesArray.length) {
       artQuery = artQuery.where('artType', 'in', artTypesArray);
@@ -43,8 +44,11 @@ export const searchArtworksAndArtists = async (req, res) => {
     const artSnapshot = await artQuery.get();
     const artPublications = artSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    let userQuery = db.collection('Users').where('username', '>=', searchTerm).where('username', '<=', searchTerm + '\uf8ff')
-      .limit(Number(artistLimit))
+    let userQuery = db.collection('Users');
+    if (searchTerm) {
+      userQuery = userQuery.where('username_lowercase', '>=', lowercaseSearchTerm).where('username_lowercase', '<=', lowercaseSearchTerm + '\uf8ff');
+    }
+    userQuery = userQuery.limit(Number(artistLimit))
       .offset((artistPage - 1) * artistLimit);
 
     const userSnapshot = await userQuery.get();
@@ -52,10 +56,12 @@ export const searchArtworksAndArtists = async (req, res) => {
 
     res.json({ artPublications, users });
   } catch (err) {
-    logger.error('Error searching artworks and artists:', { error: err.message, stack: err.stack});
+    logger.error('Error searching artworks and artists:', { error: err.message, stack: err.stack });
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
+
 
 export const getArtTypes = (req, res) => {
   res.json(artTypes);

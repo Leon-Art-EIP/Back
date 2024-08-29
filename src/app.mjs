@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
@@ -35,6 +32,7 @@ import convertImageRoutes from './routes/convertImageRoutes.mjs';
 import SocketManager from "./utils/socketManager.mjs";
 import logger from './admin/logger.mjs';
 import signalmentRoutes from './routes/signalmentRoutes.mjs';
+import googleRoutes from './routes/googleRoutes.mjs';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -74,7 +72,14 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-app.use(cors());
+const allowedOrigin = process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:3000';
+
+app.use(cors({
+  origin: allowedOrigin,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 200,
+}));
 
 app.use(
   "/api-docs",
@@ -111,6 +116,7 @@ app.use("/api/location", locationRoutes);
 app.use("/api/map", mapRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/signalments', signalmentRoutes);
+app.use('/api/', googleRoutes);
 
 
 

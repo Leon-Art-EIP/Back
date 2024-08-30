@@ -52,15 +52,18 @@ export const followUser = async (req, res) => {
         subscribersCount: targetUserData.subscribersCount + 1
       });
 
-      // Notification for following
-      createAndSendNotification({
-        recipientId: targetUserId,
-        type: "follow",
-        content: `${userData.username}`,
-        description: `Someone just followed your profile`,
-        sendPush: true,
-      });
-
+      try {
+        await createAndSendNotification({
+          recipientId: targetUserId,
+          type: "follow",
+          content: `${userData.username}`,
+          description: `Someone just followed your profile`,
+          referenceId: userId,
+          sendPush: true,
+        });
+      } catch (notificationError) {
+        logger.error(`Error sending notification: ${notificationError.message}`, { notificationError });
+      }
       logger.info(`User ${userId} followed ${targetUserId}`);
       return res.status(200).json({ msg: "Successfully followed user." });
     }

@@ -2,6 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import { googleLogin, googleCallback, mobileLogin } from '../controllers/authentification/google.mjs';
 import { handleFileUploadErrors, uploadProfilePicture } from '../middleware/uploadMiddleware.mjs';
+import logger from '../admin/logger.mjs';
 
 const router = express.Router();
 
@@ -22,7 +23,11 @@ const router = express.Router();
  *             schema:
  *               type: string
  */
-router.get('/auth/google', googleLogin);
+try {
+    router.get('/auth/google', googleLogin);
+} catch (error) {
+    logger.error('Error during Google authentication', { error: error.message, stack: error.stack });
+}
 
 /**
  * @swagger

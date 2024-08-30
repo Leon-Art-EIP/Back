@@ -14,6 +14,7 @@ passport.use(
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: process.env.GOOGLE_CALLBACK_URL,
             passReqToCallback: true,
+            proxy: true,
         },
         async (request, accessToken, refreshToken, profile, done) => {
             try {
@@ -122,7 +123,7 @@ export const googleCallback = (req, res, next) => {
         }
 
         const redirectUrl = process.env.GOOGLE_REDIRECT_URL || 'http://localhost:3000';
-        
+
         // Redirection avec le token et le nom d'utilisateur
         res.redirect(`${redirectUrl}/login?token=${token}&username=${user.username}`);
     })(req, res, next);

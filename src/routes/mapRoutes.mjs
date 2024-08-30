@@ -8,7 +8,7 @@ import { authenticate } from "../middleware/authenticate.mjs";
  * /api/map/nearby-art:
  *   get:
  *     summary: Get users with art publications near a location
- *     description: Allows a user to find other users with art publications within a certain radius from a specified location.
+ *     description: Allows a user to find other users with art publications within a certain radius from a specified location. Only users with art publications are retrieved.
  *     tags: [Map]
  *     security:
  *       - bearerAuth: []
@@ -18,22 +18,22 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *         schema:
  *           type: number
  *         required: true
- *         description: Latitude of the search center
+ *         description: Latitude of the search center.
  *       - in: query
  *         name: longitude
  *         schema:
  *           type: number
  *         required: true
- *         description: Longitude of the search center
+ *         description: Longitude of the search center.
  *       - in: query
  *         name: radius
  *         schema:
  *           type: number
  *         required: true
- *         description: Search radius in kilometers
+ *         description: Search radius in kilometers.
  *     responses:
  *       200:
- *         description: List of users with art publications within the specified radius
+ *         description: List of users with art publications within the specified radius.
  *         content:
  *           application/json:
  *             schema:
@@ -43,12 +43,15 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *                 properties:
  *                   _id:
  *                     type: string
+ *                     description: The user ID.
  *                   username:
  *                     type: string
+ *                     description: The username of the user.
  *                   profilePicture:
  *                     type: string
+ *                     description: The URL of the user's profile picture.
  *       400:
- *         description: Missing or invalid query parameters
+ *         description: Missing or invalid query parameters.
  *         content:
  *           application/json:
  *             schema:

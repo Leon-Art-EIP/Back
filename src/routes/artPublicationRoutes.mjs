@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { authenticate } from "../middleware/authenticate.mjs";
-import { createArtPublication, deleteArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser } from '../controllers/artPublication/artPublicationController.mjs';
+import { createArtPublication, deleteArtPublication, getArtPublicationById, getFollowedArtPublications, getLatestArtPublications, getArtPublicationsByUser, getArtPublicationsImages } from '../controllers/artPublication/artPublicationController.mjs';
 import { likeArtPublication, getPublicationLikeCount, getUsersWhoLikedPublication } from '../controllers/artPublication/likeController.mjs';
 import { addComment, deleteComment, likeComment, getCommentsByArtPublicationId } from '../controllers/artPublication/commentController.mjs';
 import { validateComment } from '../middleware/validation/commentValidation.mjs';
@@ -10,6 +10,8 @@ import { validateUserId } from '../middleware/validation/userValidation.mjs';
 import {
     uploadArtImage
   } from "../middleware/uploadMiddleware.mjs";
+
+router.get("/images", getArtPublicationsImages);
 
 /**
  * @swagger

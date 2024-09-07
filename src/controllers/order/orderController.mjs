@@ -144,6 +144,7 @@ export const getLatestBuyOrders = async (req, res) => {
         artPublicationDescription: artPublication.description,
         artPublicationPrice: artPublication.price,
         artPublicationImage: artPublication.image,
+        orderRating: order.orderRating,
       };
     }));
 
@@ -188,6 +189,7 @@ export const getLatestSellOrders = async (req, res) => {
         artPublicationDescription: artPublication.description,
         artPublicationPrice: artPublication.price,
         artPublicationImage: artPublication.image,
+        orderRating: order.orderRating,
       };
     }));
 
@@ -235,6 +237,7 @@ export const getBuyOrderById = async (req, res) => {
       updatedAt: order.updatedAt,
       buyerId: order.buyerId,
       buyerName: req.user.username,
+      orderRating: order.orderRating,
     };
 
     res.json(formattedOrder);
@@ -281,6 +284,7 @@ export const getSellOrderById = async (req, res) => {
       updatedAt: order.updatedAt,
       sellerId: order.sellerId,
       sellerName: req.user.username,
+      orderRating: order.orderRating,
     };
 
     res.json(formattedOrder);

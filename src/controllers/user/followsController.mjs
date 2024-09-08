@@ -58,6 +58,7 @@ export const followUser = async (req, res) => {
         type: "follow",
         content: `${userData.username}`,
         description: `Someone just followed your profile`,
+        referenceId: userId,  // Send the userId of the person who followed as referenceId
         sendPush: true,
       });
 

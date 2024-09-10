@@ -23,8 +23,8 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Définissez la variable d'environnement pour le port
-ENV PORT=5000
+ENV PORT=4000
 
-EXPOSE 5000
+EXPOSE 4000
 
 CMD [ "npm" , "start"]

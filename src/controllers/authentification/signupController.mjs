@@ -4,12 +4,17 @@ import jwt from "jsonwebtoken";
 import logger from '../../admin/logger.mjs';
 
 export const signup = async (req, res) => {
-  const { username, email, password, is_artist, fcmToken } = req.body;
+  const { username, email, password, is_artist } = req.body;
+  let { fcmToken } = req.body;
 
   try {
     // Check if email already exists
     const emailRef = db.collection('Users').where('email', '==', email).limit(1);
     const emailSnapshot = await emailRef.get();
+
+    if (fcmToken === undefined) {
+      fcmToken = '';
+    }
 
     if (!emailSnapshot.empty) {
       logger.warn('Email already in use', { email });

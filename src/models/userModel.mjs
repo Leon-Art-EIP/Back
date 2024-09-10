@@ -26,6 +26,8 @@ class User {
       facebook: data.socialMediaLinks?.facebook || '',
       tiktok: data.socialMediaLinks?.tiktok || '',
     };
+    this.location = data.location || { type: 'Point', coordinates: [0, 0], geohash: '' };
+    this.emailNotificationEnabled = data.emailNotificationEnabled || false;
   }
 
   toJSON() {
@@ -51,6 +53,8 @@ class User {
       stripeAccountId: this.stripeAccountId,
       averageRating: this.averageRating,
       socialMediaLinks: this.socialMediaLinks,
+      location: this.location,
+      emailNotificationEnabled: this.emailNotificationEnabled,
     };
   }
 }

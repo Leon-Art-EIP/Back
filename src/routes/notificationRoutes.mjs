@@ -4,8 +4,10 @@ import {
   markNotificationRead,
   getUnreadNotificationCount,
   updateFcmToken,
+  updateEmailNotificationSetting,
 } from "../controllers/notification/notificationController.mjs";
 import { authenticate } from "../middleware/authenticate.mjs";
+
 
 const router = Router();
 
@@ -172,5 +174,50 @@ router.put("/update-fcm-token", authenticate, updateFcmToken);
  *         description: Server Error.
  */
 router.get("/count", authenticate, getUnreadNotificationCount);
+
+/**
+ * @swagger
+ * /api/notifications/email-notification:
+ *   put:
+ *     summary: Enable or disable email notifications for the authenticated user
+ *     description: This route allows the user to enable or disable receiving email notifications for the same events that trigger push notifications.
+ *     tags: [Notification]
+ *     security:
+ *       - bearerAuth: []  # Requires Bearer token authentication
+ *     requestBody:
+ *       description: The email notification setting data
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               emailNotificationEnabled:
+ *                 type: boolean
+ *                 description: Boolean value to enable or disable email notifications.
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Successfully updated email notification setting.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Success message.
+ *                   example: Email notification setting updated successfully.
+ *       400:
+ *         description: Bad Request (e.g., invalid input).
+ *       401:
+ *         description: Unauthorized (e.g., invalid or missing Bearer token).
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Server Error.
+ */
+router.put("/email-notification", authenticate, updateEmailNotificationSetting);
+
 
 export default router;

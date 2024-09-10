@@ -383,3 +383,46 @@ export const addNewMessage = async (req, res) => {
         res.status(500).json({ success: false, error: 'Erreur du serveur' });
     }
 };
+
+/**
+ * @swagger
+ * /api/conversations/delete/{convId}:
+ *   delete:
+ *     summary: Supprimer une conversation spécifique
+ *     tags: 
+ *       - Conversations
+ *     parameters:
+ *       - in: path
+ *         name: convId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la conversation à supprimer
+ *     responses:
+ *       200:
+ *         description: Conversation supprimée avec succès
+ *       404:
+ *         description: Conversation non trouvée
+ *       500:
+ *         description: Erreur interne du serveur
+ */
+
+export const deleteConversation = async (req, res) => {
+    const convId = req.params.convId;
+
+    try {
+        const conversationRef = db.collection('Conversations').doc(convId);
+        const conversationDoc = await conversationRef.get();
+
+        if (!conversationDoc.exists) {
+            return res.status(404).json({ message: 'Conversation non trouvée' });
+        }
+
+        await conversationRef.delete();
+
+        res.status(200).json({ success: true, message: 'Conversation supprimée avec succès' });
+    } catch (err) {
+        logger.error('Error deleting conversation', { error: err.message, stack: err.stack});
+        res.status(500).json({ success: false, message: 'Erreur du serveur' });
+    }
+}

@@ -218,3 +218,15 @@ export const getArtPublicationsByUser = async (req, res) => {
     res.status(500).json({ msg: 'Server Error' });
   }
 };
+
+export const getArtPublicationsImages = async (req, res) => {
+  try {
+    const artPublications = await db.collection('ArtPublications').get();
+    const images = artPublications.docs.map(doc => doc.data().image);
+
+    res.json(images);
+  } catch (err) {
+    logger.error('Error fetching art publications images', { error: err.message, stack: err.stack });
+    res.status(500).json({ msg: 'Server Error' });
+  }
+}

@@ -15,6 +15,6 @@ router.put('/create', createConversation);
 router.get('/single/:convId', getSingleConversation);
 router.get('/messages/:chatId', getConversationMessages);
 router.post('/messages/new', addNewMessage);
-router.delete('/delete/:chatId', deleteConversation);
+router.delete('/delete/:convId', deleteConversation);
 
 export default router;

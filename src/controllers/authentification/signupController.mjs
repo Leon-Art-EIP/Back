@@ -16,6 +16,10 @@ export const signup = async (req, res) => {
       fcmToken = '';
     }
 
+    if (is_artist === undefined) {
+      is_artist = false;
+    }
+
     if (!emailSnapshot.empty) {
       logger.warn('Email already in use', { email });
       return res.status(409).json({ msg: "Email already in use" });

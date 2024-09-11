@@ -89,7 +89,7 @@ export const updateAvailability = async (req, res) => {
 export const updateProfilePicture = async (req, res) => {
   try {
     const userId = req.user.id;
-    const profilePicture = req.file.path; 
+    const profilePicture = req.file.path;
     logger.info(`Updating profile picture for user ID: ${userId}`);
     await db.collection('Users').doc(userId).update({ profilePicture });
     const updatedUserDoc = await db.collection('Users').doc(userId).get();
@@ -109,7 +109,7 @@ export const updateProfilePicture = async (req, res) => {
 export const updateBannerPicture = async (req, res) => {
   try {
     const userId = req.user.id;
-    const bannerPicture = req.file.path; 
+    const bannerPicture = req.file.path;
     logger.info(`Updating banner picture for user ID: ${userId}`);
     await db.collection('Users').doc(userId).update({ bannerPicture });
     const updatedUserDoc = await db.collection('Users').doc(userId).get();

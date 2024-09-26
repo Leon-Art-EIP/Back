@@ -1,6 +1,6 @@
 import multer from "multer";
 import path from "path";
-import logger from "../admin/logger.mjs"; // Assurez-vous que le chemin est correct pour votre logger
+import logger from "../admin/logger.mjs";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // max file size: 5MB
+    fileSize: 50 * 1024 * 1024, // max file size: 50MB
   },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png/;

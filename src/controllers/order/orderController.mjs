@@ -125,28 +125,35 @@ export const getLatestBuyOrders = async (req, res) => {
       .offset(skip)
       .get();
 
-    const formattedOrders = await Promise.all(buyOrdersSnapshot.docs.map(async (doc) => {
-      const order = doc.data();
-      const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
-      const artPublication = artPublicationDoc.data();
-
-      return {
-        orderId: order.id,
-        buyerId: order.buyerId,
-        sellerId: order.sellerId,
-        orderState: order.orderState,
-        paymentStatus: order.paymentStatus,
-        orderPrice: order.orderPrice,
-        createdAt: order.createdAt,
-        updatedAt: order.updatedAt,
-        artPublicationId: order.artPublicationId,
-        artPublicationName: artPublication.name,
-        artPublicationDescription: artPublication.description,
-        artPublicationPrice: artPublication.price,
-        artPublicationImage: artPublication.image,
-        orderRating: order.orderRating,
-      };
-    }));
+      const formattedOrders = await Promise.all(buyOrdersSnapshot.docs.map(async (doc) => {
+        const order = doc.data();
+        
+        // Fetch the art publication
+        const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
+        const artPublication = artPublicationDoc.exists ? artPublicationDoc.data() : null;
+        
+        return {
+          orderId: order.id,
+          buyerId: order.buyerId,
+          sellerId: order.sellerId,
+          orderState: order.orderState,
+          paymentStatus: order.paymentStatus,
+          orderPrice: order.orderPrice,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          
+          // Use default values if artPublication is not found
+          artPublicationId: order.artPublicationId,
+          artPublicationName: artPublication ? artPublication.name : "Unknown",
+          artPublicationDescription: artPublication ? artPublication.description : "No description available",
+          artPublicationPrice: artPublication ? artPublication.price : order.orderPrice,
+          artPublicationImage: artPublication ? artPublication.image : 'uploads/default-image-art.jpg',
+          
+          // Order rating might not exist, provide a default value
+          orderRating: order.orderRating || 0,
+        };
+      }));
+      
 
     res.json(formattedOrders);
   } catch (err) {
@@ -184,12 +191,21 @@ export const getLatestSellOrders = async (req, res) => {
         orderPrice: order.orderPrice,
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
+        // Use default values if artPublication is not found
         artPublicationId: order.artPublicationId,
-        artPublicationName: artPublication.name,
-        artPublicationDescription: artPublication.description,
-        artPublicationPrice: artPublication.price,
-        artPublicationImage: artPublication.image,
-        orderRating: order.orderRating,
+        artPublicationName: artPublication ? artPublication.name : "Unknown",
+        artPublicationDescription: artPublication
+          ? artPublication.description
+          : "No description available",
+        artPublicationPrice: artPublication
+          ? artPublication.price
+          : order.orderPrice,
+        artPublicationImage: artPublication
+          ? artPublication.image
+          : "uploads/default-image-art.jpg",
+
+        // Order rating might not exist, provide a default value
+        orderRating: order.orderRating || 0,
       };
     }));
 
@@ -218,7 +234,7 @@ export const getBuyOrderById = async (req, res) => {
 
     const order = orderDoc.docs[0].data();
     const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
-    const artPublication = artPublicationDoc.data();
+    const artPublication = artPublicationDoc.exists ? artPublicationDoc.data() : null;
     const sellerDoc = await db.collection('Users').doc(order.sellerId).get();
     const seller = sellerDoc.data();
 
@@ -226,18 +242,27 @@ export const getBuyOrderById = async (req, res) => {
       orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
-      artPublicationId: order.artPublicationId,
-      artPublicationName: artPublication.name,
-      artPublicationDescription: artPublication.description,
-      artPublicationPrice: artPublication.price,
-      artPublicationImage: artPublication.image,
       sellerId: order.sellerId,
       sellerName: seller.username,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       buyerId: order.buyerId,
       buyerName: req.user.username,
-      orderRating: order.orderRating,
+      // Use default values if artPublication is not found
+      artPublicationId: order.artPublicationId,
+      artPublicationName: artPublication ? artPublication.name : "Unknown",
+      artPublicationDescription: artPublication
+        ? artPublication.description
+        : "No description available",
+      artPublicationPrice: artPublication
+        ? artPublication.price
+        : order.orderPrice,
+      artPublicationImage: artPublication
+        ? artPublication.image
+        : "uploads/default-image-art.jpg",
+
+      // Order rating might not exist, provide a default value
+      orderRating: order.orderRating || 0,
     };
 
     res.json(formattedOrder);
@@ -265,7 +290,7 @@ export const getSellOrderById = async (req, res) => {
 
     const order = orderDoc.docs[0].data();
     const artPublicationDoc = await db.collection('ArtPublications').doc(order.artPublicationId).get();
-    const artPublication = artPublicationDoc.data();
+    const artPublication = artPublicationDoc.exists ? artPublicationDoc.data() : null;
     const buyerDoc = await db.collection('Users').doc(order.buyerId).get();
     const buyer = buyerDoc.data();
 
@@ -273,18 +298,27 @@ export const getSellOrderById = async (req, res) => {
       orderId: order.id,
       orderState: order.orderState,
       orderPrice: order.orderPrice,
-      artPublicationId: order.artPublicationId,
-      artPublicationName: artPublication.name,
-      artPublicationDescription: artPublication.description,
-      artPublicationPrice: artPublication.price,
-      artPublicationImage: artPublication.image,
       buyerId: order.buyerId,
       buyerName: buyer.username,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       sellerId: order.sellerId,
       sellerName: req.user.username,
-      orderRating: order.orderRating,
+      // Use default values if artPublication is not found
+      artPublicationId: order.artPublicationId,
+      artPublicationName: artPublication ? artPublication.name : "Unknown",
+      artPublicationDescription: artPublication
+        ? artPublication.description
+        : "No description available",
+      artPublicationPrice: artPublication
+        ? artPublication.price
+        : order.orderPrice,
+      artPublicationImage: artPublication
+        ? artPublication.image
+        : "uploads/default-image-art.jpg",
+
+      // Order rating might not exist, provide a default value
+      orderRating: order.orderRating || 0,
     };
 
     res.json(formattedOrder);

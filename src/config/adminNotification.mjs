@@ -32,7 +32,7 @@ try {
 // Initialisez Firebase Admin SDK
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://leon-art.firebaseio.com",
+    //databaseURL: "https://leon-art.firebaseio.com",
 }, 'notification');
 
 logger.info("Firebase Notification connected...");

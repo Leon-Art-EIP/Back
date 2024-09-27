@@ -138,8 +138,8 @@ export const createStripeAccountLink = async (req, res) => {
 
     await userRef.update({ stripeAccountId: account.id });
 
-    const refreshUrl = source === 'web' ? `${process.env.BASE_WEB_URL}/settings/me` : `${process.env.MOBILE_APP_URL}/account/stripe/reauth`;
-    const returnUrl = source === 'web' ? `${process.env.BASE_WEB_URL}/settings/me` : `${process.env.MOBILE_APP_URL}/account/stripe/return`;
+    const refreshUrl = source === 'web' ? `${process.env.BASE_WEB_URL}/settings/me` : `${process.env.MOBILE_APP_URL_STRIPE_REDIRECT}`;
+    const returnUrl = source === 'web' ? `${process.env.BASE_WEB_URL}/settings/me` : `${process.env.MOBILE_APP_URL_STRIPE_REDIRECT}`;
 
     const accountLink = await stripe.accountLinks.create({
       account: account.id,

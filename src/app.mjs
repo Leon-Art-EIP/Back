@@ -33,6 +33,8 @@ import SocketManager from "./utils/socketManager.mjs";
 import logger from './admin/logger.mjs';
 import signalmentRoutes from './routes/signalmentRoutes.mjs';
 import googleRoutes from './routes/googleRoutes.mjs';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -81,11 +83,25 @@ app.use(cors({
   optionsSuccessStatus: 200,
 }));
 
+app.use(helmet());
+
+app.use(bodyParser.json({ limit: '10kb' }));
+
+
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limite chaque IP à 100 requêtes par fenêtre de 15 minutes
+  message: "Too many requests from this IP, please try again later."
+});
+
+app.use(limiter);
+
 
 // webhooks
 app.post('/webhooks/stripe', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);

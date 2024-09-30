@@ -55,6 +55,7 @@ export const signup = async (req, res) => {
       profilePicture: 'uploads/static/default-profile-pic.png',
       bannerPicture: 'uploads/static/default-banner-pic.png',
       stripeAccountId: '',
+      emailNotificationEnabled: false,
     };
 
     await newUserRef.set(user);

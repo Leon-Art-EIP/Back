@@ -60,6 +60,7 @@ passport.use(
                         canPostArticles: true,
                         bannerPicture: 'uploads/static/default-banner-pic.png',
                         stripeAccountId: '',
+                        emailNotificationEnabled: false,
                     };
                     user = new User(userData);
                     await newUserRef.set(user.toJSON());
@@ -164,6 +165,7 @@ export const mobileLogin = async (req, res, next) => {
                 canPostArticles: true,
                 bannerPicture: 'uploads/static/default-banner-pic.png',
                 stripeAccountId: '',
+                emailNotificationEnabled: false,
             };
             user = new User(userData);
             await newUserRef.set(user.toJSON());

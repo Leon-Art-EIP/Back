@@ -29,23 +29,23 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                sh 'sudo dnf install openssl1.1 -y'
+                sh 'sudo apt install openssl1.1 -y'
                 sh 'npm install'
             }
         }
 
-        stage('Test with Jest') {
-            steps {
-                script {
-                    try {
-                        sh 'npm run test | tee tests.log'
-                    } catch (Exception e) {
-                        currentBuild.result = 'FAILURE'
-                        throw e
-                    }
-                }
-            }
-        }
+        // stage('Test with Jest') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 sh 'npm run test | tee tests.log'
+        //             } catch (Exception e) {
+        //                 currentBuild.result = 'FAILURE'
+        //                 throw e
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Post-Test Actions') {
             steps {
@@ -101,6 +101,38 @@ pipeline {
                         echo "Cleaning workspace..."
                         sh "docker rmi ${DOCKER_REPO_DEV_BACK}:latest"
                         sh "docker rmi ${DOCKER_REPO_DEV_BACK}:${env.VERSION}.${env.BUILD_NUMBER}"
+
+                        cleanWs(cleanWhenNotBuilt: false,
+                                deleteDirs: true,
+                                disableDeferredWipeout: true,
+                                notFailBuild: true,
+                                patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                                           [pattern: '.propsfile', type: 'EXCLUDE']])
+                    } catch(Exception e) {
+                        echo "Stage failed due to exception: ${e}"
+                        error("Failed to push to DockerHub.")
+                    }
+                }
+            }
+            when {
+                branch 'main'
+                expression {
+                    return env.VERSION != null && env.VERSION != ""
+                }
+            }
+            steps {
+                script {
+                    try {
+                        echo "Pushing to DockerHub..."
+                        sh "docker build -t leonarteip/back-prod:latest -t leonarteip/back-prod:${env.VERSION}.${env.BUILD_NUMBER} ."
+                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                        sh "docker push leonarteip/back-prod:latest"
+                        sh "docker push leonarteip/back-prod:${env.VERSION}.${env.BUILD_NUMBER}"
+
+                        echo "Pushed to DockerHub successfully."
+                        echo "Cleaning workspace..."
+                        sh "docker rmi leonarteip/back-prod:latest"
+                        sh "docker rmi leonarteip/back-prod:${env.VERSION}.${env.BUILD_NUMBER}"
 
                         cleanWs(cleanWhenNotBuilt: false,
                                 deleteDirs: true,

@@ -23,8 +23,18 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *     description: |
  *       Register a new user in the system by providing a username, email, and password in JSON format.
  *       Returns a JWT token if successful. The token is valid for 1 hour.
- *       Username must be between 3 and 20 characters and contain only letters, numbers, and underscores.
- *       Password must be at least 8 characters long and should not be too weak.
+ *       
+ *       **Username Requirements:**
+ *       - Must be between 3 and 20 characters.
+ *       - Must contain only letters, numbers, and underscores.
+ *       
+ *       **Password Requirements:**
+ *       - Must be at least 8 characters long.
+ *       - Must contain at least one uppercase letter.
+ *       - Must contain at least one number.
+ *       
+ *       **Optional Fields:**
+ *       - `is_artist`: Indicates if the user is an artist.
  *     tags: [Auth]
  *     security: []  # Indicates this endpoint doesn't require any security (tokens).
  *     requestBody:
@@ -45,8 +55,12 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *                 example: userBasic@example.com
  *               password:
  *                 type: string
- *                 description: The user's password (min. 8 characters).
- *                 example: StrongPassword123*[
+ *                 description: |
+ *                   The user's password:
+ *                   - At least 8 characters long.
+ *                   - Contains at least one uppercase letter.
+ *                   - Contains at least one number.
+ *                 example: Password123
  *               is_artist:
  *                 type: boolean
  *                 description: Indicates if the user is an artist or not.
@@ -65,7 +79,7 @@ import { authenticate } from "../middleware/authenticate.mjs";
  *       409:
  *         description: The email is already in use.
  *       422:
- *         description: Validation error (e.g. invalid username, email format, or weak password).
+ *         description: Validation error (e.g., invalid username, email format, or password not meeting criteria).
  *       500:
  *         description: Server Error.
  */

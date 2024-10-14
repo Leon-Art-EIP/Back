@@ -9,6 +9,7 @@ class Conversation {
     this.UserTwoId = data.UserTwoId;
     this.UserTwoName = data.UserTwoName;
     this.UserTwoPicture = data.UserTwoPicture;
+    this.LastSenderId = data.LastSenderId;
   }
 
   toJSON() {
@@ -21,7 +22,8 @@ class Conversation {
       UserOnePicture: this.UserOnePicture,
       UserTwoId: this.UserTwoId,
       UserTwoName: this.UserTwoName,
-      UserTwoPicture: this.UserTwoPicture
+      UserTwoPicture: this.UserTwoPicture,
+      LastSenderId: this.LastSenderId
     };
   }
 }

@@ -43,7 +43,7 @@
     "firestore-sequelize": "^0.8.0",
     "formidable": "^3.5.1",
     "geofire-common": "^6.0.0",
-    "helmet": "^7.1.0",
+    "helmet": "^7.2.0",
     "jest-coverage-ratchet": "^0.2.3",
     "jest-mock-extended": "^3.0.7",
     "jsonwebtoken": "^9.0.2",

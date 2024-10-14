@@ -9,9 +9,6 @@ import artistRoutes from "./routes/artistRoutes.mjs";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
-import AdminJS from "adminjs";
-import AdminJSExpress from "@adminjs/express";
-import adminOptions from "./admin/admin.mjs";
 import expressSession from "express-session";
 import quizzRoutes from "./routes/quizzRoutes.mjs";
 import followRoutes from "./routes/followsRoutes.mjs";
@@ -133,34 +130,6 @@ app.use("/api/map", mapRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/signalments', signalmentRoutes);
 app.use('/api/', googleRoutes);
-
-
-
-// AdminJS CONFIG
-// const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-// const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-
-// const admin = new AdminJS(adminOptions);
-// const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-//   authenticate: async (email, password) => {
-//     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-//       return { email: ADMIN_EMAIL };
-//     }
-//     return false;
-//   },
-//   cookieName: 'adminjs',
-//   cookiePassword: 'super-secret-and-long-cookie-password',
-// });
-
-// app.use(
-//   expressSession({
-//     secret: "some-secret",
-//     resave: true,
-//     saveUninitialized: true,
-//   })
-// );
-
-// app.use(admin.options.rootPath, adminRouter);
 
 // Logging middleware
 app.use((req, res, next) => {

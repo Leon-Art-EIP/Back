@@ -1,4 +1,5 @@
-import verify from "jsonwebtoken";
+import pkg from "jsonwebtoken";
+const { verify } = pkg;
 import logger from '../admin/logger.mjs' // Assurez-vous d'importer correctement votre logger
 
 export function authenticate(req, res, next) /* istanbul ignore next */ {

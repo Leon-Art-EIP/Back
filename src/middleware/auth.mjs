@@ -1,4 +1,5 @@
-import { verify } from "jsonwebtoken";
+import pkg from "jsonwebtoken";
+const { verify } = pkg;
 import logger from "../../admin/logger.mjs"; // Assurez-vous d'importer correctement votre logger
 
 export default (req, res, next) => /* istanbul ignore next */ {
@@ -14,7 +15,7 @@ export default (req, res, next) => /* istanbul ignore next */ {
     req.user = decoded.user;
     next();
   } catch (err) {
-    logger.error("Invalid token", { error: err.message, stack: err.stack});
+    logger.error("Invalid token", { error: err.message, stack: err.stack });
     res.status(401).json({ msg: "Invalid token" });
   }
 };

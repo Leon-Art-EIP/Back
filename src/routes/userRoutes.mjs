@@ -11,6 +11,8 @@ import {
   updateProfilePicture,
   updateBannerPicture,
   updateSocialMediaLinks,
+  updateUsername,
+  whoIam,
 } from "../controllers/user/profile/profileController.mjs";
 import {
   uploadProfilePicture,
@@ -421,5 +423,91 @@ router.post("/user/profile/banner-pic", authenticate, uploadBannerPicture, updat
  *         description: Server error.
  */
 router.post("/user/profile/social-links", authenticate, updateSocialMediaLinks);
+
+/**
+ * @swagger
+ * /api/user/profile/username:
+ *   post: 
+ *     summary: Update user username  
+ *     description: Updates the username of the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true 
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: New username.
+ *     responses:
+ *       200:
+ *         description: Updated user profile.
+ *       400:
+ *         description: Invalid username format.
+ *       401:
+ *         description: Unauthorized.
+ *       409:
+ *         description: Username is already in use.
+ *       500:
+ *         description: Server error.
+ */
+//router.post("/user/profile/username", authenticate, updateUsername);
+
+/**
+ * @swagger
+ * /api/user/profile/who-i-am:
+ *   get:
+ *     summary: Get user details
+ *     description: Fetches the details of the authenticated user.
+ *     tags: [User Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User details.
+ *         content: 
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 is_artist:
+ *                   type: boolean
+ *                 biography: 
+ *                   type: string
+ *                 availability:
+ *                   type: string
+ *                 subscription:
+ *                   type: string
+ *                 profilePicture:
+ *                   type: string
+ *                 bannerPicture:
+ *                   type: string
+ *                 socialMediaLinks:
+ *                   type: object
+ *                   properties:
+ *                     instagram:
+ *                       type: string
+ *                     twitter:
+ *                       type: string
+ *                     facebook:
+ *                       type: string
+ *                     tiktok:
+ *                       type: string
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error.
+ *       498:
+ *         description: Invalid or expired token.
+ */
+//router.get("/user/profile/who-i-am", whoIam);
 
 export default router;

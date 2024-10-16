@@ -169,3 +169,76 @@ export const updateSocialMediaLinks = async (req, res) => {
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
+export const updateUsername = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username } = req.body;
+    logger.info(`Updating username for user ID: ${userId}`);
+
+    if (!username || username.length < 3 || username.length > 20 || !/^\w+$/.test(username)) {
+      logger.warn(`Invalid username format: ${username}`);
+      return res.status(400).json({ msg: "Invalid username format" });
+    }
+
+    const querySnapshot = await db.collection('Users').where('username', '==', username).limit(1).get();
+    if (!querySnapshot.empty) {
+      logger.info(`Username already in use: ${username}`);
+      return res.status(409).json({ msg: "Username is already in use" });
+    }
+
+    await db.collection('Users').doc(userId).update({ username });
+    const updatedUserDoc = await db.collection('Users').doc(userId).get();
+
+    const userWithoutSensitiveInfo = updatedUserDoc.data();
+    delete userWithoutSensitiveInfo.password;
+    delete userWithoutSensitiveInfo.email;
+
+    res.json(userWithoutSensitiveInfo);
+    logger.info(`Username updated successfully for user ID: ${userId}`);
+  } catch (err) {
+    logger.error(`Error updating username for user ID: ${userId} - ${err.message}`);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+export const whoIam = async (req, res) => {
+  try {
+    // Récupère le token depuis le header 'Authorization'
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Token manquant' });
+    }
+
+    // Vérifie le token
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        // Retourne un 'undefined' si le token est invalide ou expiré
+        return res.status(498).json({
+          message: 'Token invalide ou expiré',
+          user: undefined, // Utilisateur non valide, retourne undefined
+        });
+      }
+
+      // Si le token est valide, retourne les détails de l'utilisateur
+      return res.status(200).json({
+        message: 'Token valide',
+        user: {
+          id: decoded.id,
+          username: decoded.username,
+          is_artist: decoded.is_artist,
+          biography: decoded.biography,
+          availability: decoded.availability,
+          subscription: decoded.subscription,
+          profilePicture: decoded.profilePicture,
+          bannerPicture: decoded.bannerPicture,
+          socialMediaLinks: decoded.socialMediaLinks,
+        },
+      });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erreur du serveur', error: error.message });
+  }
+};
+

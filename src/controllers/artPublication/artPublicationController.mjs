@@ -32,7 +32,7 @@ export const createArtPublication = async (req, res) => {
       description,
       dimension,
       isForSale,
-      price,
+      price: price ? Number(price) : null,
       location,
       likes: [],
       createdAt: new Date(),

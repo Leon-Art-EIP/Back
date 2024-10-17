@@ -28,6 +28,7 @@ export const searchArtworksAndArtists = async (req, res) => {
     }
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split('-').map(Number);
+      console.log("minPrice = ", minPrice, "  maxPrice = ", maxPrice);
       artQuery = artQuery.where('price', '>=', minPrice).where('price', '<=', maxPrice);
     }
     if (isForSale !== undefined) {

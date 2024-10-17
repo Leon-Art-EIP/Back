@@ -144,6 +144,9 @@ router.get("/user/check-email/:email", limiter, checkEmailAvailability);
  *                   type: string
  *                 bannerPicture:
  *                   type: string
+ *                 emailNotificationEnabled:
+ *                   type: boolean
+ *                   description: Indicates if email notifications are enabled.
  *                 socialMediaLinks:
  *                   type: object
  *                   properties:
